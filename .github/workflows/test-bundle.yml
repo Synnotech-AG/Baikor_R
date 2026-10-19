@@ -1,0 +1,54 @@
+name: Published package test bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Already-published stable version (X.Y.Z)'
+        required: true
+        type: string
+      expected_commit:
+        description: 'Exact 40-character source commit carried by both published packages'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  export:
+    name: Verify and export existing packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Check bundle and release guards
+        run: node --test tests/release/*.test.mjs
+      - name: Download immutable packages and create checksummed bundle
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release/test-bundle.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: baikor-r-test-bundle-${{ inputs.version }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/baikor-test-bundle/image.tar.gz
+            ${{ runner.temp }}/baikor-test-bundle/chart.tgz
+            ${{ runner.temp }}/baikor-test-bundle/bundle.json
+            ${{ runner.temp }}/baikor-test-bundle/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

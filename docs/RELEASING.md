@@ -112,3 +112,45 @@ Operators then update their addon revision and run the normal Core playbook.
 
 Local development may continue to use `helm.local_chart_path` and an imported
 local image. That mode does not verify the public release download path.
+
+## Test already-published private packages
+
+The [Published package test bundle workflow](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/test-bundle.yml)
+exports existing packages for an authorized local test when direct GHCR access
+is unavailable. Run it from `main` with the published `version` and its exact
+40-character `expected_commit`. The expected commit identifies the packages;
+it can differ from the newer commit containing the bundle workflow.
+
+The job uses only the runner's automatic `GITHUB_TOKEN`, with `contents: read`
+and `packages: read`. It resolves both version tags to immutable digests, checks
+source/version/revision metadata and chart name/version/appVersion, then downloads
+those digests. It never builds, pushes, changes package visibility, or creates a
+release. The normal Release workflow's anonymous-download gate remains required.
+
+Download the run's `baikor-r-test-bundle-<version>-<run-id>` artifact within seven
+days using authenticated GitHub Actions access. It contains only `image.tar.gz`
+(a Docker image archive retaining the published tag), `chart.tgz`, `bundle.json`
+and `SHA256SUMS`. No registry credentials are included.
+
+Before loading it, verify the file checksums and compare `bundle.json` source,
+commit and both immutable digests with the intended publication run:
+
+```shell
+gh run download <run-id> --repo Synnotech-AG/Baikor_R \
+  --name baikor-r-test-bundle-<version>-<run-id> --dir test-bundle
+cd test-bundle
+sha256sum --check SHA256SUMS
+docker load --input image.tar.gz
+helm show chart chart.tgz
+```
+
+`bundle.json` also records `image.configDigest` for comparison with Docker's
+loaded image ID, and `chart.layerDigest` for comparison with the chart archive's
+SHA256. Docker image export/import can change the manifest representation; the
+verified image configuration provides a stable identity across that transfer.
+
+Use the imported published image and this exact chart archive for the local
+deployment. Record that this is **indirect registry verification**: Actions
+downloaded the packages with its token, and the local operator downloaded the
+checked bundle through GitHub. It does not prove anonymous package availability
+or direct local GHCR authentication, and runtime acceptance is a separate step.
