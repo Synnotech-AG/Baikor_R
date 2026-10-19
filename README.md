@@ -10,6 +10,12 @@ The canonical architecture and implementation plan is maintained in [docs/IMPLEM
 
 Deployment automation is maintained in the separate `baikor_r_addon` repository. It deploys the application into CIVITAS/CORE; it is not the application source itself.
 
+## License
+
+Baikor_R is licensed under the European Union Public Licence, version 1.2
+(SPDX identifier: `EUPL-1.2`). See [LICENSE](LICENSE) for the full license text.
+Third-party dependencies retain their respective licenses.
+
 ## Current implementation
 
 The application includes:
