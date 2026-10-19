@@ -1,0 +1,74 @@
+# .NET build, package, and test output
+**/[Bb]in/
+**/[Oo]bj/
+artifacts/
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+*.trx
+*.nupkg
+*.snupkg
+.helm-packages/
+release.env
+release-description.md
+*.user
+*.rsuser
+*.suo
+*.userprefs
+
+# Node, Vite, and TypeScript output
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/.vite/
+.pnpm-store/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE and operating-system state
+.idea/
+.vs/
+.vscode/
+.codex-docker/
+.codex/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.tmp
+*.log
+
+# Local configuration, credentials, and certificates
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+.kube/
+
+# Local code-intelligence and agent configuration
+.claude/
+.gitnexus/
+AGENTS.md
+CLAUDE.md
+
+# Local review and generated scratch artifacts
+tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+playwright-report/
+test-results/

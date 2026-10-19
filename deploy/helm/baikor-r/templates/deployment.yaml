@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "baikor-r.fullname" . }}
+  labels:
+    {{- include "baikor-r.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "baikor-r.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+      labels:
+        {{- include "baikor-r.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: baikor-r
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- if .Values.authentication.caConfigMap }}
+            - name: SSL_CERT_FILE
+              value: /etc/baikor/platform-ca/ca.crt
+            - name: SSL_CERT_DIR
+              value: /etc/ssl/certs
+            {{- end }}
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ .Values.aspnetCore.environment | quote }}
+            - name: ASPNETCORE_URLS
+              value: {{ if .Values.telemetry.metrics.enabled }}http://+:{{ .Values.service.targetPort }};http://+:{{ .Values.telemetry.metrics.port }}{{ else }}http://+:{{ .Values.service.targetPort }}{{ end }}
+            - name: Telemetry__MetricsPort
+              value: {{ .Values.telemetry.metrics.port | quote }}
+            - name: DataProtection__KeysPath
+              value: {{ .Values.dataProtection.keysPath | quote }}
+            - name: Authentication__Enabled
+              value: {{ .Values.authentication.enabled | quote }}
+            {{- if .Values.authentication.enabled }}
+            - name: Authentication__Authority
+              value: {{ .Values.authentication.authority | quote }}
+            - name: Authentication__ClientId
+              value: {{ .Values.authentication.clientId | quote }}
+            - name: Authentication__AllowInvalidServerCertificate
+              value: {{ .Values.authentication.allowInvalidServerCertificate | quote }}
+            {{- if .Values.authentication.existingSecret.name }}
+            - name: Authentication__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authentication.existingSecret.name | quote }}
+                  key: {{ .Values.authentication.existingSecret.key | quote }}
+            {{- else }}
+            - name: Authentication__ClientSecret
+              value: {{ .Values.authentication.clientSecret | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.database.existingSecret.name }}
+            - name: ConnectionStrings__BaikorR
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret.name | quote }}
+                  key: {{ .Values.database.existingSecret.key | quote }}
+            {{- else if .Values.database.connectionString }}
+            - name: ConnectionStrings__BaikorR
+              value: {{ .Values.database.connectionString | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+            {{- if .Values.telemetry.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.telemetry.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.authentication.caConfigMap }}
+            - name: platform-ca
+              mountPath: /etc/baikor/platform-ca
+              readOnly: true
+            {{- end }}
+            {{- if .Values.database.caConfigMap }}
+            - name: database-ca
+              mountPath: /etc/baikor/database-ca
+              readOnly: true
+            {{- end }}
+            - name: temporary-files
+              mountPath: /tmp
+            {{- if .Values.dataProtection.persistence.enabled }}
+            - name: data-protection-keys
+              mountPath: {{ .Values.dataProtection.keysPath | quote }}
+            {{- end }}
+      volumes:
+        {{- if .Values.authentication.caConfigMap }}
+        - name: platform-ca
+          configMap:
+            name: {{ .Values.authentication.caConfigMap | quote }}
+        {{- end }}
+        {{- if .Values.database.caConfigMap }}
+        - name: database-ca
+          configMap:
+            name: {{ .Values.database.caConfigMap | quote }}
+        {{- end }}
+        - name: temporary-files
+          emptyDir: {}
+        {{- if .Values.dataProtection.persistence.enabled }}
+        - name: data-protection-keys
+          persistentVolumeClaim:
+            claimName: {{ include "baikor-r.fullname" . }}-data-protection
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

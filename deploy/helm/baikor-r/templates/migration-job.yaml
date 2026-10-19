@@ -1,0 +1,68 @@
+{{- if and .Values.migrations.enabled (or .Values.database.migrationExistingSecret.name .Values.database.existingSecret.name .Values.database.connectionString) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "baikor-r.fullname" . }}-migration
+  labels:
+    {{- include "baikor-r.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "baikor-r.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["dotnet", "BaikorR.Host.dll", "--migrate"]
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ .Values.aspnetCore.environment | quote }}
+            {{- if .Values.database.migrationExistingSecret.name }}
+            - name: ConnectionStrings__BaikorR
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.migrationExistingSecret.name | quote }}
+                  key: {{ .Values.database.migrationExistingSecret.key | quote }}
+            {{- else if .Values.database.existingSecret.name }}
+            - name: ConnectionStrings__BaikorR
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret.name | quote }}
+                  key: {{ .Values.database.existingSecret.key | quote }}
+            {{- else }}
+            - name: ConnectionStrings__BaikorR
+              value: {{ .Values.database.connectionString | quote }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.database.caConfigMap }}
+            - name: database-ca
+              mountPath: /etc/baikor/database-ca
+              readOnly: true
+            {{- end }}
+            - name: temporary-files
+              mountPath: /tmp
+      volumes:
+        {{- if .Values.database.caConfigMap }}
+        - name: database-ca
+          configMap:
+            name: {{ .Values.database.caConfigMap | quote }}
+        {{- end }}
+        - name: temporary-files
+          emptyDir: {}
+{{- end }}

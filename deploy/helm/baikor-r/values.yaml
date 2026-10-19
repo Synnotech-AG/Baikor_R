@@ -1,0 +1,105 @@
+replicaCount: 1
+
+image:
+  repository: baikor-r
+  pullPolicy: IfNotPresent
+  # An empty tag uses the chart's appVersion. CIVITAS deployments override it
+  # through the add-on's software reference.
+  tag: ""
+
+imagePullSecrets: []
+# Keep workload names stable while the OCI artifact uses a separate repository
+# from the application image on Docker Hub.
+nameOverride: "baikor-r"
+fullnameOverride: ""
+
+aspnetCore:
+  environment: Production
+
+authentication:
+  caConfigMap: ""
+  enabled: false
+  authority: ""
+  clientId: baikor-r
+  clientSecret: ""
+  existingSecret:
+    name: ""
+    key: clientSecret
+  allowInvalidServerCertificate: false
+
+dataProtection:
+  keysPath: /var/lib/baikor-r/keys
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClassName: ""
+
+database:
+  # Public CA bundle only; never mount the database server's private key.
+  caConfigMap: ""
+  connectionString: ""
+  existingSecret:
+    name: ""
+    key: connectionString
+  migrationExistingSecret:
+    name: ""
+    key: connectionString
+
+migrations:
+  enabled: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+telemetry:
+  metrics:
+    enabled: true
+    port: 9464
+    serviceMonitor:
+      enabled: false
+      interval: 30s
+      scrapeTimeout: 10s
+      additionalLabels: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: baikor-r.civitas.test
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1654
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

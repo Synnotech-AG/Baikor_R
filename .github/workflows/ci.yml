@@ -1,0 +1,284 @@
+name: CI and release
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  HELM_CLI_IMAGE: alpine/helm:3.19.0
+  CIVITAS_CORE_MINOR: '1.7'
+
+jobs:
+  backend-tests:
+    name: Backend tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Run backend tests
+        run: >-
+          dotnet test BaikorR.sln
+          --configuration Release
+          /p:ContinuousIntegrationBuild=true
+
+  frontend-checks:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: src/baikor-r-web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: src/baikor-r-web/package.json
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: src/baikor-r-web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run build
+
+  helm-lint:
+    name: Helm lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint the Helm chart
+        run: >-
+          docker run --rm
+          --user "$(id -u):$(id -g)"
+          --env HOME=/tmp
+          --volume "$GITHUB_WORKSPACE:/workspace"
+          --workdir /workspace
+          "$HELM_CLI_IMAGE"
+          lint deploy/helm/baikor-r
+
+  validate-release-tag:
+    name: Validate release tag
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      stable: ${{ steps.validate.outputs.stable }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a supported stable version on the default branch
+        id: validate
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "This tag is not a stable release version; validation only."
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$GITHUB_REF_NAME" != "$CIVITAS_CORE_MINOR."* ]]; then
+            echo "Release tags must use the supported CIVITAS/CORE minor line $CIVITAS_CORE_MINOR.x." >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor HEAD "refs/remotes/origin/$DEFAULT_BRANCH"; then
+            echo "Stable release tags must reference a commit on $DEFAULT_BRANCH." >&2
+            exit 1
+          fi
+
+          echo "stable=true" >> "$GITHUB_OUTPUT"
+
+  publish-image-and-chart:
+    name: Publish image and chart
+    needs: [backend-tests, frontend-checks, helm-lint, validate-release-tag]
+    if: needs.validate-release-tag.outputs.stable == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    outputs:
+      release-version: ${{ steps.publish.outputs.release-version }}
+      image-reference: ${{ steps.publish.outputs.image-reference }}
+      image-digest-reference: ${{ steps.publish.outputs.image-digest-reference }}
+      helm-chart-reference: ${{ steps.publish.outputs.helm-chart-reference }}
+      helm-chart-digest: ${{ steps.publish.outputs.helm-chart-digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Log in to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          test -n "$DOCKERHUB_USERNAME" || { echo "Configure the DOCKERHUB_USERNAME repository secret." >&2; exit 1; }
+          test -n "$DOCKERHUB_TOKEN" || { echo "Configure the DOCKERHUB_TOKEN repository secret." >&2; exit 1; }
+          export DOCKER_CONFIG="$RUNNER_TEMP/docker-release"
+          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
+          mkdir -p "$DOCKER_CONFIG"
+          printf '%s' "$DOCKERHUB_TOKEN" | docker login registry-1.docker.io --username "$DOCKERHUB_USERNAME" --password-stdin
+      - name: Build, publish, and verify anonymous access
+        id: publish
+        run: |
+          RELEASE_VERSION="$GITHUB_REF_NAME"
+          IMAGE_NAME="docker.io/synnotech-ag/baikor-r"
+          VERSIONED_IMAGE="$IMAGE_NAME:$RELEASE_VERSION"
+          LATEST_IMAGE="$IMAGE_NAME:latest"
+          HELM_OUTPUT_DIRECTORY="$GITHUB_WORKSPACE/.helm-packages"
+          HELM_PACKAGE="$HELM_OUTPUT_DIRECTORY/baikor-r-chart-$RELEASE_VERSION.tgz"
+          HELM_CHART_REFERENCE="oci://registry-1.docker.io/synnotech-ag/baikor-r-chart"
+          HELM_PUSH_DESTINATION="oci://registry-1.docker.io/synnotech-ag"
+
+          mkdir -p "$HELM_OUTPUT_DIRECTORY"
+
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            --env HOME=/tmp \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            "$HELM_CLI_IMAGE" \
+            package deploy/helm/baikor-r \
+            --version "$RELEASE_VERSION" \
+            --app-version "$RELEASE_VERSION" \
+            --destination .helm-packages
+
+          test -f "$HELM_PACKAGE"
+
+          docker build \
+            --file "$GITHUB_WORKSPACE/Dockerfile" \
+            --build-arg "VERSION=$RELEASE_VERSION" \
+            --tag "$VERSIONED_IMAGE" \
+            --tag "$LATEST_IMAGE" \
+            "$GITHUB_WORKSPACE"
+
+          docker push "$VERSIONED_IMAGE"
+          docker push "$LATEST_IMAGE"
+
+          HELM_PUSH_OUTPUT="$(docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            --env HOME=/tmp \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --volume "$DOCKER_CONFIG:/tmp/.docker:ro" \
+            --workdir /workspace \
+            "$HELM_CLI_IMAGE" \
+            push ".helm-packages/baikor-r-chart-$RELEASE_VERSION.tgz" \
+            "$HELM_PUSH_DESTINATION" \
+            --registry-config /tmp/.docker/config.json 2>&1)"
+          echo "$HELM_PUSH_OUTPUT"
+          HELM_CHART_DIGEST="$(printf '%s\n' "$HELM_PUSH_OUTPUT" | awk '/^Digest: / {print $2}' | tail -n 1)"
+          test -n "$HELM_CHART_DIGEST"
+
+          docker pull "$VERSIONED_IMAGE" >/dev/null
+          IMAGE_DIGEST_REFERENCE="$(docker image inspect --format '{{index .RepoDigests 0}}' "$VERSIONED_IMAGE")"
+          test -n "$IMAGE_DIGEST_REFERENCE"
+
+          docker logout registry-1.docker.io
+          docker pull "$VERSIONED_IMAGE" >/dev/null
+          docker run --rm \
+            --env HOME=/tmp \
+            "$HELM_CLI_IMAGE" \
+            show chart "$HELM_CHART_REFERENCE" \
+            --version "$RELEASE_VERSION" >/dev/null
+
+          {
+            echo "release-version=$RELEASE_VERSION"
+            echo "image-reference=$VERSIONED_IMAGE"
+            echo "image-digest-reference=$IMAGE_DIGEST_REFERENCE"
+            echo "helm-chart-reference=$HELM_CHART_REFERENCE"
+            echo "helm-chart-digest=$HELM_CHART_DIGEST"
+          } >> "$GITHUB_OUTPUT"
+      - name: Log out of Docker Hub
+        if: always()
+        run: docker logout registry-1.docker.io || true
+
+  create-release:
+    name: Create GitHub release
+    needs: publish-image-and-chart
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Create release from the published artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.publish-image-and-chart.outputs.release-version }}
+          IMAGE_REFERENCE: ${{ needs.publish-image-and-chart.outputs.image-reference }}
+          IMAGE_DIGEST_REFERENCE: ${{ needs.publish-image-and-chart.outputs.image-digest-reference }}
+          HELM_CHART_REFERENCE: ${{ needs.publish-image-and-chart.outputs.helm-chart-reference }}
+          HELM_CHART_DIGEST: ${{ needs.publish-image-and-chart.outputs.helm-chart-digest }}
+        run: |
+          cat > "$RUNNER_TEMP/release-description.md" <<EOF
+          Baikor-R is the CIVITAS/CORE application for creating, managing, and publishing construction-site data.
+
+          ## Release summary
+
+          This release contains the authenticated management application, its API and database migrations, and the Helm chart required for deployment.
+
+          ## Container image
+
+          - Versioned image: $IMAGE_REFERENCE
+          - Immutable image: $IMAGE_DIGEST_REFERENCE
+          - [Open public container image](https://hub.docker.com/r/synnotech-ag/baikor-r)
+
+          Pull the exact immutable image:
+
+              docker pull $IMAGE_DIGEST_REFERENCE
+
+          ## Helm chart
+
+          - Chart: baikor-r-chart
+          - Version: $RELEASE_VERSION
+          - OCI reference: $HELM_CHART_REFERENCE
+          - Digest: $HELM_CHART_DIGEST
+          - [Open public Helm chart](https://hub.docker.com/r/synnotech-ag/baikor-r-chart)
+
+          ## Install in CIVITAS/CORE
+
+          Follow the [addon installation instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/main/README.md).
+          Select and pin a compatible addon revision whose software references select this release's chart and image.
+          Configure the operator-provided PostGIS database, platform certificate trust and Keycloak access in the Core inventory. The public image and chart do not require registry credentials.
+          Then run the Core Ansible playbook from the operator's Core checkout, using the prepared inventory:
+
+              ansible-playbook -i inventory.yml core_platform/playbook.yml --tags addons
+
+          The addon installs the Helm chart and supplies its required configuration. A bare Helm installation is not a complete CIVITAS/CORE addon deployment.
+
+          ## Source
+
+          - [Commit ${GITHUB_SHA:0:8}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)
+          - [Tag $RELEASE_VERSION]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$RELEASE_VERSION)
+          EOF
+
+          gh release create "$RELEASE_VERSION" \
+            --verify-tag \
+            --title "Baikor-R $RELEASE_VERSION" \
+            --notes-file "$RUNNER_TEMP/release-description.md"

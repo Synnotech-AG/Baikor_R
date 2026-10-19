@@ -1,0 +1,17 @@
+{{- if .Values.dataProtection.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "baikor-r.fullname" . }}-data-protection
+  labels:
+    {{- include "baikor-r.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.dataProtection.persistence.size }}
+  {{- with .Values.dataProtection.persistence.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}

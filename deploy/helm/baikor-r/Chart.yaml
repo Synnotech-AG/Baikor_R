@@ -1,0 +1,6 @@
+apiVersion: v2
+name: baikor-r-chart
+description: CIVITAS/CORE construction-site management add-on
+type: application
+version: 1.7.5
+appVersion: "1.7.5"

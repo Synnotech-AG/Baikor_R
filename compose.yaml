@@ -1,0 +1,21 @@
+name: baikor-r
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: baikor_r
+      POSTGRES_USER: baikor_r
+      POSTGRES_PASSWORD: baikor_r
+    ports:
+      - "127.0.0.1:54329:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baikor_r -d baikor_r"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - baikor-r-postgis:/var/lib/postgresql/data
+
+volumes:
+  baikor-r-postgis:
