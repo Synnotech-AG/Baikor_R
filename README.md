@@ -84,6 +84,16 @@ pnpm run lint
 pnpm run build
 ```
 
+Run the same disposable Keycloak/PostGIS fixture as CI (requires Docker Compose
+and OpenSSL):
+
+```powershell
+python tests/platform/run_ci.py
+```
+
+See [platform test instructions](tests/platform/README.md) for isolated runs and
+explicit configuration against an existing Core installation.
+
 With the local CIVITAS Core platform running, test real Keycloak accounts:
 
 ```powershell
@@ -106,23 +116,25 @@ helm lint deploy/helm/baikor-r
 
 ## GitHub Actions and releases
 
-The workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) validates
-backend tests, frontend lint/build, and the Helm chart on pushes and pull requests.
-It can also be run manually. Release
-tags must follow the supported CIVITAS/CORE minor line. For the current
-integration, a stable tag such as `1.7.5` additionally publishes the finished
-deployment artifacts publicly:
+The [CI workflow](.github/workflows/ci.yml) runs backend tests, frontend
+lint/build, Helm validation, release guard tests and a real Keycloak/PostGIS
+smoke test on pushes and pull requests. The smoke test creates its own disposable
+environment and does not access a developer or customer cluster.
 
-- Container images `docker.io/synnotech-ag/baikor-r:1.7.5` and `:latest`.
-- OCI Helm chart `oci://registry-1.docker.io/synnotech-ag/baikor-r-chart`
-  version `1.7.5`.
-- A GitHub release for the stable tag with release notes, immutable
-  digests, and public Docker Hub links.
+To publish, open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml),
+select `main`, enter a new version such as `1.7.6`, and choose **Run workflow**.
+After the checks pass, it publishes:
 
-The release version is also injected into the .NET assembly, so `/api/version`, the image tag, and the Helm chart report the same version. A published version must never be moved or reused, and fixes receive a new patch version. All validation jobs must finish successfully before publication starts. Jobs run on GitHub-hosted Ubuntu runners. Ordinary branch pushes do not publish images, charts or releases.
+- Image `ghcr.io/synnotech-ag/baikor-r:1.7.6`.
+- OCI chart `oci://ghcr.io/synnotech-ag/baikor-r-chart`, version `1.7.6`.
+- A GitHub release containing release notes, source revision, immutable digests,
+  the chart archive and checksums.
 
-The required Docker Hub repositories, GitHub Actions secrets, and release
-procedure are documented in [docs/RELEASING.md](docs/RELEASING.md).
+One version input controls the application and chart versions. No manual tag or
+version-file edits are required. Releases use the automatic GitHub token;
+ordinary CI runs cannot publish. Published versions are never overwritten.
+See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
+safe retries and the operator deployment process.
 
 ## Customer CIVITAS deployment
 
@@ -134,8 +146,8 @@ not configure these prerequisites. Keep certificate validation enabled.
 
 ## Optional local development deployment
 
-The normal integration test setup uses public Docker Hub artifacts through the addon
-submodule. For fast local iteration only, explicitly configure a separate local
+Release deployments use public GHCR artifacts through the addon submodule.
+For local iteration, explicitly configure a separate local
 inventory with `helm.local_chart_path` pointing to this checkout's chart and
 `helm_values.image.repository: baikor-r` / `helm_values.image.tag: dev`. Then build
 and import the development image into k3d:

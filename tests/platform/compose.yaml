@@ -1,0 +1,73 @@
+# No published ports or shared volumes: this stack cannot target a local Core deployment.
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: baikor_test
+      POSTGRES_USER: baikor_test
+      POSTGRES_PASSWORD: ${BAIKOR_TEST_DB_PASSWORD:?Use run_ci.py}
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U baikor_test -d baikor_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    command: [start-dev, --import-realm, --http-enabled=false]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${BAIKOR_TEST_ADMIN_USERNAME:?Use run_ci.py}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${BAIKOR_TEST_ADMIN_PASSWORD:?Use run_ci.py}
+      KC_HOSTNAME: https://keycloak:8443
+      KC_HTTPS_CERTIFICATE_FILE: /certificates/server.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /certificates/server.key
+      BAIKOR_TEST_CLIENT_SECRET: ${BAIKOR_TEST_CLIENT_SECRET:?Use run_ci.py}
+    volumes:
+      - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}:/certificates:ro
+      - ./ci-realm.json:/opt/keycloak/data/import/baikor-ci-realm.json:ro
+
+  migrate:
+    image: ${BAIKOR_TEST_APP_IMAGE:?Use run_ci.py}
+    command: [--migrate]
+    environment:
+      ConnectionStrings__BaikorR: Host=postgis;Database=baikor_test;Username=baikor_test;Password=${BAIKOR_TEST_DB_PASSWORD:?Use run_ci.py}
+    depends_on:
+      postgis:
+        condition: service_healthy
+
+  app:
+    image: ${BAIKOR_TEST_APP_IMAGE:?Use run_ci.py}
+    environment:
+      ASPNETCORE_URLS: https://+:8443
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /certificates/server.crt
+      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /certificates/server.key
+      SSL_CERT_FILE: /certificates/server.crt
+      ConnectionStrings__BaikorR: Host=postgis;Database=baikor_test;Username=baikor_test;Password=${BAIKOR_TEST_DB_PASSWORD:?Use run_ci.py}
+      Authentication__Enabled: "true"
+      Authentication__Authority: https://keycloak:8443/realms/baikor-ci
+      Authentication__ClientId: baikor-r
+      Authentication__ClientSecret: ${BAIKOR_TEST_CLIENT_SECRET:?Use run_ci.py}
+    volumes:
+      - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}:/certificates:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+
+  smoke:
+    image: python:3.13-alpine
+    command: [python, /tests/ci_smoke.py]
+    environment:
+      BAIKOR_TEST_ADMIN_USERNAME: ${BAIKOR_TEST_ADMIN_USERNAME:?Use run_ci.py}
+      BAIKOR_TEST_ADMIN_PASSWORD: ${BAIKOR_TEST_ADMIN_PASSWORD:?Use run_ci.py}
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - .:/tests:ro
+      - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}:/certificates:ro
+    depends_on:
+      app:
+        condition: service_started

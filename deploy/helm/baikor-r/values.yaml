@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: baikor-r
+  repository: ghcr.io/synnotech-ag/baikor-r
   pullPolicy: IfNotPresent
   # An empty tag uses the chart's appVersion. CIVITAS deployments override it
   # through the add-on's software reference.
@@ -9,7 +9,7 @@ image:
 
 imagePullSecrets: []
 # Keep workload names stable while the OCI artifact uses a separate repository
-# from the application image on Docker Hub.
+# from the application image in the container registry.
 nameOverride: "baikor-r"
 fullnameOverride: ""
 

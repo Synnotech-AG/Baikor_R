@@ -26,6 +26,7 @@ AGENTS.md
 CLAUDE.md
 tmp
 .helm-packages
+.release
 release.env
 release-description.md
 **/__pycache__

@@ -2,5 +2,13 @@ apiVersion: v2
 name: baikor-r-chart
 description: CIVITAS/CORE construction-site management add-on
 type: application
-version: 1.7.5
-appVersion: "1.7.5"
+version: 1.7.6
+appVersion: "1.7.6"
+home: https://github.com/Synnotech-AG/Baikor_R
+sources:
+  - https://github.com/Synnotech-AG/Baikor_R
+annotations:
+  org.opencontainers.image.source: https://github.com/Synnotech-AG/Baikor_R
+  org.opencontainers.image.revision: "development"
+  org.opencontainers.image.version: "1.7.6"
+  org.opencontainers.image.licenses: EUPL-1.2

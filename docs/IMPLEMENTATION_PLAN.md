@@ -4,7 +4,7 @@ Last updated: 2026-10-19
 
 ## Implementation status
 
-- Phase 0 is complete. The application source and GitHub Actions workflow are maintained in [Synnotech-AG/Baikor_R](https://github.com/Synnotech-AG/Baikor_R); the add-on source is maintained in its separate GitHub repository. CIVITAS consumes the add-on through a Git submodule. Approved release tags publish the image and Helm chart to Docker Hub and create a GitHub release.
+- Phase 0 is complete. The application source and GitHub Actions workflows are maintained in [Synnotech-AG/Baikor_R](https://github.com/Synnotech-AG/Baikor_R); the add-on source is maintained in its separate GitHub repository. CIVITAS consumes the add-on through a Git submodule. The manual Release workflow tests one source revision, publishes the image and Helm chart to GHCR, verifies anonymous downloads and creates a versioned GitHub release.
 - Phase 1 is complete. React/OpenLayers, ASP.NET Core, tests, a production container, health endpoints, and the baseline Helm chart are implemented and verified.
 - Phase 2 is in progress. The first PostGIS slice includes English persistence POCOs (`ConstructionSite` and `ConstructionSiteArea`), normalized 1:n tables, `geometry(Polygon,25832)` per area, GiST indexes, a clean English baseline migration, optimistic concurrency through `xmin`, use-case validation, controller-based create/get/list/update/delete/status endpoints, containerized migrations, and React create/list/map integration.
 - Phase 3's authentication boundary is complete for the first slice: CIVITAS Keycloak OIDC, secure cookies, antiforgery protection, and API role policies are deployed. Broader authorization tests and organization/tenant rules remain.

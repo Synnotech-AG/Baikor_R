@@ -11,6 +11,7 @@ coverage.*
 *.nupkg
 *.snupkg
 .helm-packages/
+.release/
 release.env
 release-description.md
 *.user

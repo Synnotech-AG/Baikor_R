@@ -1,0 +1,58 @@
+{
+  "realm": "baikor-ci",
+  "enabled": true,
+  "sslRequired": "all",
+  "registrationAllowed": false,
+  "roles": {
+    "client": {
+      "baikor-r": [
+        {"name": "baikor_viewer"},
+        {"name": "baikor_editor"},
+        {"name": "baikor_approver"},
+        {"name": "baikor_admin"}
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "baikor-r",
+      "name": "Disposable Baikor CI fixture",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BAIKOR_TEST_CLIENT_SECRET}",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "https://app:8443",
+      "baseUrl": "/",
+      "redirectUris": ["https://app:8443/*"],
+      "webOrigins": ["https://app:8443"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://app:8443/*",
+        "backchannel.logout.session.required": "true"
+      },
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "Baikor client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "usermodel.clientRoleMapping.clientId": "baikor-r"
+          }
+        }
+      ],
+      "defaultClientScopes": ["profile", "email", "roles", "web-origins"]
+    }
+  ]
+}

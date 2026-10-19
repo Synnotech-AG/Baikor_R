@@ -1,4 +1,4 @@
-"""Real local Core/Keycloak account smoke test (Python standard library only).
+"""Real Keycloak account smoke test (Python standard library only).
 
 Creates disposable users in the existing local realm, exercises authorization-code
 login and application cookies, then removes only its own users and records.
@@ -9,6 +9,7 @@ import argparse
 import base64
 import http.cookiejar
 import json
+import os
 import secrets
 import ssl
 import subprocess
@@ -97,26 +98,53 @@ class Session:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--core-path", type=Path, default=Path(__file__).resolve().parents[3] / "civitas-core")
+    parser.add_argument("--core-path", type=Path, help="Local Core checkout; defaults to the application's sibling civitas-core")
+    parser.add_argument("--base-url", default="https://baikor-r.civitas.test")
+    parser.add_argument("--keycloak-url", default="https://idm.civitas.test")
+    parser.add_argument("--realm", default="tst")
+    parser.add_argument("--client-id", default="baikor-r")
+    parser.add_argument("--ca-file", type=Path, help="Trusted HTTPS CA; defaults to the local Core CA")
+    parser.add_argument("--admin-source", choices=("kubernetes", "environment"), default="kubernetes")
+    parser.add_argument("--kube-context", default="k3d-civitas-local")
+    parser.add_argument("--kube-namespace", default="tst-access-stack")
+    parser.add_argument("--kube-secret", default="tst-keycloak-admin")
     args = parser.parse_args()
-    context = ssl.create_default_context(cafile=str(args.core_path / "local_deployment/.ssl/civitas.crt"))
-    secret = json.loads(subprocess.check_output([
-        "kubectl", "--context", "k3d-civitas-local", "-n", "tst-access-stack",
-        "get", "secret", "tst-keycloak-admin", "-o", "json",
-    ]))["data"]
+    for url in (args.base_url, args.keycloak_url):
+        parsed = urllib.parse.urlsplit(url)
+        if parsed.scheme != "https" or not parsed.hostname:
+            parser.error("HTTPS is required for application and Keycloak URLs")
+    if args.admin_source == "environment":
+        username = os.environ.get("BAIKOR_TEST_ADMIN_USERNAME")
+        admin_password = os.environ.get("BAIKOR_TEST_ADMIN_PASSWORD")
+        if not username or not admin_password:
+            parser.error("Both BAIKOR_TEST_ADMIN_USERNAME and BAIKOR_TEST_ADMIN_PASSWORD are required")
+    else:
+        secret = json.loads(subprocess.check_output([
+            "kubectl", "--context", args.kube_context, "-n", args.kube_namespace,
+            "get", "secret", args.kube_secret, "-o", "json",
+        ]))["data"]
+        username = base64.b64decode(secret["MASTER_USERNAME"]).decode()
+        admin_password = base64.b64decode(secret["MASTER_PASSWORD"]).decode()
+    ca_file = args.ca_file
+    if ca_file is None:
+        core_path = args.core_path or Path(__file__).resolve().parents[3] / "civitas-core"
+        ca_file = core_path / "local_deployment/.ssl/civitas.crt"
+    context = ssl.create_default_context(cafile=str(ca_file))
+    keycloak = args.keycloak_url.rstrip("/")
     admin = Session(context)
     status, body, _ = admin.request(
-        "https://idm.civitas.test/realms/master/protocol/openid-connect/token", "POST",
+        keycloak + "/realms/master/protocol/openid-connect/token", "POST",
         form={"client_id": "admin-cli", "grant_type": "password",
-              "username": base64.b64decode(secret["MASTER_USERNAME"]).decode(),
-              "password": base64.b64decode(secret["MASTER_PASSWORD"]).decode()},
+              "username": username, "password": admin_password},
     )
     if status != 200:
         raise RuntimeError(f"Keycloak administrator login failed: HTTP {status}")
     headers = {"Authorization": "Bearer " + json.loads(body)["access_token"]}
-    realm = "https://idm.civitas.test/admin/realms/tst"
-    base = "https://baikor-r.civitas.test"
-    status, body, _ = admin.request(realm + "/clients?clientId=baikor-r", headers=headers)
+    realm = keycloak + "/admin/realms/" + urllib.parse.quote(args.realm, safe="")
+    base = args.base_url.rstrip("/")
+    status, body, _ = admin.request(realm + "/clients?clientId=" + urllib.parse.quote(args.client_id, safe=""), headers=headers)
+    if status != 200 or not json.loads(body):
+        raise RuntimeError(f"Could not find the configured Keycloak client: HTTP {status}")
     client_id = json.loads(body)[0]["id"]
     _, body, _ = admin.request(realm + f"/clients/{client_id}/roles", headers=headers)
     roles = {role["name"]: role for role in json.loads(body)}
