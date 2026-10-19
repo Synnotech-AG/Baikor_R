@@ -15,7 +15,8 @@ spec:
         {{- toYaml .Values.podAnnotations | nindent 8 }}
       labels:
         {{- include "baikor-r.selectorLabels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
+        app.kubernetes.io/component: application
+        {{- with omit .Values.podLabels "app.kubernetes.io/component" }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:

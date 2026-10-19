@@ -18,14 +18,16 @@ ASP.NET controllers remain transport adapters and delegate to the importer inter
 
 The request uses `multipart/form-data`:
 
-- `file`: ZIP archive containing exactly one matching SHP, DBF, and PRJ set in WGS 84; maximum 25 MB.
-- `bufferMetres`: optional buffer on each side of the source line used to create polygon areas; default `1`.
+- `file`: ZIP archive containing exactly one matching SHP, DBF, and PRJ set in WGS 84; maximum 25 MiB (26,214,400 bytes).
+- `bufferMetres`: optional buffer on each side of the source line used to create polygon areas; default `1`, range `0.1` through `20` inclusive.
 
-The endpoint requires the Baikor editor policy. It returns the import batch ID, source project ID, source feature count, created construction-site count, and a breakdown by source status.
+The endpoint uses the `BaikorImporter` policy, which accepts `baikor_importer`, `baikor_editor`, `baikor_approver` or `baikor_admin`. The dedicated importer role permits this import only; it does not permit reading, editing or deleting construction sites. The response includes the import batch ID, source project ID, source feature count, created construction-site count, and a breakdown by source status.
+
+See the [OpenAPI specification](openapi/geodata-import.openapi.json) and [integration guide](openapi/README.md) for authentication, multipart requests, archive requirements, response examples and error handling.
 
 ## Segmentation
 
-Each line feature is transformed from WGS 84 to EPSG:25832. Every feature representing public space becomes one construction site. Features whose source type is `Hausanschluss` are skipped because they do not affect public space.
+Each line feature is projected from WGS 84 longitude/latitude to WGS 84 / UTM zone 32N for buffering; the resulting geometry is stored with SRID `25832`. Every feature representing public space becomes one construction site. Features whose source type is `Hausanschluss` are skipped because they do not affect public space.
 
 Every imported line is buffered and stored as one or more `ConstructionSiteArea` rows. The number of construction sites depends on the public-space features in the input; house connections do not create construction sites.
 
@@ -77,8 +79,8 @@ Request body:
 
 Any number of unique construction sites can be requested for atomic deletion. Database lookups are split into bounded internal batches, so large selections do not exceed database parameter limits. The table supports selecting all filtered results, making it possible to search for an import batch and remove all its construction sites in one operation.
 
-An identical file cannot be imported twice while construction sites carrying its `import.fileSha256` still exist. This prevents accidental duplication and still permits an intentional delete-and-reimport workflow.
+Duplicate detection checks the exact file's SHA-256 against up to 2,000 existing construction sites carrying `import.fileSha256`; this bounded lookup is not a global idempotency guarantee. An operator with an editing role can remove a previous import for an intentional delete-and-reimport workflow. The dedicated importer role cannot perform this deletion.
 
 ## Operator integration
 
-See the [customer import API and Node-RED guide](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/main/docs/IMPORT_API.md) for service-account setup, requests, error handling and manual workflow configuration. Earlier automatically installed flows are no longer managed; see the addon upgrade notes before removing any legacy mounts or credentials.
+See the [customer import API and Node-RED guide](https://github.com/Synnotech-AG/Baikor_R.Addon#optional-import-api) for service-account setup, requests, error handling and manual workflow configuration. Earlier automatically installed flows are no longer managed; see the addon upgrade notes before removing any legacy mounts or credentials.

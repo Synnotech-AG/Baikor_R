@@ -47,6 +47,22 @@ database:
 
 migrations:
   enabled: true
+  # Independent of the application's resources below; tune for schema/data size.
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+networkPolicy:
+  # Application pods only. Migration hooks are excluded; see docs/HELM_SECURITY.md.
+  enabled: false
+  # Native Kubernetes rules, with explicit peers and destination pod ports.
+  # Enabling with empty lists denies both directions. No dependency is auto-allowed.
+  ingress: []
+  egress: []
 
 service:
   type: ClusterIP
@@ -75,6 +91,7 @@ ingress:
   tls: []
 
 podAnnotations: {}
+# app.kubernetes.io/component is reserved as "application" for policy selection.
 podLabels: {}
 
 podSecurityContext:

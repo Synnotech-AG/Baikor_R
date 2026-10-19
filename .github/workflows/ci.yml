@@ -34,6 +34,8 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/release/*.test.mjs
+      - name: Validate the geodata import OpenAPI contract
+        run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/geodata-import.openapi.json --extends minimal
 
   platform-tests:
     name: Platform smoke tests
@@ -81,7 +83,7 @@ jobs:
       - run: pnpm run build
 
   helm-lint:
-    name: Helm lint
+    name: Helm chart tests
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -97,3 +99,9 @@ jobs:
           --workdir /workspace
           "$HELM_CLI_IMAGE"
           lint deploy/helm/baikor-r
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install PyYAML==6.0.3
+      - name: Verify rendered resources and optional network policy
+        run: python -m unittest discover -s tests/helm -v

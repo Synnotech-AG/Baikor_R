@@ -30,6 +30,8 @@ spec:
           command: ["dotnet", "BaikorR.Host.dll", "--migrate"]
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.migrations.resources | nindent 12 }}
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: {{ .Values.aspnetCore.environment | quote }}

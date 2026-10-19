@@ -191,6 +191,9 @@ internal static class ApplicationSecurityExtensions
                 policy.RequireAssertion(context => BaikorRoles.All.Any(context.User.IsInRole)))
             .AddPolicy(BaikorPolicies.Editor, policy =>
                 policy.RequireAssertion(context => BaikorRoles.Editors.Any(context.User.IsInRole)))
+            .AddPolicy(BaikorPolicies.Importer, policy =>
+                policy.RequireAssertion(context => context.User.IsInRole(BaikorRoles.Importer)
+                    || BaikorRoles.Editors.Any(context.User.IsInRole)))
             .AddPolicy(BaikorPolicies.Approver, policy =>
                 policy.RequireAssertion(context => BaikorRoles.Approvers.Any(context.User.IsInRole)))
             .AddPolicy(BaikorPolicies.Administrator, policy =>

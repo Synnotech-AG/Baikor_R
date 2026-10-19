@@ -10,7 +10,7 @@ release. Docker Hub credentials and manually created Git tags are not needed.
 1. Merge the changes to `main`.
 2. Open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml).
 3. Select **Run workflow**, keep branch `main`, and enter an unused version such
-   as `1.7.6`.
+   as `1.7.7`.
 4. Run the workflow and wait for the checks and publication to finish.
 
 Use a stable semantic version `MAJOR.MINOR.PATCH`, without a `v` prefix.
@@ -46,6 +46,11 @@ The release job uses the repository's automatic `GITHUB_TOKEN` with
 The organization must allow package creation and GitHub Actions publication.
 No personal token or separately configured registry secret is required.
 
+If **Public** is disabled in package settings, an organization owner must allow
+public packages under **Organization Settings > Packages > Package Creation**.
+This does not block CI or local development tests. Public release can be deferred
+while the source and local development image continue to be tested.
+
 New GHCR packages are private by default, even when the source repository is
 public. On the first release:
 
@@ -75,13 +80,24 @@ If a code or workflow fix is required, merge it and start a new release with a
 new version. Do not move or reuse an already published version. Keep published
 versions available for deployments pinned to them.
 
+The initial `1.7.6` run uploaded private packages before public verification was
+blocked by organization policy. These artifacts are reserved for that source
+commit. The subsequent review fixes target `1.7.7`; publish those from the new
+commit when public releases resume. Rerunning the original `1.7.6` workflow would
+finish only that older release and would not include the later fixes.
+
+Maintain the [changelog](../CHANGELOG.md) alongside changes. Its Unreleased section
+describes work awaiting publication; a successful release also receives generated
+GitHub release notes. Move the relevant entries into a dated version section
+after that release succeeds.
+
 ## Verify and deploy
 
 Verify the artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:1.7.6
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 1.7.6
+docker pull ghcr.io/synnotech-ag/baikor-r:1.7.7
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 1.7.7
 ```
 
 The release workflow performs its own checks using an empty credential store.

@@ -122,11 +122,11 @@ smoke test on pushes and pull requests. The smoke test creates its own disposabl
 environment and does not access a developer or customer cluster.
 
 To publish, open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml),
-select `main`, enter a new version such as `1.7.6`, and choose **Run workflow**.
+select `main`, enter an unused version such as `1.7.7`, and choose **Run workflow**.
 After the checks pass, it publishes:
 
-- Image `ghcr.io/synnotech-ag/baikor-r:1.7.6`.
-- OCI chart `oci://ghcr.io/synnotech-ag/baikor-r-chart`, version `1.7.6`.
+- Image `ghcr.io/synnotech-ag/baikor-r:1.7.7`.
+- OCI chart `oci://ghcr.io/synnotech-ag/baikor-r-chart`, version `1.7.7`.
 - A GitHub release containing release notes, source revision, immutable digests,
   the chart archive and checksums.
 
@@ -136,6 +136,10 @@ ordinary CI runs cannot publish. Published versions are never overwritten.
 See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
+Changes are recorded in [CHANGELOG.md](CHANGELOG.md). The current review fixes
+target **1.7.7 (unreleased)**. Public package publication is deferred; CI and
+local-image testing work independently of GHCR visibility.
+
 ## Customer CIVITAS deployment
 
 Use the [addon repository's Ansible installation instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/main/README.md).
@@ -143,6 +147,11 @@ The operator pins a compatible addon revision in Core, supplies the database,
 trusted platform CA and Keycloak configuration, and runs the Core playbook. The
 addon anonymously consumes the public chart and image; running Helm alone does
 not configure these prerequisites. Keep certificate validation enabled.
+
+See [Helm security configuration](docs/HELM_SECURITY.md) for application and
+migration resources and the optional application NetworkPolicy. The
+[geodata import API documentation](docs/openapi/README.md) includes its OpenAPI
+contract, supported file format and machine-client authorization.
 
 ## Optional local development deployment
 

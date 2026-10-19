@@ -9,7 +9,7 @@ namespace BaikorR.Api.Controllers.Api.ConstructionSites.Imports.Trenches;
 
 [ApiController]
 [Route("api/construction-sites/imports/trenches")]
-[Authorize(Policy = BaikorPolicies.Editor)]
+[Authorize(Policy = BaikorPolicies.Importer)]
 [IgnoreAntiforgeryToken]
 [ValidateAntiforgeryForCookie]
 public sealed class ImportTrenchesController(IRkomTrenchesImporter importer) : ControllerBase

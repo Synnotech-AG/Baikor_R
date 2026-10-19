@@ -1,0 +1,248 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Baikor_R geodata import API",
+    "version": "1.0.0",
+    "description": "The existing R-KOM trench shapefile import contract. This document covers the application's only geodata import endpoint; its version identifies the document, not a URL/API version. Uploads create construction sites synchronously. See README.md beside this file for archive requirements, authentication, examples and validation.",
+    "license": {
+      "name": "EUPL-1.2",
+      "url": "https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12"
+    }
+  },
+  "servers": [
+    { "url": "/", "description": "Your Baikor_R application origin" }
+  ],
+  "tags": [
+    { "name": "Geodata imports", "description": "Authenticated creation of construction sites from trench shapefiles." }
+  ],
+  "paths": {
+    "/api/construction-sites/imports/trenches": {
+      "post": {
+        "operationId": "importTrenches",
+        "tags": ["Geodata imports"],
+        "summary": "Import a trench shapefile ZIP archive",
+        "description": "Requires one of the roles baikor_importer, baikor_editor, baikor_approver or baikor_admin in the top-level roles claim. A dedicated baikor_importer account may import but cannot read or delete construction sites or use the general application. Each public-space LineString/MultiLineString feature creates one construction site, with buffered polygon areas stored using SRID 25832. Hausanschluss features are skipped. Input coordinates must be WGS 84 longitude/latitude in degrees. DXF, GeoJSON, standalone SHP and projected-coordinate input are not supported. The .prj check only searches for WGS_1984 or WGS 84; this is not full CRS validation. A successful call commits the import before returning 200; there is no asynchronous job or dry-run mode. The controller caps the complete request at 27262976 bytes (26 MiB); an upstream proxy may apply a smaller limit.",
+        "security": [
+          { "BearerAuth": [] },
+          { "BrowserCookie": [], "CsrfHeader": [] }
+        ],
+        "x-required-roles-any-of": ["baikor_importer", "baikor_editor", "baikor_approver", "baikor_admin"],
+        "x-max-request-bytes": 27262976,
+        "requestBody": {
+          "required": true,
+          "description": "Send a multipart body with a file part and an optional bufferMetres text part. Let the HTTP client generate the multipart boundary. The file part's filename must end in .zip (case-insensitive); the part's Content-Type is not used to select a parser.",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "A nonempty ZIP archive, at most 26214400 bytes (25 MiB). Exactly one .shp entry is required, with exactly one same-stem .dbf and .prj (case-insensitive filenames). .shx is optional and unused by this parser. Other unrelated ZIP entries are ignored. DBF text is decoded as Windows-1252; a .cpg does not override it. See README.md for required attributes.",
+                    "x-max-file-bytes": 26214400
+                  },
+                  "bufferMetres": {
+                    "type": "number",
+                    "format": "double",
+                    "minimum": 0.1,
+                    "maximum": 20,
+                    "default": 1,
+                    "example": 1,
+                    "description": "Buffer distance in metres on each side of each source line, applied after projection to UTM zone 32 north. Use a dot as the decimal separator."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import persisted. Counts describe input features and newly created construction sites, not polygon area count.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TrenchImportResponse" },
+                "examples": {
+                  "imported": {
+                    "summary": "Two input features, one house connection skipped",
+                    "value": {
+                      "batchId": "970f0b70-ab63-44ec-a75b-60b4f8ee88fb",
+                      "sourceProjectId": "DEMO-100",
+                      "featureCount": 2,
+                      "skippedCount": 1,
+                      "createdCount": 1,
+                      "createdBySourceStatus": { "Plan released": 1 },
+                      "warnings": [
+                        "The source contains line geometries without a construction width; each line was buffered using the configured area buffer.",
+                        "1 house-connection features were skipped because they do not affect public space.",
+                        "Source statuses 'Executed' and 'Documented' are mapped to Active. 'Canceled' is mapped to Draft and retained in metadata."
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "The current host uses an OpenID Connect challenge for unauthenticated requests, including invalid or expired bearer tokens. It redirects to the identity provider. Service clients should disable automatic redirects and obtain a valid token; do not interpret the login page as import success.",
+            "headers": {
+              "Location": { "description": "Identity-provider authorization URL.", "schema": { "type": "string", "format": "uri" } }
+            }
+          },
+          "400": {
+            "description": "Invalid form binding, importer validation, unreadable archive, unsupported geometry/projection or missing cookie antiforgery token. Importer errors include errorKey=api.validation.failed and field-level errorKeys. Framework binding/antiforgery failures do not guarantee these extensions or the same body shape.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ValidationProblem" },
+                "examples": {
+                  "bufferInvalid": {
+                    "value": {
+                      "title": "One or more validation errors occurred",
+                      "status": 400,
+                      "detail": "Please review the highlighted fields and submit the form again.",
+                      "instance": "/api/construction-sites/imports/trenches",
+                      "errors": { "bufferMetres": ["The area buffer must be between 0.1 and 20 metres."] },
+                      "errorKey": "api.validation.failed",
+                      "errorKeys": { "bufferMetres": ["constructionSites.import.bufferInvalid"] }
+                    }
+                  },
+                  "fileTypeInvalid": {
+                    "value": {
+                      "title": "One or more validation errors occurred",
+                      "status": 400,
+                      "detail": "Please review the highlighted fields and submit the form again.",
+                      "instance": "/api/construction-sites/imports/trenches",
+                      "errors": { "file": ["A ZIP archive is required."] },
+                      "errorKey": "api.validation.failed",
+                      "errorKeys": { "file": ["constructionSites.import.fileTypeInvalid"] }
+                    }
+                  },
+                  "fileInvalid": {
+                    "summary": "ZIP archive has no SHP entry",
+                    "value": {
+                      "title": "One or more validation errors occurred",
+                      "status": 400,
+                      "detail": "Please review the highlighted fields and submit the form again.",
+                      "instance": "/api/construction-sites/imports/trenches",
+                      "errors": { "file": ["The ZIP archive must contain exactly one SHP file."] },
+                      "errorKey": "api.validation.failed",
+                      "errorKeys": { "file": ["constructionSites.import.fileInvalid"] }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticated principal lacks an allowed import role. Bearer authorization normally returns no JSON body; cookie authorization may return text. No stable errorKey is guaranteed."
+          },
+          "409": {
+            "description": "Exact archive bytes were already imported, or persistence reported a concurrency conflict. Duplicate detection searches up to 2000 existing construction sites by import.fileSha256; it is not a global idempotency guarantee. Resolve a duplicate with an authorized operator before resubmitting.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/Problem" },
+                "examples": {
+                  "duplicate": {
+                    "value": {
+                      "title": "Request conflict",
+                      "status": 409,
+                      "detail": "This exact file has already been imported. Delete the previous import before importing it again.",
+                      "instance": "/api/construction-sites/imports/trenches",
+                      "errorKey": "constructionSites.import.duplicate"
+                    }
+                  },
+                  "conflict": {
+                    "value": {
+                      "title": "Request conflict",
+                      "status": 409,
+                      "detail": "The construction sites could not be persisted because the data changed concurrently.",
+                      "instance": "/api/construction-sites/imports/trenches",
+                      "errorKey": "constructionSites.import.conflict"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The web server or proxy rejected the request body size. Response body and headers depend on that layer. The importer instead returns 400/fileTooLarge when its 25 MiB file limit is exceeded after form binding."
+          },
+          "default": {
+            "description": "Unexpected server or upstream failure. There is no guaranteed JSON/errorKey envelope for unhandled exceptions or proxy responses. A timeout or lost response does not prove the import failed; check with an operator before retrying."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Use an access token from the deployment's Authentication:Authority with aud containing Authentication:ClientId (normally baikor-r in the addon). Allowed roles must be in the top-level roles claim. The importing client's own client_id is not automatically the API audience. A bearer request does not require a CSRF token."
+      },
+      "BrowserCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-BaikorR.Auth",
+        "description": "Existing browser session in an authentication-enabled deployment; must be accompanied by the CSRF header and the antiforgery cookie obtained from GET /api/antiforgery. Use bearer authentication for service integrations."
+      },
+      "CsrfHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-TOKEN",
+        "description": "For cookie requests only: GET /api/antiforgery with the session cookie, retain its antiforgery cookie and send the returned token property in this header."
+      }
+    },
+    "schemas": {
+      "TrenchImportResponse": {
+        "type": "object",
+        "required": ["batchId", "sourceProjectId", "featureCount", "skippedCount", "createdCount", "createdBySourceStatus", "warnings"],
+        "properties": {
+          "batchId": { "type": "string", "format": "uuid", "description": "Import identifier stored as import.batchId on each created construction site." },
+          "sourceProjectId": { "type": "string", "description": "SHP filename stem with a trailing _Trenches suffix removed (case-insensitive). Not derived from the uploaded ZIP filename." },
+          "featureCount": { "type": "integer", "format": "int32", "minimum": 1, "description": "All input features, including skipped house connections." },
+          "skippedCount": { "type": "integer", "format": "int32", "minimum": 0, "description": "Features whose source type is Hausanschluss (case-insensitive)." },
+          "createdCount": { "type": "integer", "format": "int32", "minimum": 1, "description": "Created construction sites; one per public-space source feature." },
+          "createdBySourceStatus": {
+            "type": "object",
+            "additionalProperties": { "type": "integer", "format": "int32", "minimum": 1 },
+            "description": "Counts grouped case-insensitively by original source status. Keys are source labels, not application status enum values."
+          },
+          "warnings": { "type": "array", "items": { "type": "string" }, "description": "Informational geometry, skip and status-mapping notes; returned even when the skipped count is zero." }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Problem type URI, when supplied by the framework." },
+          "title": { "type": "string" },
+          "status": { "type": "integer", "format": "int32" },
+          "detail": { "type": "string" },
+          "instance": { "type": "string", "description": "Request path." },
+          "errorKey": { "type": "string", "description": "Stable application error key when provided; do not parse human-readable messages." },
+          "traceId": { "type": "string", "description": "Optional framework trace identifier." }
+        },
+        "additionalProperties": true
+      },
+      "ValidationProblem": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Problem" },
+          {
+            "type": "object",
+            "properties": {
+              "errors": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } }, "description": "Human-readable messages keyed by form field." },
+              "errorKeys": {
+                "type": "object",
+                "additionalProperties": { "type": "array", "items": { "type": "string" } },
+                "description": "Stable field errors from importer validation. file: constructionSites.import.fileRequired, .fileTypeInvalid, .fileTooLarge or .fileInvalid; bufferMetres: constructionSites.import.bufferInvalid. Framework binding errors may omit this property."
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

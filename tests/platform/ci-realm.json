@@ -9,7 +9,8 @@
         {"name": "baikor_viewer"},
         {"name": "baikor_editor"},
         {"name": "baikor_approver"},
-        {"name": "baikor_admin"}
+        {"name": "baikor_admin"},
+        {"name": "baikor_importer"}
       ]
     }
   },
@@ -35,7 +36,7 @@
         "post.logout.redirect.uris": "https://app:8443/*",
         "backchannel.logout.session.required": "true"
       },
-      "fullScopeAllowed": true,
+      "fullScopeAllowed": false,
       "protocolMappers": [
         {
           "name": "Baikor client roles",
@@ -53,6 +54,60 @@
         }
       ],
       "defaultClientScopes": ["profile", "email", "roles", "web-origins"]
+    },
+    {
+      "clientId": "baikor-r-import",
+      "name": "Disposable import-only CI fixture",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false,
+      "protocolMappers": [
+        {
+          "name": "Baikor client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "usermodel.clientRoleMapping.clientId": "baikor-r"
+          }
+        },
+        {
+          "name": "Baikor API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "baikor-r",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": ["profile", "roles"]
+    }
+  ],
+  "clientScopeMappings": {
+    "baikor-r": [
+      {"client": "baikor-r", "roles": ["baikor_viewer", "baikor_editor", "baikor_approver", "baikor_admin"]},
+      {"client": "baikor-r-import", "roles": ["baikor_importer"]}
+    ]
+  },
+  "users": [
+    {
+      "username": "service-account-baikor-r-import",
+      "enabled": true,
+      "serviceAccountClientId": "baikor-r-import",
+      "clientRoles": {"baikor-r": ["baikor_importer"]}
     }
   ]
 }
