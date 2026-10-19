@@ -74,6 +74,20 @@ class HelmChartTests(unittest.TestCase):
                                  "migrations": {"enabled": False}})
         self.assertNotIn("Job", [item["kind"] for item in manifests])
 
+    def test_ingress_allows_full_import_request_with_empty_addon_annotations(self):
+        ingress = self.resource(self.render({"ingress": {
+            "enabled": True, "className": "nginx", "annotations": {}}}), "Ingress")
+        self.assertEqual(ingress["metadata"].get("annotations", {}).get(
+            "nginx.ingress.kubernetes.io/proxy-body-size"), "26m")
+
+    def test_operator_can_override_ingress_upload_budget(self):
+        ingress = self.resource(self.render({"ingress": {"enabled": True,
+            "annotations": {"nginx.ingress.kubernetes.io/proxy-body-size": "30m",
+                            "operator.example/note": "custom"}}}), "Ingress")
+        self.assertEqual(ingress["metadata"]["annotations"], {
+            "nginx.ingress.kubernetes.io/proxy-body-size": "30m",
+            "operator.example/note": "custom"})
+
     def test_enabling_policy_without_rules_is_application_only_deny_all(self):
         manifests = self.render({"database": {"existingSecret": {"name": "database"}},
                                  "networkPolicy": {"enabled": True}})

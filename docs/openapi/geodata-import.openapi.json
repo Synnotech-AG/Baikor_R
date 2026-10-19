@@ -91,7 +91,7 @@
             }
           },
           "400": {
-            "description": "Invalid form binding, importer validation, unreadable archive, unsupported geometry/projection or missing cookie antiforgery token. Importer errors include errorKey=api.validation.failed and field-level errorKeys. Framework binding/antiforgery failures do not guarantee these extensions or the same body shape.",
+            "description": "Invalid form binding, importer validation, unreadable archive, unsupported geometry/projection or missing cookie antiforgery token. Importer errors include errorKey=api.validation.failed and field-level errorKeys; a file exceeding 26214400 bytes (25 MiB) uses constructionSites.import.fileTooLarge if the request reaches importer validation. When a complete multipart request exceeds 27262976 bytes (26 MiB) and reaches the application, the current host returns a form-binding 400 with errors under the empty field name and no importer errorKey/errorKeys. Framework binding/antiforgery failures do not guarantee these extensions or the same body shape.",
             "content": {
               "application/problem+json": {
                 "schema": { "$ref": "#/components/schemas/ValidationProblem" },
@@ -116,6 +116,14 @@
                       "errors": { "file": ["A ZIP archive is required."] },
                       "errorKey": "api.validation.failed",
                       "errorKeys": { "file": ["constructionSites.import.fileTypeInvalid"] }
+                    }
+                  },
+                  "requestBodyTooLarge": {
+                    "summary": "Complete multipart request exceeds the host limit before importer validation",
+                    "value": {
+                      "title": "One or more validation errors occurred.",
+                      "status": 400,
+                      "errors": { "": ["Failed to read the request form. Request body too large. The max request body size is 27262976 bytes."] }
                     }
                   },
                   "fileInvalid": {
@@ -166,7 +174,7 @@
             }
           },
           "413": {
-            "description": "The web server or proxy rejected the request body size. Response body and headers depend on that layer. The importer instead returns 400/fileTooLarge when its 25 MiB file limit is exceeded after form binding."
+            "description": "A proxy or upstream server rejected the request body size; its configured limit may be smaller than the application's. Response body and headers depend on that layer. The current application host instead returns a form-binding 400 when its 26 MiB complete-request limit is exceeded, or importer 400/fileTooLarge when the 25 MiB file limit is exceeded after successful form binding."
           },
           "default": {
             "description": "Unexpected server or upstream failure. There is no guaranteed JSON/errorKey envelope for unhandled exceptions or proxy responses. A timeout or lost response does not prove the import failed; check with an operator before retrying."

@@ -82,7 +82,10 @@ telemetry:
 ingress:
   enabled: false
   className: ""
-  annotations: {}
+  annotations:
+    # 25 MiB import ZIP plus multipart overhead; matches the API request cap.
+    # Other ingress controllers need their equivalent request-size setting.
+    nginx.ingress.kubernetes.io/proxy-body-size: "26m"
   hosts:
     - host: baikor-r.civitas.test
       paths:

@@ -1,5 +1,6 @@
 """Real service-account checks for the disposable Compose fixture only."""
 import base64
+import http.client
 import io
 import json
 import os
@@ -10,7 +11,7 @@ import zipfile
 from test_keycloak_accounts import Session
 
 
-def trench_archive():
+def trench_archive(project="R-AUTH", target_size=None):
     """One WGS84 polyline with the three source fields consumed by the importer."""
     bounds = (12.1, 49.01, 12.1001, 49.01)
     record = struct.pack("<i4d2ii4d", 3, *bounds, 1, 2, 0, *bounds)
@@ -36,8 +37,21 @@ def trench_archive():
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
         for extension, content in files.items():
-            archive.writestr("R-AUTH_Trenches." + extension, content)
-    return output.getvalue()
+            archive.writestr(project + "_Trenches." + extension, content)
+        if target_size is not None:
+            # An ignored, uncompressed entry reaches the exact ZIP byte boundary.
+            # It exercises upload size without expanding into a large shapefile.
+            padding_name = "padding.bin"
+            central_directory_size = sum(46 + len(entry.filename.encode()) for entry in archive.infolist()) + 22
+            padding_entry_size = 30 + 46 + 2 * len(padding_name)
+            padding_size = target_size - output.tell() - central_directory_size - padding_entry_size
+            if padding_size < 0:
+                raise ValueError("The requested archive size is smaller than the fixture")
+            archive.writestr(padding_name, b"x" * padding_size, compress_type=zipfile.ZIP_STORED)
+    result = output.getvalue()
+    if target_size is not None and len(result) != target_size:
+        raise RuntimeError("The boundary archive does not have the requested size")
+    return result
 
 
 def main():
@@ -96,6 +110,48 @@ def main():
     check("machine token imports without browser CSRF", status, 200)
     if status == 200:
         check("machine import creates a site", json.loads(body)["createdCount"], 1)
+
+    for project, size, expected in (
+        ("R-SIZE-EXACT", 25 * 1024 * 1024, 200),
+        ("R-SIZE-PLUS-ONE", 25 * 1024 * 1024 + 1, 400),
+        ("R-SIZE-REQUEST-LIMIT", 26 * 1024 * 1024 + 1, 400),
+    ):
+        content = trench_archive(project, target_size=size)
+        upload = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{project}.zip"\r\n'
+                  'Content-Type: application/zip\r\n\r\n').encode() + content + f"\r\n--{boundary}--\r\n".encode()
+        if size > 26 * 1024 * 1024:
+            # Kestrel rejects this Content-Length before reading the file. Honor
+            # that early response instead of writing a body onto a closed TLS
+            # connection (urllib can surface a reset before reading the 400).
+            connection = http.client.HTTPSConnection("app", 8443, context=context, timeout=30)
+            try:
+                connection.putrequest("POST", "/api/construction-sites/imports/trenches")
+                for name, value in {**headers, "Content-Type": "multipart/form-data; boundary=" + boundary,
+                                    "Content-Length": str(len(upload)), "Expect": "100-continue"}.items():
+                    connection.putheader(name, value)
+                connection.endheaders()
+                response = connection.getresponse()
+                status, body = response.status, response.read().decode()
+                check("request body limit response content type", response.headers.get_content_type(), "application/problem+json")
+            finally:
+                connection.close()
+        else:
+            status, body, _ = session.request(app + "/api/construction-sites/imports/trenches", "POST", upload,
+                                            {**headers, "Content-Type": "multipart/form-data; boundary=" + boundary})
+        check(f"real Kestrel file boundary {size} bytes", status, expected)
+        response = json.loads(body)
+        if size == 25 * 1024 * 1024:
+            check("exact 25 MiB archive creates a site", response.get("createdCount"), 1)
+            check("boundary archive has distinct source project", response.get("sourceProjectId"), project)
+        elif size == 25 * 1024 * 1024 + 1:
+            check("25 MiB plus one uses importer validation", response.get("errorKey"), "api.validation.failed")
+            check("25 MiB plus one uses fileTooLarge", response.get("errorKeys", {}).get("file"),
+                  ["constructionSites.import.fileTooLarge"])
+        else:
+            check("26 MiB plus multipart uses form-binding validation", response.get("errors", {}).get(""),
+                  ["Failed to read the request form. Request body too large. The max request body size is 27262976 bytes."])
+            check("request body limit has no importer error keys", "errorKey" in response or "errorKeys" in response, False)
+
     site_path = "/api/construction-sites/00000000-0000-0000-0000-000000000001"
     for label, method, path in (
         ("list", "GET", "/api/construction-sites"),

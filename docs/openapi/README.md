@@ -36,6 +36,8 @@ Browser cookie sessions are also supported. Obtain `GET /api/antiforgery`, retai
 | DBF text | Windows-1252; `.cpg` does not override decoding |
 | Other formats | DXF, GeoJSON and a standalone SHP are unsupported |
 
+The Helm chart defaults `nginx.ingress.kubernetes.io/proxy-body-size` to `26m`, allowing the documented 25 MiB file plus multipart overhead through ingress-nginx. Operators can override or remove that annotation. Other Ingress or Gateway controllers need their equivalent complete-request limit set to at least 26 MiB to support the full file contract.
+
 DBF attribute names below are checked in order; the first nonblank value is used. Provide these exact names. Validation also applies to house-connection features before they are skipped.
 
 | Meaning | Attribute names | Requirement |
@@ -66,7 +68,9 @@ Importer validation returns 400 Problem Details with `errorKey: api.validation.f
 | `file` | `constructionSites.import.fileRequired`, `constructionSites.import.fileTypeInvalid`, `constructionSites.import.fileTooLarge`, `constructionSites.import.fileInvalid` |
 | `bufferMetres` | `constructionSites.import.bufferInvalid` |
 
-409 responses use `constructionSites.import.duplicate` or `constructionSites.import.conflict`. Framework binding, antiforgery, authentication, unhandled exceptions and proxy errors do not guarantee the same JSON/error-key envelope. A request rejected for overall size may return 413 before importer validation runs.
+409 responses use `constructionSites.import.duplicate` or `constructionSites.import.conflict`. Framework binding, antiforgery, authentication, unhandled exceptions and proxy errors do not guarantee the same JSON/error-key envelope.
+
+The size limits apply at different layers. A file of exactly 25 MiB is accepted when the archive is valid and the complete multipart request fits the 26 MiB limit. A file one byte larger returns importer validation **400** with `constructionSites.import.fileTooLarge`. If the complete request exceeds 26 MiB and reaches the application, the current host returns a form-binding **400** Problem Details response: `errors[""]` reports `Failed to read the request form. Request body too large. The max request body size is 27262976 bytes.` This framework response has no importer `errorKey` or `errorKeys`. A proxy can instead reject the request with **413**, potentially at a smaller configured limit; its response body is not part of the application contract.
 
 Duplicate detection hashes the exact ZIP bytes and checks up to 2,000 existing construction sites for matching `import.fileSha256` metadata. It is **not a global idempotency guarantee**: repackaging the ZIP changes its hash, and the lookup is bounded. Do not blindly retry after a timeout or lost response; the import may have persisted. An operator can inspect the import metadata before deciding whether to resubmit. A dedicated importer account cannot perform delete-and-reimport cleanup itself.
 
@@ -82,6 +86,12 @@ The .NET tests exercise real multipart uploads, shapefile parsing, response exam
 
 ```sh
 dotnet test tests/BaikorR.Api.Tests/BaikorR.Api.Tests.csproj --filter FullyQualifiedName~ImportOpenApiContractTests
+```
+
+The [isolated platform smoke test](../../tests/platform/README.md) also sends real multipart uploads to Kestrel with files of exactly 25 MiB and 25 MiB plus one byte. A request declaring more than 26 MiB uses `Expect: 100-continue` to receive the host's early rejection before transmitting an oversized body. These cases check the successful import, importer validation and full-request form-binding error separately:
+
+```sh
+python tests/platform/run_ci.py
 ```
 
 Keep this document and its tests aligned when changing the importer, its request/response models, the controller or authentication policy. The OpenAPI syntax follows the [OpenAPI 3.0.3 specification](https://spec.openapis.org/oas/v3.0.3.html).

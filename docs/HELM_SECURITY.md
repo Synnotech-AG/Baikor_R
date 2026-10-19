@@ -6,6 +6,14 @@ and `migrations.resources` independently. These are starting values: size them
 for actual traffic and migration data volume, and check the namespace's
 ResourceQuota and LimitRange before installation.
 
+The default ingress annotation `nginx.ingress.kubernetes.io/proxy-body-size: 26m`
+allows the import API's 25 MiB ZIP plus multipart overhead through ingress-nginx.
+The application still enforces its own file/request limits. Other ingress or
+Gateway controllers need an equivalent request-body allowance of at least 26 MiB.
+Operators can override or remove this controller-specific annotation using
+`ingress.annotations`; do not remove it on ingress-nginx without providing an
+equivalent limit. See the [import contract](openapi/README.md) for boundary responses.
+
 The CIVITAS add-on forwards `inv_addons.baikor_r.helm_values` through a recursive
 merge. The same values work in a Helm values file. For example, this inventory
 override gives migrations more CPU and memory without changing the application:

@@ -11,6 +11,8 @@ are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/release
 - Configure independent migration-job resource requests and limits.
 - Offer an optional application NetworkPolicy with explicit ingress/egress rules.
 - Extend CI with import authorization and rendered Helm security checks.
+- Allow documented 25 MiB imports through ingress-nginx by setting a bounded
+  26 MiB request allowance; test real HTTP file/request-size boundaries in CI.
 
 ## GitHub migration — 2026-10-19
 
