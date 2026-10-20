@@ -10,7 +10,7 @@ release. Docker Hub credentials and manually created Git tags are not needed.
 1. Merge the changes to `main`.
 2. Open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml).
 3. Select **Run workflow**, keep branch `main`, and enter an unused version such
-   as `1.7.7`.
+   as `1.7.8`.
 4. Run the workflow and wait for the checks and publication to finish.
 
 Use a stable semantic version `MAJOR.MINOR.PATCH`, without a `v` prefix.
@@ -40,6 +40,11 @@ and packaged chart include the license text. Deploy explicit versions or
 digests; there is no moving `latest` tag.
 
 ## One-time GitHub setup
+
+The existing `baikor-r` and `baikor-r-chart` packages are public. Anonymous Docker
+and Helm downloads of **1.7.7** were verified on **2026-10-20**. Package visibility
+applies to future versions of these same packages; it does not need to be changed
+for each release. The instructions below also apply if a new package is created.
 
 The release job uses the repository's automatic `GITHUB_TOKEN` with
 `packages: write` and `contents: write`. Validation jobs have read access only.
@@ -80,11 +85,15 @@ If a code or workflow fix is required, merge it and start a new release with a
 new version. Do not move or reuse an already published version. Keep published
 versions available for deployments pinned to them.
 
-The initial `1.7.6` run uploaded private packages before public verification was
-blocked by organization policy. These artifacts are reserved for that source
-commit. The subsequent review fixes target `1.7.7`; publish those from the new
-commit when public releases resume. Rerunning the original `1.7.6` workflow would
-finish only that older release and would not include the later fixes.
+The initial `1.7.6` run uploaded packages before public verification was blocked
+by organization policy. Those artifacts remain reserved for their original
+source commit. The review fixes are in **1.7.7**; its original release run is
+[39239993018](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39239993018).
+After the visibility change, attempt 2 completed on **2026-10-20**, preserving
+the tested source revision `6afbbaed75f4c201c584d88eaee1e196b15a2720` and package
+digests. The [1.7.7 release](https://github.com/Synnotech-AG/Baikor_R/releases/tag/1.7.7)
+includes the chart archive, checksums and source metadata. Rerunning the older
+`1.7.6` workflow would not include the review fixes.
 
 Maintain the [changelog](../CHANGELOG.md) alongside changes. Its Unreleased section
 describes work awaiting publication; a successful release also receives generated
@@ -110,10 +119,18 @@ release does not automatically upgrade customer installations. Update the
 addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
+Addon and application release numbers are independent. Addon **1.7.8** is paired
+with application/chart **1.7.7**. The existing addon `1.7.7` tag identifies an older
+revision and must not be moved or used as the current review-fix release.
+
 Local development may continue to use `helm.local_chart_path` and an imported
 local image. That mode does not verify the public release download path.
 
 ## Test already-published private packages
+
+The current public packages can be downloaded directly. This fallback documents
+the authenticated bundle used for the October 19 tests and remains available for
+future cases where direct registry access is unavailable.
 
 The [Published package test bundle workflow](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/test-bundle.yml)
 exports existing packages for an authorized local test when direct GHCR access

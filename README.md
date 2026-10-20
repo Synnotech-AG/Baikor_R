@@ -122,11 +122,11 @@ smoke test on pushes and pull requests. The smoke test creates its own disposabl
 environment and does not access a developer or customer cluster.
 
 To publish, open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml),
-select `main`, enter an unused version such as `1.7.7`, and choose **Run workflow**.
+select `main`, enter an unused version such as `1.7.8`, and choose **Run workflow**.
 After the checks pass, it publishes:
 
-- Image `ghcr.io/synnotech-ag/baikor-r:1.7.7`.
-- OCI chart `oci://ghcr.io/synnotech-ag/baikor-r-chart`, version `1.7.7`.
+- Image `ghcr.io/synnotech-ag/baikor-r:<version>`.
+- OCI chart `oci://ghcr.io/synnotech-ag/baikor-r-chart`, version `<version>`.
 - A GitHub release containing release notes, source revision, immutable digests,
   the chart archive and checksums.
 
@@ -136,9 +136,13 @@ ordinary CI runs cannot publish. Published versions are never overwritten.
 See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
-Changes are recorded in [CHANGELOG.md](CHANGELOG.md). The current review fixes
-target **1.7.7 (unreleased)**. Public package publication is deferred; CI and
-local-image testing work independently of GHCR visibility.
+Changes are recorded in [CHANGELOG.md](CHANGELOG.md). Release
+[**1.7.7**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/1.7.7) and its
+image and chart are public; anonymous Docker and Helm downloads were verified
+on **2026-10-20**.
+The application and addon source repositories are public under EUPL-1.2.
+See the [review status](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/main/docs/REVIEW_STATUS.md)
+for release completion and runtime acceptance evidence.
 
 ## Customer CIVITAS deployment
 
