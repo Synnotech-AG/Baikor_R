@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New stable application version (X.Y.Z, for example 1.7.7)'
+        description: 'New stable application version (X.Y.Z, for example 0.2.0)'
         required: true
         type: string
 

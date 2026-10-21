@@ -39,6 +39,21 @@ Both artifacts carry source, revision, version and EUPL-1.2 metadata; the image
 and packaged chart include the license text. Deploy explicit versions or
 digests; there is no moving `latest` tag.
 
+## Version reset to 0.2.0
+
+The next application, chart and addon releases use **0.2.0**. Publication and
+anonymous download verification are pending. This is a one-time numbering reset;
+the application behavior is unchanged from 1.7.9. Set the GitHub release as
+**Latest** explicitly because the historical 1.7.x versions sort higher.
+
+After 0.2.0 passes its release checks, the older GHCR image and chart versions
+**1.7.6 through 1.7.9** are scheduled for removal. Their existing deployment pins
+will no longer be downloadable from GHCR after retirement. Update both the addon
+and application/chart pins to 0.2.0 for fresh installations. Historical source
+tags, GitHub releases and their attached release assets remain available.
+Retired version numbers must never be reused. This explicitly requested cleanup
+is a one-time exception to the normal package-retention policy below.
+
 ## One-time GitHub setup
 
 The existing `baikor-r` and `baikor-r-chart` packages are public. Anonymous Docker
@@ -82,8 +97,9 @@ an unpublished draft. Inspect that draft and remove only the incomplete draft
 before retrying the original run. Keep the matching tag and package versions.
 
 If a code or workflow fix is required, merge it and start a new release with a
-new version. Do not move or reuse an already published version. Keep published
-versions available for deployments pinned to them.
+new version. Do not move or reuse an already published version. Normally keep
+published packages available for deployments pinned to them; the documented
+0.2.0 reset is the explicit one-time retirement exception.
 
 The initial `1.7.6` run uploaded packages before public verification was blocked
 by organization policy. Those artifacts remain reserved for their original
@@ -103,11 +119,12 @@ after that release succeeds.
 
 ## Verify and deploy
 
-Verify the artifacts from a client without stored GHCR credentials:
+After publication completes, verify the artifacts from a client without stored
+GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:1.7.9
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 1.7.9
+docker pull ghcr.io/synnotech-ag/baikor-r:0.2.0
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.2.0
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -120,11 +137,12 @@ release does not automatically upgrade customer installations. Update the
 addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
-Addon and application release numbers are independent. Application/chart
-**1.7.9** pairs with addon **1.7.10**. The earlier addon **1.7.9** pairs with
-application/chart **1.7.8**, and addon **1.7.8** pairs with application/chart
-**1.7.7**; the addon `1.7.7` tag identifies an older revision.
-Keep all existing release tags unchanged.
+The new release pairing is application/chart **0.2.0** with addon **0.2.0**;
+publication is pending. Addon and application release numbers remain independent.
+Historical pairings were application/chart **1.7.9** with addon **1.7.10**,
+application/chart **1.7.8** with addon **1.7.9**, and application/chart **1.7.7**
+with addon **1.7.8**. Those GHCR package versions are scheduled for retirement
+as described above. Keep all existing source tags unchanged.
 
 Local development may continue to use `helm.local_chart_path` and an imported
 local image. That mode does not verify the public release download path.

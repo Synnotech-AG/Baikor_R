@@ -5,6 +5,14 @@ are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/release
 
 ## Unreleased
 
+- Reset application, chart and addon release numbering to **0.2.0** for fresh
+  installations, without changing application behavior from 1.7.9. Update local
+  chart defaults and public installation examples to the new pairing.
+- Plan retirement of GHCR image/chart versions 1.7.6 through 1.7.9 after 0.2.0
+  passes release and anonymous-download checks. Historical source tags, GitHub
+  releases and their attached assets remain available; retired versions are not
+  reused. Publication and package retirement are pending.
+
 ## 1.7.9 — 2026-10-21
 
 - Wait for PostgreSQL TCP readiness in the isolated platform tests, avoiding
