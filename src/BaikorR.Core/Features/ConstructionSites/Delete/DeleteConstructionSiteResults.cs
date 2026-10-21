@@ -1,7 +1,7 @@
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Delete;
 
 internal static class DeleteConstructionSiteResults
 {

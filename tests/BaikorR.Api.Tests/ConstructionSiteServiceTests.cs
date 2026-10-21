@@ -1,11 +1,10 @@
-using BaikorR.Api.Features.ConstructionSites.ChangeStatus;
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Features.ConstructionSites.Create;
-using BaikorR.Api.Features.ConstructionSites.Delete;
-using BaikorR.Api.Features.ConstructionSites.Update;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
-using BaikorR.Api.Shared.Spatial;
+using BaikorR.Core.Features.ConstructionSites.ChangeStatus;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Features.ConstructionSites.Create;
+using BaikorR.Core.Features.ConstructionSites.Delete;
+using BaikorR.Core.Features.ConstructionSites.Update;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Shared.Spatial;
 using NetTopologySuite.Geometries;
 
 namespace BaikorR.Api.Tests;

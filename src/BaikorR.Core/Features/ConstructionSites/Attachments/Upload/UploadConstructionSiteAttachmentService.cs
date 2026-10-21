@@ -1,10 +1,10 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 public sealed class UploadConstructionSiteAttachmentService(
     IConstructionSiteAttachmentsSession session,

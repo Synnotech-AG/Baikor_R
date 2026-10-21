@@ -1,6 +1,7 @@
 using BaikorR.Api.Persistence;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 

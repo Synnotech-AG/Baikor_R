@@ -1,7 +1,7 @@
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Shared.Spatial;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Shared.Spatial;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 public sealed record ConstructionSiteAreaResponse(
     Guid Id,

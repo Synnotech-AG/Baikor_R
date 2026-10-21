@@ -1,4 +1,4 @@
-using BaikorR.Api.Hosting;
+using BaikorR.Host.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 var runMigrations = args.Contains("--migrate", StringComparer.OrdinalIgnoreCase);
@@ -22,4 +22,7 @@ if (runMigrations)
 app.UseApplicationPipeline();
 app.Run();
 
-public partial class Program;
+namespace BaikorR.Host
+{
+    public partial class Program;
+}

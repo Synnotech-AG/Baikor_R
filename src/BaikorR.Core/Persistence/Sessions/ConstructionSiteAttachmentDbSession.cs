@@ -1,7 +1,7 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaikorR.Api.Persistence.Sessions;
+namespace BaikorR.Core.Persistence.Sessions;
 
 public sealed class ConstructionSiteAttachmentDbSession(BaikorRDbContext dbContext)
     : IConstructionSiteAttachmentsSession

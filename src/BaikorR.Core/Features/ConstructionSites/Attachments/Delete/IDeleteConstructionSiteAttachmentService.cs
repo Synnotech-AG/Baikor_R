@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Delete;
 
 public interface IDeleteConstructionSiteAttachmentService
 {

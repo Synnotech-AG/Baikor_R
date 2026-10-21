@@ -1,5 +1,5 @@
-using BaikorR.Api.Authentication;
 using BaikorR.Core.Configuration;
+using BaikorR.Host.Authentication;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ApplicationSecurityExtensions
 {

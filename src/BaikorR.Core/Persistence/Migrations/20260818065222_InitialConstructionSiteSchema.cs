@@ -12,17 +12,6 @@ namespace BaikorR.Api.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(
-                """
-                DROP SCHEMA IF EXISTS baikor CASCADE;
-                DELETE FROM "__EFMigrationsHistory"
-                WHERE LEFT("MigrationId", 14) IN (
-                    '20260817075758',
-                    '20260817105939',
-                    '20260818060148'
-                );
-                """);
-
             migrationBuilder.EnsureSchema(
                 name: "baikor");
 

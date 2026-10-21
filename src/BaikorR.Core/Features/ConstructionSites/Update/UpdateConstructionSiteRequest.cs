@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Entities;
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Update;
+namespace BaikorR.Core.Features.ConstructionSites.Update;
 
 public sealed record UpdateConstructionSiteRequest(
     string Title,

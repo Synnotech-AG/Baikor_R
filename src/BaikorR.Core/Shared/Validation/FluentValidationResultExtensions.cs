@@ -1,8 +1,8 @@
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 using FluentValidation.Results;
 
-namespace BaikorR.Api.Shared.Validation;
+namespace BaikorR.Core.Shared.Validation;
 
 internal static class FluentValidationResultExtensions
 {

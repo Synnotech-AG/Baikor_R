@@ -1,6 +1,6 @@
 using NetTopologySuite.Geometries;
 
-namespace BaikorR.Api.Shared.Spatial;
+namespace BaikorR.Core.Shared.Spatial;
 
 internal static class Epsg25832PolygonConverter
 {

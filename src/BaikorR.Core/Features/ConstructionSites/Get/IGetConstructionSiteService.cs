@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
+using BaikorR.Core.Features.ConstructionSites.Common;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Get;
+namespace BaikorR.Core.Features.ConstructionSites.Get;
 
 public interface IGetConstructionSiteService
 {

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace BaikorR.Api.Shared.Antiforgery;
+namespace BaikorR.Host.Shared.Antiforgery;
 
 public sealed class ValidateAntiforgeryForCookieFilter(IAntiforgery antiforgery)
     : IAsyncAuthorizationFilter

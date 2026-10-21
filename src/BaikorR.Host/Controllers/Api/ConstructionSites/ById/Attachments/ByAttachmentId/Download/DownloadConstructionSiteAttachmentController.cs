@@ -1,11 +1,11 @@
-using BaikorR.Api.Authentication;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Download;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Download;
+using BaikorR.Host.Authentication;
+using BaikorR.Host.Shared.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.ConstructionSites.ById.Attachments.ByAttachmentId.Download;
+namespace BaikorR.Host.Controllers.Api.ConstructionSites.ById.Attachments.ByAttachmentId.Download;
 
 [ApiController]
 [Route("api/construction-sites/{constructionSiteId:guid}/attachments/{attachmentId:guid}")]

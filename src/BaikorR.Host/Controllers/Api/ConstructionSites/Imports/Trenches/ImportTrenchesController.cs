@@ -1,11 +1,11 @@
-using BaikorR.Api.Authentication;
-using BaikorR.Api.Importers.Rkom;
-using BaikorR.Api.Shared.Antiforgery;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Importers.Rkom;
+using BaikorR.Host.Authentication;
+using BaikorR.Host.Shared.Antiforgery;
+using BaikorR.Host.Shared.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.ConstructionSites.Imports.Trenches;
+namespace BaikorR.Host.Controllers.Api.ConstructionSites.Imports.Trenches;
 
 [ApiController]
 [Route("api/construction-sites/imports/trenches")]

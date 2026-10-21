@@ -1,6 +1,6 @@
 using NetTopologySuite.Geometries;
 
-namespace BaikorR.Api.Persistence.Entities;
+namespace BaikorR.Core.Persistence.Entities;
 
 public sealed class ConstructionSiteArea
 {

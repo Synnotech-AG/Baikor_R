@@ -1,10 +1,10 @@
-using BaikorR.Api.Authentication;
-using BaikorR.Api.Features.ConstructionSites.BulkDelete;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Features.ConstructionSites.BulkDelete;
+using BaikorR.Host.Authentication;
+using BaikorR.Host.Shared.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.ConstructionSites.BulkDelete;
+namespace BaikorR.Host.Controllers.Api.ConstructionSites.BulkDelete;
 
 [ApiController]
 [Route("api/construction-sites/bulk-delete")]

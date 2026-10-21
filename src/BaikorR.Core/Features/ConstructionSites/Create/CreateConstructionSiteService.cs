@@ -1,10 +1,10 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Create;
+namespace BaikorR.Core.Features.ConstructionSites.Create;
 
 public sealed class CreateConstructionSiteService(
     IConstructionSitesSession session,

@@ -1,4 +1,4 @@
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 internal sealed record ParsedRkomTrenches(
     string SourceProjectId,

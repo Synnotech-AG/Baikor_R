@@ -1,11 +1,10 @@
-using BaikorR.Api.Authentication;
 using BaikorR.Core.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace BaikorR.Api.Controllers.Auth.Login;
+namespace BaikorR.Host.Controllers.Auth.Login;
 
 [ApiController]
 [Route("auth/login")]

@@ -1,6 +1,6 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 public sealed record ConstructionSiteResponse(
     Guid Id,

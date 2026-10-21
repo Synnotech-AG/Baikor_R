@@ -1,16 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
-using BaikorR.Api.Controllers.Api.Me;
-using BaikorR.Api.Controllers.Api.Version;
+using BaikorR.Host.Controllers.Api.Me;
+using BaikorR.Host.Controllers.Api.Version;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace BaikorR.Api.Tests;
 
-public sealed class ApplicationTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ApplicationTests : IClassFixture<WebApplicationFactory<Host.Program>>
 {
     private readonly HttpClient _client;
 
-    public ApplicationTests(WebApplicationFactory<Program> factory)
+    public ApplicationTests(WebApplicationFactory<Host.Program> factory)
     {
         _client = factory.CreateClient();
     }

@@ -1,6 +1,6 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 
-namespace BaikorR.Api.Persistence.Sessions;
+namespace BaikorR.Core.Persistence.Sessions;
 
 public interface IConstructionSiteAttachmentsSession
 {

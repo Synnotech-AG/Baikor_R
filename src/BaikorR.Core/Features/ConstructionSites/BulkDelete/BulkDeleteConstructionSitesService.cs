@@ -1,8 +1,8 @@
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.BulkDelete;
+namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 public sealed class BulkDeleteConstructionSitesService(
     IConstructionSitesSession session,

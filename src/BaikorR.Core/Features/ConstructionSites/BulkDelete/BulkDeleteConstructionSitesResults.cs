@@ -1,9 +1,9 @@
-using BaikorR.Api.Shared.Results;
-using BaikorR.Api.Shared.Validation;
+using BaikorR.Core.Shared.Results;
+using BaikorR.Core.Shared.Validation;
 using FluentResults;
 using FluentValidation.Results;
 
-namespace BaikorR.Api.Features.ConstructionSites.BulkDelete;
+namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 internal static class BulkDeleteConstructionSitesResults
 {

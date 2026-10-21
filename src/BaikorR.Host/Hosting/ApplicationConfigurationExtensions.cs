@@ -1,6 +1,6 @@
 using BaikorR.Core.Configuration;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ApplicationConfigurationExtensions
 {

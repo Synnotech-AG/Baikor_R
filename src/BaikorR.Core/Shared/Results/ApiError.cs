@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BaikorR.Api.Shared.Results;
+namespace BaikorR.Core.Shared.Results;
 
 internal sealed class ApiError : Error
 {

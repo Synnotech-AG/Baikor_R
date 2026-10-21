@@ -1,7 +1,7 @@
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Delete;
 
 public sealed class DeleteConstructionSiteService(IConstructionSitesSession session)
     : IDeleteConstructionSiteService

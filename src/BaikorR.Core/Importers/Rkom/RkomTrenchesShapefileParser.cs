@@ -9,7 +9,7 @@ using NetTopologySuite.IO.Esri.Shapefiles.Readers;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 public sealed class RkomTrenchesShapefileParser
 {

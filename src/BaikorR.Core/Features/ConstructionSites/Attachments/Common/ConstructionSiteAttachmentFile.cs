@@ -1,4 +1,4 @@
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Common;
 
 public sealed record ConstructionSiteAttachmentFile(
     string FileName,

@@ -9,6 +9,8 @@ import shutil
 import subprocess
 import tempfile
 
+from test_database_migrations import prepare_database, verify_database
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -59,19 +61,28 @@ def main():
         if not args.image:
             stage = "application image build"
             subprocess.run(["docker", "build", "--tag", image, str(root)], check=True)
+        stage = "disposable database fixture setup"
+        subprocess.run([*compose, "up", "--detach", "--wait", "postgis"], env=environment, check=True)
+        prepare_database(compose, environment)
         stage = "disposable services startup and database migration"
         subprocess.run([*compose, "up", "--detach", "app"], env=environment, check=True)
+        stage = "database migration assertions"
+        lines = verify_database(compose, environment)
+        for line in lines:
+            print(line, flush=True)
+        database_failed = any(line.startswith("FAIL ") for line in lines)
         stage = "real OIDC smoke test"
         smoke = subprocess.run([*compose, "run", "--rm", "--no-deps", "-T", "smoke"],
                                env=environment, capture_output=True, text=True, encoding="utf-8")
         # Persist only assertion results. Authentication response bodies, headers,
         # tokens, passwords and raw server logs never become uploaded artifacts.
-        lines = [line for line in smoke.stdout.splitlines()
-                 if line.startswith(("PASS ", "FAIL ", "Completed "))]
-        for line in lines:
+        smoke_lines = [line for line in smoke.stdout.splitlines()
+                       if line.startswith(("PASS ", "FAIL ", "Completed "))]
+        lines.extend(smoke_lines)
+        for line in smoke_lines:
             print(line, flush=True)
-        result = smoke.returncode
-        if result and not any(line.startswith("FAIL ") for line in lines):
+        result = smoke.returncode or int(database_failed)
+        if smoke.returncode and not any(line.startswith("FAIL ") for line in smoke_lines):
             lines.append("FAIL smoke process exited before completing assertions")
             print(lines[-1], flush=True)
         if result:

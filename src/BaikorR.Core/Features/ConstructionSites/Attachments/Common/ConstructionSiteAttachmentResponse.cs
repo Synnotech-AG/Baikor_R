@@ -1,6 +1,6 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Common;
 
 public sealed record ConstructionSiteAttachmentResponse(
     Guid Id,

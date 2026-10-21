@@ -1,19 +1,19 @@
-using BaikorR.Api.Features.ConstructionSites.ChangeStatus;
-using BaikorR.Api.Features.ConstructionSites.BulkDelete;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Delete;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Download;
-using BaikorR.Api.Features.ConstructionSites.Attachments.List;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Features.ConstructionSites.Create;
-using BaikorR.Api.Features.ConstructionSites.Delete;
-using BaikorR.Api.Features.ConstructionSites.Get;
-using BaikorR.Api.Features.ConstructionSites.List;
-using BaikorR.Api.Importers.Rkom;
-using BaikorR.Api.Features.ConstructionSites.Update;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Delete;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Download;
+using BaikorR.Core.Features.ConstructionSites.Attachments.List;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
+using BaikorR.Core.Features.ConstructionSites.BulkDelete;
+using BaikorR.Core.Features.ConstructionSites.ChangeStatus;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Features.ConstructionSites.Create;
+using BaikorR.Core.Features.ConstructionSites.Delete;
+using BaikorR.Core.Features.ConstructionSites.Get;
+using BaikorR.Core.Features.ConstructionSites.List;
+using BaikorR.Core.Features.ConstructionSites.Update;
+using BaikorR.Core.Importers.Rkom;
 using FluentValidation;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ConstructionSiteFeatureExtensions
 {

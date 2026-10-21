@@ -1,4 +1,4 @@
-namespace BaikorR.Api.Authentication;
+namespace BaikorR.Host.Authentication;
 
 public static class BaikorRoles
 {

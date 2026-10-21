@@ -3,7 +3,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace BaikorR.Api.Authentication;
+namespace BaikorR.Host.Authentication;
 
 public sealed class DevelopmentAuthenticationHandler(
     IOptionsMonitor<DevelopmentAuthenticationOptions> options,

@@ -1,4 +1,4 @@
-using BaikorR.Api.Importers.Rkom;
+using BaikorR.Core.Importers.Rkom;
 using FluentResults;
 
 namespace BaikorR.Api.Tests;

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.BulkDelete;
+namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 public sealed record BulkDeleteConstructionSitesRequest(IReadOnlyCollection<Guid> Ids)
 {

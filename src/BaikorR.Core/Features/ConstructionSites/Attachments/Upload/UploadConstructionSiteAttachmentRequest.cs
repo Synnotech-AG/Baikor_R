@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 public sealed record UploadConstructionSiteAttachmentRequest(
     string FileName,

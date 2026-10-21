@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using BaikorR.Api.Controllers.Api.Antiforgery;
-using BaikorR.Api.Persistence.Sessions;
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Host.Controllers.Api.Antiforgery;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,7 +16,7 @@ public sealed class ConstructionSiteHttpTests
     public async Task CreatePersistsTheRequestedStatus()
     {
         var session = new InMemoryConstructionSitesSession();
-        await using var factory = new WebApplicationFactory<Program>()
+        await using var factory = new WebApplicationFactory<Host.Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IConstructionSitesSession>();
@@ -75,7 +75,7 @@ public sealed class ConstructionSiteHttpTests
     public async Task CreateRoundTripsMetadata()
     {
         var session = new InMemoryConstructionSitesSession();
-        await using var factory = new WebApplicationFactory<Program>()
+        await using var factory = new WebApplicationFactory<Host.Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IConstructionSitesSession>();

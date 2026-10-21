@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 internal static class ConstructionSiteMetadataRules
 {

@@ -11,7 +11,7 @@ public sealed class OpenIdConnectConfigurationTests
     [Fact]
     public void AuthenticationTicketKeepsTokensRequiredForKeycloakLogout()
     {
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        using var factory = new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Authentication:Enabled", "true");
             builder.UseSetting("Authentication:Authority", "https://identity.example.invalid/realms/test");

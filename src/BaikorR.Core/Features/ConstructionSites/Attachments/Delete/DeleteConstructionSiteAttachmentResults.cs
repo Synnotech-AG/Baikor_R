@@ -1,7 +1,7 @@
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Delete;
 
 internal static class DeleteConstructionSiteAttachmentResults
 {

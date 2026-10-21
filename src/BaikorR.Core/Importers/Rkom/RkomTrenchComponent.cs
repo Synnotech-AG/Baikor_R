@@ -1,6 +1,6 @@
 using NetTopologySuite.Geometries;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 internal sealed record RkomTrenchComponent(
     string SourceStatus,

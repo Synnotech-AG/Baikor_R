@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
 
-namespace BaikorR.Api.Authentication;
+namespace BaikorR.Host.Authentication;
 
 public sealed class DevelopmentAuthenticationOptions : AuthenticationSchemeOptions;

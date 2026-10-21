@@ -1,13 +1,13 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 using FluentValidation;
 using NetTopologySuite.IO.Esri;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 public sealed class RkomTrenchesImporter(
     IConstructionSitesSession session,

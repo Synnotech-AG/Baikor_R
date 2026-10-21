@@ -1,7 +1,7 @@
 using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems.Transformations;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 internal sealed class CoordinateTransformFilter(MathTransform transform) : ICoordinateSequenceFilter
 {

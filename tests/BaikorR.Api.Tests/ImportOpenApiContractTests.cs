@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using BaikorR.Api.Controllers.Api.Antiforgery;
-using BaikorR.Api.Importers.Rkom;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Importers.Rkom;
+using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Host.Controllers.Api.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -157,8 +157,8 @@ public sealed class ImportOpenApiContractTests
             .GetProperty("responses").TryGetProperty("302", out _));
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(InMemoryConstructionSitesSession session) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    private static WebApplicationFactory<Host.Program> CreateFactory(InMemoryConstructionSitesSession session) =>
+        new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IConstructionSitesSession>();

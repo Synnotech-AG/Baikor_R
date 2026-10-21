@@ -1,9 +1,9 @@
-using BaikorR.Api.Persistence;
-using BaikorR.Api.Shared.Telemetry;
+using BaikorR.Core.Persistence;
+using BaikorR.Host.Shared.Telemetry;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ApplicationObservabilityExtensions
 {

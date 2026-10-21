@@ -1,6 +1,6 @@
 using System.IO.Compression;
-using BaikorR.Api.Importers.Rkom;
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Importers.Rkom;
+using BaikorR.Core.Persistence.Entities;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Esri;

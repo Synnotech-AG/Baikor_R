@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.List;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.List;
 
 internal static class ListConstructionSiteAttachmentsResults
 {

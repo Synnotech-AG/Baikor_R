@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 public sealed record ConstructionSiteContactRequest(
     Guid? Id,

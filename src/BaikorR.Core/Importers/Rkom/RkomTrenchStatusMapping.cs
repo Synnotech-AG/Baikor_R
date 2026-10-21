@@ -1,6 +1,6 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 internal static class RkomTrenchStatusMapping
 {

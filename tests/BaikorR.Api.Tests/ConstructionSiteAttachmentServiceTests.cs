@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Delete;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Download;
-using BaikorR.Api.Features.ConstructionSites.Attachments.List;
-using BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Delete;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Download;
+using BaikorR.Core.Features.ConstructionSites.Attachments.List;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 namespace BaikorR.Api.Tests;
 

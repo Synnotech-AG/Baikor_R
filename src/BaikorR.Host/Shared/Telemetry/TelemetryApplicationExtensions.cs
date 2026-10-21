@@ -1,6 +1,4 @@
-using OpenTelemetry.Metrics;
-
-namespace BaikorR.Api.Shared.Telemetry;
+namespace BaikorR.Host.Shared.Telemetry;
 
 internal static class TelemetryApplicationExtensions
 {

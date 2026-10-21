@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 public interface IUploadConstructionSiteAttachmentService
 {

@@ -1,9 +1,9 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Get;
+namespace BaikorR.Core.Features.ConstructionSites.Get;
 
 internal static class GetConstructionSiteResults
 {

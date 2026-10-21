@@ -1,5 +1,5 @@
-using BaikorR.Api.Features.ConstructionSites.BulkDelete;
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Features.ConstructionSites.BulkDelete;
+using BaikorR.Core.Persistence.Entities;
 
 namespace BaikorR.Api.Tests;
 

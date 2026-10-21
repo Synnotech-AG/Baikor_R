@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Get;
+namespace BaikorR.Core.Features.ConstructionSites.Get;
 
 public sealed class GetConstructionSiteService(IConstructionSitesSession session) : IGetConstructionSiteService
 {

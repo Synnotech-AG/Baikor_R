@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.Antiforgery;
+namespace BaikorR.Host.Controllers.Api.Antiforgery;
 
 [ApiController]
 [Route("api/antiforgery")]

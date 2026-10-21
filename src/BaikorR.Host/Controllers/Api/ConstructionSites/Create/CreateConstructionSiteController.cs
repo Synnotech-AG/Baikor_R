@@ -1,12 +1,12 @@
-using BaikorR.Api.Authentication;
-using BaikorR.Api.Controllers.Api.ConstructionSites.ById.Get;
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Features.ConstructionSites.Create;
-using BaikorR.Api.Shared.Results;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Features.ConstructionSites.Create;
+using BaikorR.Host.Authentication;
+using BaikorR.Host.Controllers.Api.ConstructionSites.ById.Get;
+using BaikorR.Host.Shared.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.ConstructionSites.Create;
+namespace BaikorR.Host.Controllers.Api.ConstructionSites.Create;
 
 [ApiController]
 [Route("api/construction-sites")]

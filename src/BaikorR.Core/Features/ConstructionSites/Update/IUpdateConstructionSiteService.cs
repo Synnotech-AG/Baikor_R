@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
+using BaikorR.Core.Features.ConstructionSites.Common;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Update;
+namespace BaikorR.Core.Features.ConstructionSites.Update;
 
 public interface IUpdateConstructionSiteService
 {

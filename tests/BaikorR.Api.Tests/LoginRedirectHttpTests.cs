@@ -21,7 +21,7 @@ public sealed class LoginRedirectHttpTests
     [InlineData("/safe\tpath", "/")]
     public async Task LoginOnlyRedirectsToLocalPaths(string? returnUrl, string expectedLocation)
     {
-        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        await using var factory = new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
             builder.UseSetting("Authentication:Enabled", "false"));
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {

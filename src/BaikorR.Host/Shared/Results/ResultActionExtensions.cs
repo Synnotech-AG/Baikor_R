@@ -1,7 +1,8 @@
+using BaikorR.Core.Shared.Results;
 using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Shared.Results;
+namespace BaikorR.Host.Shared.Results;
 
 internal static class ResultActionExtensions
 {

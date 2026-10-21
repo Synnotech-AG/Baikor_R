@@ -11,7 +11,7 @@ public sealed class LaunchPageTests
     {
         var webRoot = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "../../../../../src/baikor-r-web/public"));
-        await using var factory = new WebApplicationFactory<Program>()
+        await using var factory = new WebApplicationFactory<Host.Program>()
             .WithWebHostBuilder(builder => builder.UseWebRoot(webRoot));
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {

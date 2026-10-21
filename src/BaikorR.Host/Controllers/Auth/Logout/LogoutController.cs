@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace BaikorR.Api.Controllers.Auth.Logout;
+namespace BaikorR.Host.Controllers.Auth.Logout;
 
 [ApiController]
 [Route("auth/logout")]

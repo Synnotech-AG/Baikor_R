@@ -1,8 +1,8 @@
-using BaikorR.Api.Shared.Spatial;
+using BaikorR.Core.Shared.Spatial;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 public sealed record ConstructionSiteAreaRequest(
     Guid? Id,

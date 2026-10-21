@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.BulkDelete;
+namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 public interface IBulkDeleteConstructionSitesService
 {

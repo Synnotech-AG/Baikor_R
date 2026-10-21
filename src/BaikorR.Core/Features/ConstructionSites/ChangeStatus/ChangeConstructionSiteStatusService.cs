@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.ChangeStatus;
+namespace BaikorR.Core.Features.ConstructionSites.ChangeStatus;
 
 public sealed class ChangeConstructionSiteStatusService(
     IConstructionSitesSession session,

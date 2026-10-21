@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
 
-namespace BaikorR.Api.Authentication;
+namespace BaikorR.Host.Authentication;
 
 internal static class AccessDeniedPage
 {

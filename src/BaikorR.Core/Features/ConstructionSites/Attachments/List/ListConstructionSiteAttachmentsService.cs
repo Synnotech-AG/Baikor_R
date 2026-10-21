@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.List;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.List;
 
 public sealed class ListConstructionSiteAttachmentsService(IConstructionSiteAttachmentsSession session)
     : IListConstructionSiteAttachmentsService

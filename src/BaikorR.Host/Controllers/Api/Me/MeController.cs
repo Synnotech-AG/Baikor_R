@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using BaikorR.Api.Authentication;
+using BaikorR.Host.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.Me;
+namespace BaikorR.Host.Controllers.Api.Me;
 
 [ApiController]
 [Route("api/me")]

@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using BaikorR.Api.Controllers.Api.Antiforgery;
-using BaikorR.Api.Controllers.Api.Me;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Host.Controllers.Api.Antiforgery;
+using BaikorR.Host.Controllers.Api.Me;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -316,8 +316,8 @@ public sealed class AuthorizationHttpTests
         version = 0u
     });
 
-    private static WebApplicationFactory<Program> CreateFactory(InMemoryConstructionSitesSession? database = null) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    private static WebApplicationFactory<Host.Program> CreateFactory(InMemoryConstructionSitesSession? database = null) =>
+        new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Authentication:Enabled", "true");
             builder.UseSetting("Authentication:Authority", "https://identity.example.invalid/realms/test");
@@ -339,11 +339,11 @@ public sealed class AuthorizationHttpTests
         });
 
     private static HttpClient CreateAuthenticatedClient(
-        WebApplicationFactory<Program> factory, params string[] roles) =>
+        WebApplicationFactory<Host.Program> factory, params string[] roles) =>
         CreateAuthenticatedClient(factory, roles, "test-user");
 
     private static HttpClient CreateAuthenticatedClient(
-        WebApplicationFactory<Program> factory, string[] roles, string userId)
+        WebApplicationFactory<Host.Program> factory, string[] roles, string userId)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {

@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.List;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.List;
 
 public interface IListConstructionSiteAttachmentsService
 {

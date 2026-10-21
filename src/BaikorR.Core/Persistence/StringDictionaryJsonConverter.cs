@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace BaikorR.Api.Persistence;
+namespace BaikorR.Core.Persistence;
 
 internal sealed class StringDictionaryJsonConverter()
     : ValueConverter<Dictionary<string, string>, string>(

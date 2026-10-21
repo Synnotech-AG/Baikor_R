@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 public sealed record RkomTrenchesImportRequest(
     string FileName,

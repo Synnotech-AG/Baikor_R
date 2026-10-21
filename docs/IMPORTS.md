@@ -83,4 +83,4 @@ Duplicate detection checks the exact file's SHA-256 against up to 2,000 existing
 
 ## Operator integration
 
-See the [customer import API and Node-RED guide](https://github.com/Synnotech-AG/Baikor_R.Addon#optional-import-api) for service-account setup, requests, error handling and manual workflow configuration. Earlier automatically installed flows are no longer managed; see the addon upgrade notes before removing any legacy mounts or credentials.
+See the [customer import API and Node-RED guide](https://github.com/Synnotech-AG/Baikor_R.Addon#optional-import-api) for service-account setup, requests, error handling and manual workflow configuration.

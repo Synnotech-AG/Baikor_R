@@ -1,4 +1,4 @@
-using BaikorR.Api.Shared.Spatial;
+using BaikorR.Core.Shared.Spatial;
 
 namespace BaikorR.Api.Tests;
 

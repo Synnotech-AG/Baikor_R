@@ -1,7 +1,7 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Download;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Download;
 
 public interface IDownloadConstructionSiteAttachmentService
 {

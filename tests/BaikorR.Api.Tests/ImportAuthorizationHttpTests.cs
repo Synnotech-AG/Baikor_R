@@ -4,9 +4,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using BaikorR.Api.Importers.Rkom;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Importers.Rkom;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,8 +84,8 @@ public sealed class ImportAuthorizationHttpTests
         Assert.Equal("Protected site", persisted.Title);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(InMemoryConstructionSitesSession database) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    private static WebApplicationFactory<Host.Program> CreateFactory(InMemoryConstructionSitesSession database) =>
+        new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Authentication:Enabled", "true");
             builder.UseSetting("Authentication:Authority", Issuer);
@@ -103,7 +103,7 @@ public sealed class ImportAuthorizationHttpTests
             });
         });
 
-    private static HttpClient CreateBearerClient(WebApplicationFactory<Program> factory, string role)
+    private static HttpClient CreateBearerClient(WebApplicationFactory<Host.Program> factory, string role)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {

@@ -1,7 +1,7 @@
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Delete;
 
 public sealed class DeleteConstructionSiteAttachmentService(IConstructionSiteAttachmentsSession session)
     : IDeleteConstructionSiteAttachmentService

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using BaikorR.Api.Controllers.Api.Antiforgery;
-using BaikorR.Api.Importers.Rkom;
+using BaikorR.Core.Importers.Rkom;
+using BaikorR.Host.Controllers.Api.Antiforgery;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -53,8 +53,8 @@ public sealed class ImportAntiforgeryHttpTests
         return content;
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(RecordingRkomTrenchesImporter importer) =>
-        new WebApplicationFactory<Program>()
+    private static WebApplicationFactory<Host.Program> CreateFactory(RecordingRkomTrenchesImporter importer) =>
+        new WebApplicationFactory<Host.Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IRkomTrenchesImporter>();

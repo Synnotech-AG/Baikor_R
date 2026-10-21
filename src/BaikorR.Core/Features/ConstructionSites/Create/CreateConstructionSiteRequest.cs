@@ -1,8 +1,8 @@
-using BaikorR.Api.Features.ConstructionSites.Common;
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Features.ConstructionSites.Common;
+using BaikorR.Core.Persistence.Entities;
 using FluentValidation;
 
-namespace BaikorR.Api.Features.ConstructionSites.Create;
+namespace BaikorR.Core.Features.ConstructionSites.Create;
 
 public sealed record CreateConstructionSiteRequest(
     string Title,

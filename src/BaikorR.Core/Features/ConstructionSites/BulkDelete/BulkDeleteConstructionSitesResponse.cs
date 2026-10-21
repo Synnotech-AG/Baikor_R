@@ -1,3 +1,3 @@
-namespace BaikorR.Api.Features.ConstructionSites.BulkDelete;
+namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 public sealed record BulkDeleteConstructionSitesResponse(int DeletedCount);

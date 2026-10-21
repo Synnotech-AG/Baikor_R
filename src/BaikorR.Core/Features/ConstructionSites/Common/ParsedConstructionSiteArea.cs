@@ -1,7 +1,7 @@
-using BaikorR.Api.Shared.Spatial;
+using BaikorR.Core.Shared.Spatial;
 using NetTopologySuite.Geometries;
 
-namespace BaikorR.Api.Features.ConstructionSites.Common;
+namespace BaikorR.Core.Features.ConstructionSites.Common;
 
 internal sealed record ParsedConstructionSiteArea(Guid? Id, string Name, Polygon Geometry)
 {

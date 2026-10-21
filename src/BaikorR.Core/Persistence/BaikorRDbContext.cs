@@ -1,7 +1,7 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaikorR.Api.Persistence;
+namespace BaikorR.Core.Persistence;
 
 public sealed class BaikorRDbContext(DbContextOptions<BaikorRDbContext> options)
     : DbContext(options)

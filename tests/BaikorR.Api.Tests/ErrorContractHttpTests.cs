@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using BaikorR.Api.Controllers.Api.Antiforgery;
-using BaikorR.Api.Persistence.Sessions;
+using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Host.Controllers.Api.Antiforgery;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -60,10 +60,10 @@ public sealed class ErrorContractHttpTests
                 .GetString());
     }
 
-    private static WebApplicationFactory<Program> CreateFactory()
+    private static WebApplicationFactory<Host.Program> CreateFactory()
     {
         var session = new InMemoryConstructionSitesSession();
-        return new WebApplicationFactory<Program>()
+        return new WebApplicationFactory<Host.Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IConstructionSitesSession>();

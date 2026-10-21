@@ -1,7 +1,7 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
-namespace BaikorR.Api.Shared.Telemetry;
+namespace BaikorR.Host.Shared.Telemetry;
 
 internal static class TelemetryServiceCollectionExtensions
 {

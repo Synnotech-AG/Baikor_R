@@ -1,3 +1,3 @@
-namespace BaikorR.Api.Controllers.Api.Antiforgery;
+namespace BaikorR.Host.Controllers.Api.Antiforgery;
 
 public sealed record AntiforgeryTokenResponse(string Token);

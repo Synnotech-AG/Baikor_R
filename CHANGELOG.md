@@ -3,6 +3,13 @@
 Changes are recorded here before publication. Released versions and downloads
 are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/releases).
 
+## Unreleased
+
+- Remove the obsolete pre-baseline schema reset from initial database setup;
+  preserve unrelated schema data and retain the existing EF migration chain.
+- Verify initial schema creation and data preservation against real PostGIS in CI.
+- Remove obsolete Node-RED upgrade guidance from the import documentation.
+
 ## 1.7.7 — 2026-10-20
 
 - Add a dedicated `baikor_importer` authorization policy for geodata imports;

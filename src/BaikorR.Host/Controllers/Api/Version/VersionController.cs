@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaikorR.Api.Controllers.Api.Version;
+namespace BaikorR.Host.Controllers.Api.Version;
 
 [ApiController]
 [Route("api/version")]

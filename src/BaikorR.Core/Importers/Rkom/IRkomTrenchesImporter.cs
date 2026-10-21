@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BaikorR.Api.Importers.Rkom;
+namespace BaikorR.Core.Importers.Rkom;
 
 public interface IRkomTrenchesImporter
 {

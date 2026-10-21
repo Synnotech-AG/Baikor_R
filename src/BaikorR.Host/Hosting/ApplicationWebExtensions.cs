@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using BaikorR.Api.Authentication;
-using BaikorR.Api.Shared.Telemetry;
 using BaikorR.Core.Configuration;
+using BaikorR.Host.Authentication;
+using BaikorR.Host.Shared.Telemetry;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -10,7 +10,7 @@ using Serilog;
 using Serilog.AspNetCore;
 using Serilog.Events;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ApplicationWebExtensions
 {

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace BaikorR.Api.Persistence;
+namespace BaikorR.Core.Persistence;
 
 internal sealed class StringDictionaryValueComparer()
     : ValueComparer<Dictionary<string, string>>(

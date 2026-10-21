@@ -26,6 +26,11 @@ The imported `baikor-ci` realm is synthetic and its client matches the addon's
 role mapper, role scope and login/logout configuration. The fixture has no real
 credentials or users. Do not use it as a deployment configuration.
 
+Before application startup, the runner creates an unrelated marker table in the
+`baikor` schema. It checks that initial migrations preserve that table and its
+data while creating the application tables, metadata column and current public
+views. This uses the real PostGIS container and application migration command.
+
 The smoke checks real authorization-code login, distinct account identities and
 roles, denied-account recovery, shared records and attachments, authorization,
 CSRF, optimistic concurrency, Keycloak logout and account switching. Its normal

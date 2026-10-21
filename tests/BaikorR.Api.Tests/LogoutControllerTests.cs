@@ -1,5 +1,5 @@
-using BaikorR.Api.Controllers.Auth.Logout;
 using BaikorR.Core.Configuration;
+using BaikorR.Host.Controllers.Auth.Logout;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;

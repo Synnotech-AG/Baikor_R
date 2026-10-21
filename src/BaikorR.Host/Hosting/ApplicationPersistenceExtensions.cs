@@ -1,10 +1,10 @@
-using BaikorR.Api.Persistence;
-using BaikorR.Api.Persistence.Sessions;
 using BaikorR.Core.Configuration;
+using BaikorR.Core.Persistence;
+using BaikorR.Core.Persistence.Sessions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace BaikorR.Api.Hosting;
+namespace BaikorR.Host.Hosting;
 
 internal static class ApplicationPersistenceExtensions
 {

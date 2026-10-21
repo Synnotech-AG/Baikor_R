@@ -1,5 +1,5 @@
-using BaikorR.Api.Persistence.Entities;
+using BaikorR.Core.Persistence.Entities;
 
-namespace BaikorR.Api.Features.ConstructionSites.ChangeStatus;
+namespace BaikorR.Core.Features.ConstructionSites.ChangeStatus;
 
 public sealed record ChangeConstructionSiteStatusRequest(ConstructionSiteStatus Status);

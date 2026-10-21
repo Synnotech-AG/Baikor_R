@@ -1,11 +1,11 @@
-using BaikorR.Api.Features.ConstructionSites.Attachments.Common;
-using BaikorR.Api.Persistence.Entities;
-using BaikorR.Api.Shared.Results;
-using BaikorR.Api.Shared.Validation;
+using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Shared.Results;
+using BaikorR.Core.Shared.Validation;
 using FluentResults;
 using FluentValidation.Results;
 
-namespace BaikorR.Api.Features.ConstructionSites.Attachments.Upload;
+namespace BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 internal static class UploadConstructionSiteAttachmentResults
 {

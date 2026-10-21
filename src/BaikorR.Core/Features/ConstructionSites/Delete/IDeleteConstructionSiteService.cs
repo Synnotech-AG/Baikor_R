@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BaikorR.Api.Features.ConstructionSites.Delete;
+namespace BaikorR.Core.Features.ConstructionSites.Delete;
 
 public interface IDeleteConstructionSiteService
 {
