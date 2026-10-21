@@ -60,10 +60,9 @@ secrets.json
 *.cer
 .kube/
 
-# Local code-intelligence and agent configuration
+# Local code-intelligence and agent configuration (AGENTS.md is shared)
 .claude/
 .gitnexus/
-AGENTS.md
 CLAUDE.md
 
 # Local review and generated scratch artifacts
