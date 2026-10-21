@@ -42,7 +42,7 @@ digests; there is no moving `latest` tag.
 ## One-time GitHub setup
 
 The existing `baikor-r` and `baikor-r-chart` packages are public. Anonymous Docker
-and Helm downloads of **1.7.8** were verified on **2026-10-21**. Package visibility
+and Helm downloads of **1.7.9** were verified on **2026-10-21**. Package visibility
 applies to future versions of these same packages; it does not need to be changed
 for each release. The instructions below also apply if a new package is created.
 
@@ -106,8 +106,8 @@ after that release succeeds.
 Verify the artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:1.7.8
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 1.7.8
+docker pull ghcr.io/synnotech-ag/baikor-r:1.7.9
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 1.7.9
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -121,8 +121,9 @@ addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
 Addon and application release numbers are independent. Application/chart
-**1.7.8** pairs with the published addon **1.7.9**. The earlier addon **1.7.8** pairs with
-application/chart **1.7.7**; the addon `1.7.7` tag identifies an older revision.
+**1.7.9** pairs with addon **1.7.10**. The earlier addon **1.7.9** pairs with
+application/chart **1.7.8**, and addon **1.7.8** pairs with application/chart
+**1.7.7**; the addon `1.7.7` tag identifies an older revision.
 Keep all existing release tags unchanged.
 
 Local development may continue to use `helm.local_chart_path` and an imported

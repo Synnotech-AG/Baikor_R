@@ -5,8 +5,16 @@ are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/release
 
 ## Unreleased
 
+## 1.7.9 — 2026-10-21
+
 - Wait for PostgreSQL TCP readiness in the isolated platform tests, avoiding
   premature migration startup during database initialization.
+
+Published by [Release run 39592124497](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39592124497)
+from source `de2cba059d5136ef907862284946b315c5aa4443`. This release rebuilds
+the current main branch for fresh installations with addon **1.7.10**; application
+and chart behavior are unchanged from 1.7.8. All required CI checks and anonymous
+package downloads passed.
 
 ## 1.7.8 — 2026-10-21
 
