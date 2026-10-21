@@ -7,7 +7,8 @@ services:
       POSTGRES_USER: baikor_test
       POSTGRES_PASSWORD: ${BAIKOR_TEST_DB_PASSWORD:?Use run_ci.py}
     healthcheck:
-      test: [CMD-SHELL, "pg_isready -U baikor_test -d baikor_test"]
+      # The temporary initialization server accepts Unix sockets before TCP is ready.
+      test: [CMD-SHELL, "pg_isready -h 127.0.0.1 -U baikor_test -d baikor_test"]
       interval: 2s
       timeout: 3s
       retries: 60
