@@ -136,12 +136,14 @@ ordinary CI runs cannot publish. Published versions are never overwritten.
 See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
-Changes are recorded in [CHANGELOG.md](CHANGELOG.md). The next application/chart
-release is **0.2.0**, paired with addon **0.2.0**; publication and anonymous
-download verification are pending. This one-time version reset will retire the
-older GHCR image/chart versions after verification. Historical GitHub releases
-and source tags remain available. See the [version reset and package retirement
-plan](docs/RELEASING.md#version-reset-to-020) before using an older version pin.
+Changes are recorded in [CHANGELOG.md](CHANGELOG.md). Application/chart release
+[**0.2.0**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.2.0) pairs with
+addon [**0.2.0**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.2.0).
+Anonymous package downloads and isolated published-image runtime checks passed
+on **2026-10-21**. The older GHCR image/chart versions **1.7.6 through 1.7.9**
+were retired after verification. Historical GitHub releases and source tags
+remain available. See the [version reset and package retirement
+record](docs/RELEASING.md#version-reset-to-020) before using an older version pin.
 The application and addon source repositories are public under EUPL-1.2.
 See the [review status](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/main/docs/REVIEW_STATUS.md)
 for release completion and runtime acceptance evidence.

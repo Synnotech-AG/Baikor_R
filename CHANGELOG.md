@@ -3,15 +3,30 @@
 Changes are recorded here before publication. Released versions and downloads
 are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/releases).
 
+The 1.7.x entries below record historical release-time verification. Their GHCR
+image/chart versions were retired on 2026-10-21; source tags, GitHub releases and
+attached release assets remain available.
+
 ## Unreleased
+
+## 0.2.0 — 2026-10-21
 
 - Reset application, chart and addon release numbering to **0.2.0** for fresh
   installations, without changing application behavior from 1.7.9. Update local
   chart defaults and public installation examples to the new pairing.
-- Plan retirement of GHCR image/chart versions 1.7.6 through 1.7.9 after 0.2.0
-  passes release and anonymous-download checks. Historical source tags, GitHub
-  releases and their attached assets remain available; retired versions are not
-  reused. Publication and package retirement are pending.
+- Retire GHCR image/chart versions 1.7.6 through 1.7.9 after 0.2.0 passed release
+  and anonymous-download checks. Historical source tags, GitHub releases and
+  their attached assets remain available; retired versions are not
+  reused. Anonymous checks confirmed all eight old package versions are
+  unavailable by both tag and digest, with only 0.2.0 remaining in each package.
+
+The [0.2.0 release](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.2.0)
+was published by [Release run 39593999803](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39593999803)
+from source `66af217bb6c6ea487b951deb4e67b557a18f3c72`, paired with
+[addon 0.2.0](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.2.0).
+Required CI checks and anonymous image/chart retrieval passed. The downloaded
+chart passed metadata, checksum and lint checks; the isolated published-image
+fixture passed 106 checks covering database setup, user roles and importer tokens.
 
 ## 1.7.9 — 2026-10-21
 
@@ -19,10 +34,10 @@ are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/release
   premature migration startup during database initialization.
 
 Published by [Release run 39592124497](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39592124497)
-from source `de2cba059d5136ef907862284946b315c5aa4443`. This release rebuilds
-the current main branch for fresh installations with addon **1.7.10**; application
-and chart behavior are unchanged from 1.7.8. All required CI checks and anonymous
-package downloads passed.
+from source `de2cba059d5136ef907862284946b315c5aa4443`. This release rebuilt
+the then-current main branch for fresh installations with addon **1.7.10**;
+application and chart behavior were unchanged from 1.7.8. All required CI checks
+and anonymous package downloads passed.
 
 ## 1.7.8 — 2026-10-21
 

@@ -41,23 +41,28 @@ digests; there is no moving `latest` tag.
 
 ## Version reset to 0.2.0
 
-The next application, chart and addon releases use **0.2.0**. Publication and
-anonymous download verification are pending. This is a one-time numbering reset;
-the application behavior is unchanged from 1.7.9. Set the GitHub release as
-**Latest** explicitly because the historical 1.7.x versions sort higher.
+The application, chart and addon **0.2.0** releases were published on
+**2026-10-21**. [Release run 39593999803](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39593999803)
+passed all required checks and anonymous downloads. The published image also
+passed 106 isolated runtime checks, and the downloaded chart passed metadata,
+checksum and lint checks. This is a one-time numbering reset; application
+behavior is unchanged from 1.7.9. Set the GitHub release as **Latest** explicitly
+because the historical 1.7.x versions sort higher.
 
-After 0.2.0 passes its release checks, the older GHCR image and chart versions
-**1.7.6 through 1.7.9** are scheduled for removal. Their existing deployment pins
-will no longer be downloadable from GHCR after retirement. Update both the addon
-and application/chart pins to 0.2.0 for fresh installations. Historical source
-tags, GitHub releases and their attached release assets remain available.
+After successful verification, the older GHCR image and chart versions
+**1.7.6 through 1.7.9** were removed on **2026-10-21**. Anonymous requests for all
+eight old package versions returned 404 by both tag and digest. Only **0.2.0**
+remained in both packages, with its verified digests unchanged. Old deployment
+pins can no longer be downloaded from GHCR. Use addon and application/chart
+**0.2.0** for fresh installations. Historical source tags, GitHub releases and
+their attached release assets remain available.
 Retired version numbers must never be reused. This explicitly requested cleanup
 is a one-time exception to the normal package-retention policy below.
 
 ## One-time GitHub setup
 
 The existing `baikor-r` and `baikor-r-chart` packages are public. Anonymous Docker
-and Helm downloads of **1.7.9** were verified on **2026-10-21**. Package visibility
+and Helm downloads of **0.2.0** were verified on **2026-10-21**. Package visibility
 applies to future versions of these same packages; it does not need to be changed
 for each release. The instructions below also apply if a new package is created.
 
@@ -102,15 +107,16 @@ published packages available for deployments pinned to them; the documented
 0.2.0 reset is the explicit one-time retirement exception.
 
 The initial `1.7.6` run uploaded packages before public verification was blocked
-by organization policy. Those artifacts remain reserved for their original
-source commit. The October 20 review fixes were released in **1.7.7**; its
-original release run is
+by organization policy. The version remains reserved for its original source
+commit even after package retirement. The October 20 review fixes were released
+in **1.7.7**; its original release run is
 [39239993018](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39239993018).
 After the visibility change, attempt 2 completed on **2026-10-20**, preserving
 the tested source revision `6afbbaed75f4c201c584d88eaee1e196b15a2720` and package
 digests. The [1.7.7 release](https://github.com/Synnotech-AG/Baikor_R/releases/tag/1.7.7)
-includes the chart archive, checksums and source metadata. Rerunning the older
-`1.7.6` workflow would not include the review fixes.
+retains the chart archive, checksums and source metadata as historical assets;
+the corresponding GHCR packages were retired on 2026-10-21. Do not rerun the
+retired `1.7.6` workflow; it would not include the review fixes.
 
 Maintain the [changelog](../CHANGELOG.md) alongside changes. Its Unreleased section
 describes work awaiting publication; a successful release also receives generated
@@ -119,8 +125,7 @@ after that release succeeds.
 
 ## Verify and deploy
 
-After publication completes, verify the artifacts from a client without stored
-GHCR credentials:
+Verify the published artifacts from a client without stored GHCR credentials:
 
 ```shell
 docker pull ghcr.io/synnotech-ag/baikor-r:0.2.0
@@ -137,11 +142,11 @@ release does not automatically upgrade customer installations. Update the
 addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
-The new release pairing is application/chart **0.2.0** with addon **0.2.0**;
-publication is pending. Addon and application release numbers remain independent.
+The published release pairing is application/chart **0.2.0** with addon **0.2.0**.
+Addon and application release numbers remain independent.
 Historical pairings were application/chart **1.7.9** with addon **1.7.10**,
 application/chart **1.7.8** with addon **1.7.9**, and application/chart **1.7.7**
-with addon **1.7.8**. Those GHCR package versions are scheduled for retirement
+with addon **1.7.8**. Those GHCR package versions have been retired
 as described above. Keep all existing source tags unchanged.
 
 Local development may continue to use `helm.local_chart_path` and an imported
