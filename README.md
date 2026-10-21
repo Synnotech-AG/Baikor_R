@@ -122,7 +122,7 @@ smoke test on pushes and pull requests. The smoke test creates its own disposabl
 environment and does not access a developer or customer cluster.
 
 To publish, open [Actions > Release](https://github.com/Synnotech-AG/Baikor_R/actions/workflows/release.yml),
-select `main`, enter an unused version such as `1.7.8`, and choose **Run workflow**.
+select `main`, enter an unused stable version (`MAJOR.MINOR.PATCH`), and choose **Run workflow**.
 After the checks pass, it publishes:
 
 - Image `ghcr.io/synnotech-ag/baikor-r:<version>`.

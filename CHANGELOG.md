@@ -5,10 +5,22 @@ are listed in [GitHub Releases](https://github.com/Synnotech-AG/Baikor_R/release
 
 ## Unreleased
 
+- Wait for PostgreSQL TCP readiness in the isolated platform tests, avoiding
+  premature migration startup during database initialization.
+
+## 1.7.8 — 2026-10-21
+
 - Remove the obsolete pre-baseline schema reset from initial database setup;
   preserve unrelated schema data and retain the existing EF migration chain.
 - Verify initial schema creation and data preservation against real PostGIS in CI.
 - Remove obsolete Node-RED upgrade guidance from the import documentation.
+
+Published by [Release run 39587862516](https://github.com/Synnotech-AG/Baikor_R/actions/runs/39587862516)
+from source `e3695b0ea8e20a69d637e27e039f67a88e278a4e`. The workflow passed its
+anonymous image/chart download checks. Local anonymous retrieval and Core 1.6
+runtime acceptance passed, including database permissions, authentication,
+imports, Geoportal publication, repeated deployment, NetworkPolicy and cold
+restart with retained session and attachment.
 
 ## 1.7.7 — 2026-10-20
 
