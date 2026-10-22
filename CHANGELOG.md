@@ -9,6 +9,13 @@ attached release assets remain available.
 
 ## Unreleased
 
+- Apply the R_next branding with a shared brown-red, sage and white application
+  theme, the original logo artwork and locally hosted Open Sans fonts.
+- Refine table spacing, status badges and selection styling, and keep all columns
+  accessible in narrow panels with horizontal scrolling.
+- Use neutral table headers and secondary editor actions alongside the colored
+  row selections.
+
 ## 0.2.0 — 2026-10-21
 
 - Reset application, chart and addon release numbering to **0.2.0** for fresh

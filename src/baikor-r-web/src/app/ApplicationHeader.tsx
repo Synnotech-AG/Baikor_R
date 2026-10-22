@@ -16,7 +16,10 @@ export function ApplicationHeader({ page, session, antiforgeryToken, onPageChang
   const { t } = useTranslation()
   return (
     <header className="topbar">
-      <h1>{t('app.title')}</h1>
+      <div className="application-brand">
+        <img className="application-logo" src="/r-next-logo.svg" alt="R_next – R_Lab Mobilität" />
+        <h1>{t('app.title')}</h1>
+      </div>
       <nav className="main-navigation" aria-label={t('nav.main')}>
         <Button type={page === 'constructionSites' ? 'primary' : 'text'} onClick={() => onPageChange('constructionSites')}>
           {t('nav.constructionSites')}

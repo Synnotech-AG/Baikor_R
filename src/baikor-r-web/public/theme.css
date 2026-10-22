@@ -1,0 +1,88 @@
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/open-sans-latin-wght-normal.woff2') format('woff2');
+}
+
+:root {
+  --font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
+  --border-radius: 6px;
+
+  --color-primary: #8B2412;
+  --color-primary-hover: #A43A26;
+  --color-primary-active: #6F1D0F;
+  --color-primary-soft: #F8EFEB;
+  --color-primary-border: #C58476;
+  --color-on-primary: #FFFFFF;
+  --color-brand-accent: #E30613;
+  --color-sage: #A3B6B0;
+  --color-sage-soft: #E8EEEB;
+  --color-rose: #D1A7A0;
+  --color-rose-soft: #F6ECEA;
+
+  --color-canvas: #F5F7F5;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F2F5F3;
+  --color-surface-overlay: rgba(255, 255, 255, 0.96);
+  --color-surface-floating: rgba(255, 255, 255, 0.92);
+  --color-text: #26332F;
+  --color-text-secondary: #5B6661;
+  --color-text-disabled: #929C97;
+  --color-border: #D8E1DC;
+  --color-border-strong: #81908A;
+  --color-transparent: transparent;
+
+  --color-neutral-surface: #F5F5F5;
+  --color-neutral-surface-active: #ECECEC;
+  --color-neutral-border: #D6D6D6;
+  --color-neutral-text: #606060;
+
+  --color-info: #205A89;
+  --color-info-soft: #EAF2F8;
+  --color-info-border: #A8C4D9;
+  --color-success: #1F6B45;
+  --color-success-soft: #EBF5EE;
+  --color-success-border: #A7C9B3;
+  --color-warning: #8A5A00;
+  --color-warning-soft: #FFF4D9;
+  --color-warning-border: #DAC58A;
+  --color-error: #C62828;
+  --color-error-hover: #A81F1F;
+  --color-error-soft: #FDEEEE;
+  --color-error-border: #E3ABAB;
+  --color-focus: #236A85;
+  --color-focus-ring: rgba(35, 106, 133, 0.28);
+
+  --table-header-background: var(--color-neutral-surface);
+  --table-header-foreground: var(--color-neutral-text);
+  --table-row-hover-background: var(--color-neutral-surface);
+  --table-row-selected-background: var(--color-sage-soft);
+  --table-row-open-background: var(--color-primary-soft);
+  --table-border-color: var(--color-border);
+
+  --editor-action-foreground: var(--color-neutral-text);
+  --editor-action-border: var(--color-neutral-border);
+  --editor-action-hover-background: var(--color-neutral-surface);
+  --editor-action-active-background: var(--color-neutral-surface-active);
+
+  --color-map-canvas: #D9E1DC;
+  --map-saved-fill: rgba(34, 109, 134, 0.22);
+  --map-saved-stroke: #176D85;
+  --map-selected-fill: rgba(200, 214, 62, 0.30);
+  --map-selected-stroke: #E2B600;
+  --map-editor-fill: rgba(208, 73, 52, 0.24);
+  --map-editor-stroke: #C23B2A;
+  --map-marker-fill: var(--map-editor-stroke);
+  --map-marker-stroke: var(--color-surface);
+
+  --shadow-panel: 0 8px 28px rgba(38, 51, 47, 0.08);
+  --shadow-side-panel: 6px 0 22px rgba(38, 51, 47, 0.08);
+  --shadow-side-panel-mobile: 8px 0 28px rgba(38, 51, 47, 0.18);
+  --shadow-floating: 0 3px 14px rgba(38, 51, 47, 0.14);
+  --shadow-card: 0 2px 8px rgba(38, 51, 47, 0.10);
+  --shadow-small: 0 1px 4px rgba(38, 51, 47, 0.12);
+  --shadow-records: 0 -4px 14px rgba(38, 51, 47, 0.05);
+  --shadow-sticky-actions: 0 -10px 24px rgba(38, 51, 47, 0.07);
+}

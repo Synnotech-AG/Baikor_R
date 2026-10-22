@@ -21,10 +21,6 @@ interface ConstructionSitesTableProps {
   onBulkDelete: () => void
 }
 
-const statusColors: Record<ConstructionSiteStatus, string> = {
-  draft: 'default', planned: 'blue', approved: 'green', active: 'volcano',
-}
-
 export function ConstructionSitesTable({
   items,
   selectedId,
@@ -77,32 +73,38 @@ export function ConstructionSitesTable({
   const columns: TableProps<ConstructionSiteSummary>['columns'] = [
     {
       title: t('constructionSites.title'), dataIndex: 'title',
-      width: 240,
+      ellipsis: true,
+      className: 'table-site-title',
       sorter: (left, right) => left.title.localeCompare(right.title, locale),
       render: (title: string) => <strong title={title}>{title}</strong>,
     },
     {
       title: t('constructionSites.status.label'), dataIndex: 'status',
-      width: 110,
+      width: 112,
       sorter: (left, right) => t(statusTranslationKey(left.status)).localeCompare(t(statusTranslationKey(right.status)), locale),
-      render: (value: ConstructionSiteStatus) => <Tag color={statusColors[value]}>{t(statusTranslationKey(value))}</Tag>,
+      render: (value: ConstructionSiteStatus) => <Tag className={`construction-site-status status-${value}`}>{t(statusTranslationKey(value))}</Tag>,
     },
     {
       title: t('constructionSites.table.period'), dataIndex: 'plannedStart',
-      width: 200,
+      width: 192,
+      className: 'table-site-period',
       sorter: (left, right) => (left.plannedStart ?? '').localeCompare(right.plannedStart ?? ''),
-      render: (_: string | null, item) => <>{formatDate(item.plannedStart, locale)} – {formatDate(item.plannedEnd, locale)}</>,
+      render: (_: string | null, item) => item.plannedStart || item.plannedEnd
+        ? <>{formatDate(item.plannedStart, locale)} – {formatDate(item.plannedEnd, locale)}</>
+        : formatDate(null, locale),
     },
     {
       title: t('constructionSites.area'), dataIndex: 'areaSquareMetres',
-      width: 105,
+      width: 96,
+      align: 'right',
+      className: 'table-site-area',
       sorter: (left, right) => left.areaSquareMetres - right.areaSquareMetres,
       render: (value: number) => formatArea(value, locale),
     },
     {
       title: t('constructionSites.table.updated'), dataIndex: 'updatedAt', defaultSortOrder: 'descend',
-      width: 130,
-      responsive: ['md'],
+      width: 120,
+      className: 'table-site-updated',
       sorter: (left, right) => left.updatedAt.localeCompare(right.updatedAt),
       render: (value: string) => formatDateTime(value, locale),
     },
@@ -123,17 +125,18 @@ export function ConstructionSitesTable({
           <span>{t('constructionSites.bulkDelete.selected', { count: selectedIds.length })}</span>
           <Space size="small" wrap>
             {selectedIds.length < filteredItems.length && (
-              <Button size="small" onClick={() => onSelectionChange(filteredItems.map(item => item.id))}>
+              <Button type="text" size="small" onClick={() => onSelectionChange(filteredItems.map(item => item.id))}>
                 {t('constructionSites.bulkDelete.selectAll', { count: filteredItems.length })}
               </Button>
             )}
             {selectedIds.length > 0 && (
-              <Button size="small" onClick={() => onSelectionChange([])}>
+              <Button type="text" size="small" onClick={() => onSelectionChange([])}>
                 {t('constructionSites.bulkDelete.clearSelection')}
               </Button>
             )}
             <Button
               danger
+              type="text"
               size="small"
               icon={<DeleteOutlined />}
               disabled={selectedIds.length === 0}
@@ -161,7 +164,9 @@ export function ConstructionSitesTable({
         columns={columns}
         dataSource={filteredItems}
         tableLayout="fixed"
+        scroll={{ x: 760 }}
         rowSelection={canBulkDelete ? {
+          columnWidth: 44,
           selectedRowKeys: selectedIds,
           preserveSelectedRowKeys: true,
           onChange: (keys) => onSelectionChange(keys.map(String)),
