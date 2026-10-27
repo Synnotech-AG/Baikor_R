@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AddressSuggestions } from '../src/features/construction-sites/map/AddressSuggestions.ts'
+import { AddressSuggestions } from '../src/features/construction-sites/map/address-suggestions.ts'
 
 const address = (id, displayName = id) => ({
-  id, displayName, latitude: 49.0134, longitude: 12.1016,
+  id,
+  displayName,
+  latitude: 49.0134,
+  longitude: 12.1016,
   boundingBox: [49.01, 49.02, 12.1, 12.11],
 })
 
@@ -11,14 +14,29 @@ function setup(t) {
   t.mock.timers.enable({ apis: ['setTimeout'] })
   const requests = []
   let state
-  const suggestions = new AddressSuggestions((query) => new Promise((resolve, reject) => {
-    requests.push({ query, resolve, reject })
-  }), (next) => { state = next })
+  const suggestions = new AddressSuggestions(
+    (query) =>
+      new Promise((resolve, reject) => {
+        requests.push({ query, resolve, reject })
+      }),
+    (next) => {
+      state = next
+    },
+  )
   t.after(() => suggestions.dispose())
-  return { suggestions, requests, get state() { return state } }
+  return {
+    suggestions,
+    requests,
+    get state() {
+      return state
+    },
+  }
 }
 
-const settle = async () => { await Promise.resolve(); await Promise.resolve() }
+const settle = async () => {
+  await Promise.resolve()
+  await Promise.resolve()
+}
 
 test('typing debounces the latest query and never selects a pending address', async (t) => {
   const fixture = setup(t)
@@ -46,7 +64,10 @@ test('selection uses a displayed result without another lookup and clears the su
   const fixture = setup(t)
   fixture.suggestions.updateQuery('Regensburg')
   t.mock.timers.tick(450)
-  fixture.requests[0].resolve([address('first', 'First address'), address('second', 'Second address')])
+  fixture.requests[0].resolve([
+    address('first', 'First address'),
+    address('second', 'Second address'),
+  ])
   await settle()
   assert.equal(fixture.suggestions.select('second').displayName, 'Second address')
   assert.equal(fixture.state.query, 'Second address')
@@ -78,7 +99,10 @@ test('an older response cannot replace current results or make its address selec
   await settle()
   fixture.requests[0].resolve([address('old')])
   await settle()
-  assert.deepEqual(fixture.state.results.map((result) => result.id), ['new'])
+  assert.deepEqual(
+    fixture.state.results.map((result) => result.id),
+    ['new'],
+  )
   assert.equal(fixture.suggestions.select('old'), undefined)
   assert.equal(fixture.suggestions.select('new').id, 'new')
 })

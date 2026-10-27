@@ -1,9 +1,19 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { GeometryHistory } from '../src/features/construction-sites/map/geometrySnapshots.ts'
+import { GeometryHistory } from '../src/features/construction-sites/map/geometry-snapshots.ts'
 
 const area = (key = 'saved-1', id = 'saved-1', x = 10) => ({
-  key, id, name: 'Area 1', coordinates: [[[x, 20], [30, 20], [30, 40], [x, 20]]],
+  key,
+  id,
+  name: 'Area 1',
+  coordinates: [
+    [
+      [x, 20],
+      [30, 20],
+      [30, 40],
+      [x, 20],
+    ],
+  ],
 })
 
 test('undo restores modified saved coordinates and clears dirty state at the loaded base', () => {

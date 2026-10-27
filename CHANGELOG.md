@@ -5,6 +5,7 @@
 - Redesign the interface with R_next branding and a consistent, centrally configurable theme.
 - Add movable, resizable and collapsible panels with live drag previews and remembered layouts.
 - Improve filtering, table readability, area selection and editing with persistent action controls.
+- Enforce kebab-case frontend paths, braced conditionals and consistent formatting in local and CI checks.
 
 ## 0.1.0
 

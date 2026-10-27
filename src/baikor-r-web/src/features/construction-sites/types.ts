@@ -95,12 +95,16 @@ export interface ConstructionSiteWriteRequest {
   plannedStart: string | null
   plannedEnd: string | null
   diversion: string | null
-  contacts: Array<Omit<ConstructionSiteContactFormValues, 'email' | 'phone1' | 'phone2'> & {
-    email: string | null
-    phone1: string | null
-    phone2: string | null
-  }>
-  communications: Array<Omit<ConstructionSiteCommunicationFormValues, 'note'> & { note: string | null }>
+  contacts: Array<
+    Omit<ConstructionSiteContactFormValues, 'email' | 'phone1' | 'phone2'> & {
+      email: string | null
+      phone1: string | null
+      phone2: string | null
+    }
+  >
+  communications: Array<
+    Omit<ConstructionSiteCommunicationFormValues, 'note'> & { note: string | null }
+  >
   metadata: Record<string, string>
   areas: ConstructionSiteAreaRequest[]
 }

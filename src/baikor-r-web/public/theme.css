@@ -10,48 +10,48 @@
   --font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
   --border-radius: 6px;
 
-  --color-primary: #8B2412;
-  --color-primary-hover: #A43A26;
-  --color-primary-active: #6F1D0F;
-  --color-primary-soft: #F8EFEB;
-  --color-primary-border: #C58476;
-  --color-on-primary: #FFFFFF;
-  --color-brand-accent: #E30613;
-  --color-sage: #A3B6B0;
-  --color-sage-soft: #E8EEEB;
-  --color-rose: #D1A7A0;
-  --color-rose-soft: #F6ECEA;
+  --color-primary: #8b2412;
+  --color-primary-hover: #a43a26;
+  --color-primary-active: #6f1d0f;
+  --color-primary-soft: #f8efeb;
+  --color-primary-border: #c58476;
+  --color-on-primary: #ffffff;
+  --color-brand-accent: #e30613;
+  --color-sage: #a3b6b0;
+  --color-sage-soft: #e8eeeb;
+  --color-rose: #d1a7a0;
+  --color-rose-soft: #f6ecea;
 
-  --color-canvas: #F5F7F5;
-  --color-surface: #FFFFFF;
-  --color-surface-subtle: #F2F5F3;
+  --color-canvas: #f5f7f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f2f5f3;
   --color-surface-overlay: rgba(255, 255, 255, 0.96);
   --color-surface-floating: rgba(255, 255, 255, 0.92);
-  --color-text: #26332F;
-  --color-text-secondary: #5B6661;
-  --color-text-disabled: #929C97;
-  --color-border: #D8E1DC;
-  --color-border-strong: #81908A;
+  --color-text: #26332f;
+  --color-text-secondary: #5b6661;
+  --color-text-disabled: #929c97;
+  --color-border: #d8e1dc;
+  --color-border-strong: #81908a;
   --color-transparent: transparent;
 
-  --color-neutral-surface: #F5F5F5;
-  --color-neutral-surface-active: #ECECEC;
-  --color-neutral-border: #D6D6D6;
+  --color-neutral-surface: #f5f5f5;
+  --color-neutral-surface-active: #ececec;
+  --color-neutral-border: #d6d6d6;
   --color-neutral-text: #606060;
 
-  --color-info: #205A89;
-  --color-info-soft: #EAF2F8;
-  --color-info-border: #A8C4D9;
-  --color-success: #1F6B45;
-  --color-success-soft: #EBF5EE;
-  --color-success-border: #A7C9B3;
-  --color-warning: #8A5A00;
-  --color-warning-soft: #FFF4D9;
-  --color-warning-border: #DAC58A;
-  --color-error: #C62828;
-  --color-error-hover: #A81F1F;
-  --color-error-soft: #FDEEEE;
-  --color-error-border: #E3ABAB;
+  --color-info: #205a89;
+  --color-info-soft: #eaf2f8;
+  --color-info-border: #a8c4d9;
+  --color-success: #1f6b45;
+  --color-success-soft: #ebf5ee;
+  --color-success-border: #a7c9b3;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fff4d9;
+  --color-warning-border: #dac58a;
+  --color-error: #c62828;
+  --color-error-hover: #a81f1f;
+  --color-error-soft: #fdeeee;
+  --color-error-border: #e3abab;
   --color-focus: var(--color-primary);
   --color-focus-ring: color-mix(in srgb, var(--color-primary) 28%, transparent);
 
@@ -71,7 +71,9 @@
   --workspace-panel-border-color: var(--color-border);
   --workspace-panel-shadow: 0 1px 2px rgba(38, 51, 47, 0.03), 0 3px 8px rgba(38, 51, 47, 0.035);
   --workspace-panel-drag-border-color: var(--color-primary-border);
-  --workspace-panel-drag-shadow: 0 14px 38px color-mix(in srgb, var(--color-text) 22%, transparent), 0 4px 10px color-mix(in srgb, var(--color-text) 14%, transparent);
+  --workspace-panel-drag-shadow:
+    0 14px 38px color-mix(in srgb, var(--color-text) 22%, transparent),
+    0 4px 10px color-mix(in srgb, var(--color-text) 14%, transparent);
   --workspace-drop-border-color: var(--color-primary-border);
   --workspace-drop-background: var(--color-primary-soft);
   --workspace-drop-foreground: var(--color-primary);
@@ -89,13 +91,13 @@
   --editor-action-hover-background: var(--color-neutral-surface);
   --editor-action-active-background: var(--color-neutral-surface-active);
 
-  --color-map-canvas: #D9E1DC;
+  --color-map-canvas: #d9e1dc;
   --map-saved-fill: rgba(34, 109, 134, 0.22);
-  --map-saved-stroke: #176D85;
-  --map-selected-fill: rgba(200, 214, 62, 0.30);
-  --map-selected-stroke: #E2B600;
+  --map-saved-stroke: #176d85;
+  --map-selected-fill: rgba(200, 214, 62, 0.3);
+  --map-selected-stroke: #e2b600;
   --map-editor-fill: rgba(208, 73, 52, 0.24);
-  --map-editor-stroke: #C23B2A;
+  --map-editor-stroke: #c23b2a;
   --map-marker-fill: var(--map-editor-stroke);
   --map-marker-stroke: var(--color-surface);
 
@@ -103,7 +105,7 @@
   --shadow-side-panel: 6px 0 22px rgba(38, 51, 47, 0.08);
   --shadow-side-panel-mobile: 8px 0 28px rgba(38, 51, 47, 0.18);
   --shadow-floating: 0 3px 14px rgba(38, 51, 47, 0.14);
-  --shadow-card: 0 2px 8px rgba(38, 51, 47, 0.10);
+  --shadow-card: 0 2px 8px rgba(38, 51, 47, 0.1);
   --shadow-small: 0 1px 4px rgba(38, 51, 47, 0.12);
   --shadow-records: 0 -4px 14px rgba(38, 51, 47, 0.05);
   --shadow-sticky-actions: 0 -10px 24px rgba(38, 51, 47, 0.07);

@@ -7,7 +7,9 @@ export interface ParsedApiError {
 }
 
 export function parseApiError(error: unknown, fallback: string): ParsedApiError {
-  if (!axios.isAxiosError<ApiProblem>(error)) return { message: fallback }
+  if (!axios.isAxiosError<ApiProblem>(error)) {
+    return { message: fallback }
+  }
 
   const problem = error.response?.data
   const validationErrorKey = Object.values(problem?.errorKeys ?? {}).flat()[0]

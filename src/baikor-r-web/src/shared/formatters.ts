@@ -11,7 +11,9 @@ export function formatArea(area: number, locale = 'de-DE') {
 }
 
 export function formatDate(value: string | null, locale = 'de-DE') {
-  if (!value) return '–'
+  if (!value) {
+    return '–'
+  }
   return dateFormatter(locale).format(new Date(`${value}T00:00:00`))
 }
 

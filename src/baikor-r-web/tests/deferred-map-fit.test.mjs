@@ -1,18 +1,30 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import View from 'ol/View.js'
-import { createDeferredMapFit } from '../src/features/construction-sites/map/deferredMapFit.ts'
+import { createDeferredMapFit } from '../src/features/construction-sites/map/deferred-map-fit.ts'
 
 function mapFixture(initialSize = [0, 0]) {
   let size = initialSize
   const view = new View({ center: [100, 200], zoom: 10 })
   view.setViewportSize(size)
   const fit = createDeferredMapFit(() => ({
-    updateSize() { view.setViewportSize(size) },
-    getSize() { return size },
-    getView() { return view },
+    updateSize() {
+      view.setViewportSize(size)
+    },
+    getSize() {
+      return size
+    },
+    getView() {
+      return view
+    },
   }))
-  return { fit, view, setSize(next) { size = next } }
+  return {
+    fit,
+    view,
+    setSize(next) {
+      size = next
+    },
+  }
 }
 
 test('geometry requested on a collapsed map fits its extent once the viewport is visible', () => {
@@ -28,7 +40,11 @@ test('geometry requested on a collapsed map fits its extent once the viewport is
 
   view.setCenter([300, 400])
   fit.flush()
-  assert.deepEqual(view.getCenter(), [300, 400], 'later resize notifications must preserve user navigation')
+  assert.deepEqual(
+    view.getCenter(),
+    [300, 400],
+    'later resize notifications must preserve user navigation',
+  )
 })
 
 test('fit measures current viewport dimensions and waits if either dimension is zero', () => {

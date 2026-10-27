@@ -1,11 +1,11 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { workspaceDe, workspaceEn } from './workspaceMessages'
-import { recordDe, recordEn } from './recordMessages'
-import { geometryDe, geometryEn } from './geometryMessages'
-import { importDe, importEn } from './importMessages'
-import { paneDe, paneEn } from './paneMessages'
-import { dockingDe, dockingEn } from './dockingMessages'
+import { workspaceDe, workspaceEn } from './workspace-messages'
+import { recordDe, recordEn } from './record-messages'
+import { geometryDe, geometryEn } from './geometry-messages'
+import { importDe, importEn } from './import-messages'
+import { paneDe, paneEn } from './pane-messages'
+import { dockingDe, dockingEn } from './docking-messages'
 
 const de = {
   'app.title': 'Baustellenmanagement',
@@ -28,14 +28,17 @@ const de = {
   'constructionSites.saving': 'Wird gespeichert …',
   'constructionSites.saved': 'Änderungen gespeichert',
   'constructionSites.saveFailed': 'Speichern fehlgeschlagen.',
-  'constructionSites.sessionLoading': 'Die Sitzung wird noch geladen. Bitte versuchen Sie es gleich erneut.',
+  'constructionSites.sessionLoading':
+    'Die Sitzung wird noch geladen. Bitte versuchen Sie es gleich erneut.',
   'constructionSites.close.action': 'Baustelle schließen',
   'constructionSites.close.confirmTitle': 'Änderungen verwerfen und schließen?',
-  'constructionSites.close.confirmMessage': 'Nicht gespeicherte Änderungen gehen beim Schließen verloren.',
+  'constructionSites.close.confirmMessage':
+    'Nicht gespeicherte Änderungen gehen beim Schließen verloren.',
   'constructionSites.close.confirm': 'Schließen',
   'constructionSites.delete.action': 'Baustelle löschen',
   'constructionSites.delete.confirmTitle': 'Baustelle löschen?',
-  'constructionSites.delete.confirmMessage': 'Möchten Sie „{{title}}“ wirklich dauerhaft löschen? Anhänge und Teilflächen werden ebenfalls entfernt.',
+  'constructionSites.delete.confirmMessage':
+    'Möchten Sie „{{title}}“ wirklich dauerhaft löschen? Anhänge und Teilflächen werden ebenfalls entfernt.',
   'constructionSites.delete.success': 'Baustelle gelöscht',
   'constructionSites.delete.failed': 'Löschen fehlgeschlagen.',
   'constructionSites.discard': 'Verwerfen',
@@ -63,7 +66,8 @@ const de = {
   'constructionSites.diversion.label': 'Umleitung',
   'constructionSites.diversion.info': 'Freitext für alle Informationen zu Umleitungen.',
   'constructionSites.contacts.label': 'Kontakte',
-  'constructionSites.contacts.info': 'Kontaktpersonen rund um Antrag, Genehmigung, Umsetzung und die Baustelle vor Ort.',
+  'constructionSites.contacts.info':
+    'Kontaktpersonen rund um Antrag, Genehmigung, Umsetzung und die Baustelle vor Ort.',
   'constructionSites.contacts.add': 'Kontakt hinzufügen',
   'constructionSites.contacts.empty': 'Keine Kontakte vorhanden.',
   'constructionSites.contacts.create': 'Kontakt hinzufügen',
@@ -77,7 +81,8 @@ const de = {
   'constructionSites.contacts.phone1': 'Telefon 1 (optional)',
   'constructionSites.contacts.phone2': 'Telefon 2 (optional)',
   'constructionSites.communications.label': 'Kommunikation',
-  'constructionSites.communications.info': 'Zum Beispiel Anwohnerinformation, Pressemitteilung, Beschilderung bzw. Infoplakate vor Ort oder Social Media.',
+  'constructionSites.communications.info':
+    'Zum Beispiel Anwohnerinformation, Pressemitteilung, Beschilderung bzw. Infoplakate vor Ort oder Social Media.',
   'constructionSites.communications.add': 'Kommunikation hinzufügen',
   'constructionSites.communications.empty': 'Keine Kommunikationseinträge vorhanden.',
   'constructionSites.communications.create': 'Kommunikation hinzufügen',
@@ -91,7 +96,8 @@ const de = {
   'constructionSites.communications.type.signage': 'Beschilderung / Infoplakate vor Ort',
   'constructionSites.communications.type.socialMedia': 'Social Media',
   'constructionSites.metadata.label': 'Metadaten',
-  'constructionSites.metadata.info': 'Flexible Schlüssel-Wert-Daten aus externen Quellen. Diese Angaben werden nicht im öffentlichen Geoportal veröffentlicht.',
+  'constructionSites.metadata.info':
+    'Flexible Schlüssel-Wert-Daten aus externen Quellen. Diese Angaben werden nicht im öffentlichen Geoportal veröffentlicht.',
   'constructionSites.metadata.add': 'Metadatum hinzufügen',
   'constructionSites.metadata.delete': 'Metadatum löschen',
   'constructionSites.metadata.key': 'Schlüssel',
@@ -99,10 +105,12 @@ const de = {
   'constructionSites.metadata.keyPlaceholder': 'z. B. source.projectId',
   'constructionSites.metadata.valuePlaceholder': 'z. B. R-10002',
   'constructionSites.attachments.label': 'Anhänge',
-  'constructionSites.attachments.info': 'Dateien werden vorerst direkt in der Datenbank gespeichert. Klicken Sie auf eine Datei, um sie herunterzuladen.',
+  'constructionSites.attachments.info':
+    'Dateien werden vorerst direkt in der Datenbank gespeichert. Klicken Sie auf eine Datei, um sie herunterzuladen.',
   'constructionSites.attachments.add': 'Anhang hinzufügen',
   'constructionSites.attachments.empty': 'Keine Anhänge vorhanden.',
-  'constructionSites.attachments.saveFirst': 'Speichern Sie die neue Baustelle, bevor Sie Anhänge hinzufügen.',
+  'constructionSites.attachments.saveFirst':
+    'Speichern Sie die neue Baustelle, bevor Sie Anhänge hinzufügen.',
   'constructionSites.attachments.delete': '{{name}} löschen',
   'constructionSites.map.regensburg': 'Regensburg',
   'constructionSites.map.label': 'Karteneditor Regensburg',
@@ -125,22 +133,26 @@ const de = {
   'constructionSites.table.noMatches': 'Keine Baustelle entspricht den aktuellen Filtern.',
   'constructionSites.table.total': '{{filtered}} Treffer · {{total}} insgesamt',
   'constructionSites.table.pageSize': 'Einträge pro Seite',
-  'constructionSites.table.selectionFilteredOut': 'Die geöffnete Baustelle wird durch die aktuellen Filter ausgeblendet.',
+  'constructionSites.table.selectionFilteredOut':
+    'Die geöffnete Baustelle wird durch die aktuellen Filter ausgeblendet.',
   'constructionSites.table.resetFilters': 'Filter zurücksetzen',
   'constructionSites.bulkDelete.selected': '{{count}} ausgewählt',
   'constructionSites.bulkDelete.selectAll': 'Alle {{count}} Treffer auswählen',
   'constructionSites.bulkDelete.clearSelection': 'Auswahl aufheben',
   'constructionSites.bulkDelete.action': 'Auswahl löschen',
   'constructionSites.bulkDelete.confirmTitle': 'Ausgewählte Baustellen löschen?',
-  'constructionSites.bulkDelete.confirmMessage': '{{count}} Baustellen werden dauerhaft samt Flächen und Anhängen gelöscht.',
+  'constructionSites.bulkDelete.confirmMessage':
+    '{{count}} Baustellen werden dauerhaft samt Flächen und Anhängen gelöscht.',
   'constructionSites.bulkDelete.success': '{{count}} Baustellen gelöscht',
-  'constructionSites.bulkDelete.failed': 'Die ausgewählten Baustellen konnten nicht gelöscht werden.',
+  'constructionSites.bulkDelete.failed':
+    'Die ausgewählten Baustellen konnten nicht gelöscht werden.',
   'date.placeholder': 'TT.MM.JJJJ',
   'date.rangeStart': 'Zeitraum von',
   'date.rangeEnd': 'Zeitraum bis',
   'import.title': 'Import',
   'import.message': 'Baustellendaten können direkt aus einem Trench-Shapefile importiert werden.',
-  'import.trenches.explanation': 'Jeder Abschnitt im öffentlichen Raum wird als eigene Baustelle importiert. Hausanschlüsse werden übersprungen. Import und Herkunft bleiben als durchsuchbare Metadaten erhalten.',
+  'import.trenches.explanation':
+    'Jeder Abschnitt im öffentlichen Raum wird als eigene Baustelle importiert. Hausanschlüsse werden übersprungen. Import und Herkunft bleiben als durchsuchbare Metadaten erhalten.',
   'import.trenches.drop': 'ZIP-Datei hier ablegen oder auswählen',
   'import.trenches.formats': 'ZIP mit SHP, DBF und PRJ (WGS 84), maximal 25 MB',
   'import.trenches.noFile': 'Keine Datei ausgewählt',
@@ -160,7 +172,8 @@ const de = {
   'validation.endRequired': 'Ende ist erforderlich.',
   'validation.endBeforeStart': 'Ende darf nicht vor Beginn liegen.',
   'validation.sectionHasErrors': 'Dieser Bereich enthält ungültige Eingaben.',
-  'validation.diversionTooLong': 'Die Umleitungsinformation darf höchstens 10.000 Zeichen enthalten.',
+  'validation.diversionTooLong':
+    'Die Umleitungsinformation darf höchstens 10.000 Zeichen enthalten.',
   'validation.firstNameRequired': 'Vorname ist erforderlich.',
   'validation.lastNameRequired': 'Nachname ist erforderlich.',
   'validation.roleRequired': 'Rolle ist erforderlich.',
@@ -179,44 +192,63 @@ const de = {
   'api.authorization.forbidden': 'Sie sind für diese Aktion nicht berechtigt.',
   'api.authentication.required': 'Bitte melden Sie sich erneut an.',
   'api.unavailable': 'Der Dienst ist vorübergehend nicht verfügbar.',
-  'constructionSites.create.conflict': 'Die Baustelle konnte wegen einer gleichzeitigen Änderung nicht erstellt werden.',
+  'constructionSites.create.conflict':
+    'Die Baustelle konnte wegen einer gleichzeitigen Änderung nicht erstellt werden.',
   'constructionSites.update.notFound': 'Die Baustelle wurde nicht gefunden.',
-  'constructionSites.update.conflict': 'Die Baustelle wurde zwischenzeitlich geändert. Bitte laden Sie sie neu.',
+  'constructionSites.update.conflict':
+    'Die Baustelle wurde zwischenzeitlich geändert. Bitte laden Sie sie neu.',
   'constructionSites.update.area.notOwned': 'Eine Fläche gehört nicht zu dieser Baustelle.',
   'constructionSites.delete.notFound': 'Die Baustelle wurde nicht gefunden.',
   'constructionSites.delete.conflict': 'Die Baustelle wurde während des Löschens geändert.',
   'constructionSites.bulkDelete.emptySelection': 'Wählen Sie mindestens eine Baustelle aus.',
-  'constructionSites.bulkDelete.invalidIdentifiers': 'Die Auswahl enthält ungültige Baustellen-IDs.',
-  'constructionSites.bulkDelete.notFound': 'Mindestens eine ausgewählte Baustelle wurde nicht gefunden. Laden Sie die Liste neu.',
-  'constructionSites.bulkDelete.conflict': 'Mindestens eine Baustelle wurde während des Löschens geändert.',
+  'constructionSites.bulkDelete.invalidIdentifiers':
+    'Die Auswahl enthält ungültige Baustellen-IDs.',
+  'constructionSites.bulkDelete.notFound':
+    'Mindestens eine ausgewählte Baustelle wurde nicht gefunden. Laden Sie die Liste neu.',
+  'constructionSites.bulkDelete.conflict':
+    'Mindestens eine Baustelle wurde während des Löschens geändert.',
   'constructionSites.import.fileRequired': 'Wählen Sie eine ZIP-Datei aus.',
   'constructionSites.import.fileTypeInvalid': 'Für diesen Import wird eine ZIP-Datei benötigt.',
   'constructionSites.import.fileTooLarge': 'Die Importdatei darf höchstens 25 MB groß sein.',
-  'constructionSites.import.bufferInvalid': 'Der Flächenpuffer muss zwischen 0,1 und 20 Metern liegen.',
-  'constructionSites.import.fileInvalid': 'Die Importdatei enthält keine unterstützten Baustellendaten.',
-  'constructionSites.import.duplicate': 'Diese Datei wurde bereits importiert. Löschen Sie zuerst den vorherigen Import.',
-  'constructionSites.import.conflict': 'Die importierten Baustellen konnten wegen einer gleichzeitigen Änderung nicht gespeichert werden.',
+  'constructionSites.import.bufferInvalid':
+    'Der Flächenpuffer muss zwischen 0,1 und 20 Metern liegen.',
+  'constructionSites.import.fileInvalid':
+    'Die Importdatei enthält keine unterstützten Baustellendaten.',
+  'constructionSites.import.duplicate':
+    'Diese Datei wurde bereits importiert. Löschen Sie zuerst den vorherigen Import.',
+  'constructionSites.import.conflict':
+    'Die importierten Baustellen konnten wegen einer gleichzeitigen Änderung nicht gespeichert werden.',
   'constructionSites.changeStatus.notFound': 'Die Baustelle wurde nicht gefunden.',
-  'constructionSites.changeStatus.conflict': 'Die Baustelle wurde während der Statusänderung geändert.',
+  'constructionSites.changeStatus.conflict':
+    'Die Baustelle wurde während der Statusänderung geändert.',
   'constructionSites.get.notFound': 'Die Baustelle wurde nicht gefunden.',
   'constructionSites.validation.title.required': 'Bezeichnung ist erforderlich.',
-  'constructionSites.validation.title.tooLong': 'Die Bezeichnung darf höchstens 200 Zeichen enthalten.',
+  'constructionSites.validation.title.tooLong':
+    'Die Bezeichnung darf höchstens 200 Zeichen enthalten.',
   'constructionSites.validation.status.invalid': 'Der Status ist ungültig.',
   'constructionSites.validation.plannedStart.required': 'Beginn ist erforderlich.',
   'constructionSites.validation.plannedEnd.required': 'Ende ist erforderlich.',
   'constructionSites.validation.plannedEnd.beforeStart': 'Ende darf nicht vor Beginn liegen.',
   'constructionSites.validation.areas.required': 'Mindestens eine Teilfläche ist erforderlich.',
-  'constructionSites.validation.areas.namesNotUnique': 'Die Namen der Teilflächen müssen eindeutig sein.',
-  'constructionSites.validation.areas.identifiersNotUnique': 'Eine Flächen-ID darf nur einmal vorkommen.',
+  'constructionSites.validation.areas.namesNotUnique':
+    'Die Namen der Teilflächen müssen eindeutig sein.',
+  'constructionSites.validation.areas.identifiersNotUnique':
+    'Eine Flächen-ID darf nur einmal vorkommen.',
   'constructionSites.validation.area.name.required': 'Ein Flächenname ist erforderlich.',
-  'constructionSites.validation.area.name.tooLong': 'Der Flächenname darf höchstens 100 Zeichen enthalten.',
-  'constructionSites.validation.area.geometry.invalid': 'Die Geometrie der Teilfläche ist ungültig.',
-  'constructionSites.validation.metadata.tooManyEntries': 'Es dürfen höchstens 100 Metadaten gepflegt werden.',
+  'constructionSites.validation.area.name.tooLong':
+    'Der Flächenname darf höchstens 100 Zeichen enthalten.',
+  'constructionSites.validation.area.geometry.invalid':
+    'Die Geometrie der Teilfläche ist ungültig.',
+  'constructionSites.validation.metadata.tooManyEntries':
+    'Es dürfen höchstens 100 Metadaten gepflegt werden.',
   'constructionSites.validation.metadata.key.required': 'Ein Metadaten-Schlüssel ist erforderlich.',
-  'constructionSites.validation.metadata.key.tooLong': 'Ein Metadaten-Schlüssel darf höchstens 100 Zeichen enthalten.',
+  'constructionSites.validation.metadata.key.tooLong':
+    'Ein Metadaten-Schlüssel darf höchstens 100 Zeichen enthalten.',
   'constructionSites.validation.metadata.value.required': 'Ein Metadaten-Wert ist erforderlich.',
-  'constructionSites.validation.metadata.value.tooLong': 'Ein Metadaten-Wert darf höchstens 4.000 Zeichen enthalten.',
-  'constructionSites.validation.metadata.keysNotUnique': 'Metadaten-Schlüssel müssen eindeutig sein.',
+  'constructionSites.validation.metadata.value.tooLong':
+    'Ein Metadaten-Wert darf höchstens 4.000 Zeichen enthalten.',
+  'constructionSites.validation.metadata.keysNotUnique':
+    'Metadaten-Schlüssel müssen eindeutig sein.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -243,11 +275,13 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.sessionLoading': 'The session is still loading. Please try again shortly.',
   'constructionSites.close.action': 'Close construction site',
   'constructionSites.close.confirmTitle': 'Discard changes and close?',
-  'constructionSites.close.confirmMessage': 'Unsaved changes will be lost when the editor is closed.',
+  'constructionSites.close.confirmMessage':
+    'Unsaved changes will be lost when the editor is closed.',
   'constructionSites.close.confirm': 'Close',
   'constructionSites.delete.action': 'Delete construction site',
   'constructionSites.delete.confirmTitle': 'Delete construction site?',
-  'constructionSites.delete.confirmMessage': 'Do you really want to permanently delete “{{title}}”? Attachments and areas will be removed as well.',
+  'constructionSites.delete.confirmMessage':
+    'Do you really want to permanently delete “{{title}}”? Attachments and areas will be removed as well.',
   'constructionSites.delete.success': 'Construction site deleted',
   'constructionSites.delete.failed': 'Deleting failed.',
   'constructionSites.discard': 'Discard',
@@ -275,7 +309,8 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.diversion.label': 'Diversion',
   'constructionSites.diversion.info': 'Free text for all diversion information.',
   'constructionSites.contacts.label': 'Contacts',
-  'constructionSites.contacts.info': 'Contacts for application, approval, implementation, and the construction site itself.',
+  'constructionSites.contacts.info':
+    'Contacts for application, approval, implementation, and the construction site itself.',
   'constructionSites.contacts.add': 'Add contact',
   'constructionSites.contacts.empty': 'No contacts available.',
   'constructionSites.contacts.create': 'Add contact',
@@ -289,7 +324,8 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.contacts.phone1': 'Phone 1 (optional)',
   'constructionSites.contacts.phone2': 'Phone 2 (optional)',
   'constructionSites.communications.label': 'Communication',
-  'constructionSites.communications.info': 'For example resident information, press releases, on-site signs or posters, and social media.',
+  'constructionSites.communications.info':
+    'For example resident information, press releases, on-site signs or posters, and social media.',
   'constructionSites.communications.add': 'Add communication',
   'constructionSites.communications.empty': 'No communication entries available.',
   'constructionSites.communications.create': 'Add communication',
@@ -303,7 +339,8 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.communications.type.signage': 'On-site signage / information posters',
   'constructionSites.communications.type.socialMedia': 'Social media',
   'constructionSites.metadata.label': 'Metadata',
-  'constructionSites.metadata.info': 'Flexible key-value data from external sources. This information is not published in the public geoportal.',
+  'constructionSites.metadata.info':
+    'Flexible key-value data from external sources. This information is not published in the public geoportal.',
   'constructionSites.metadata.add': 'Add metadata',
   'constructionSites.metadata.delete': 'Delete metadata',
   'constructionSites.metadata.key': 'Key',
@@ -311,10 +348,12 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.metadata.keyPlaceholder': 'e.g. source.projectId',
   'constructionSites.metadata.valuePlaceholder': 'e.g. R-10002',
   'constructionSites.attachments.label': 'Attachments',
-  'constructionSites.attachments.info': 'Files are currently stored directly in the database. Click a file to download it.',
+  'constructionSites.attachments.info':
+    'Files are currently stored directly in the database. Click a file to download it.',
   'constructionSites.attachments.add': 'Add attachment',
   'constructionSites.attachments.empty': 'No attachments available.',
-  'constructionSites.attachments.saveFirst': 'Save the new construction site before adding attachments.',
+  'constructionSites.attachments.saveFirst':
+    'Save the new construction site before adding attachments.',
   'constructionSites.attachments.delete': 'Delete {{name}}',
   'constructionSites.map.regensburg': 'Regensburg',
   'constructionSites.map.label': 'Regensburg map editor',
@@ -337,14 +376,16 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.table.noMatches': 'No construction site matches the current filters.',
   'constructionSites.table.total': '{{filtered}} results · {{total}} total',
   'constructionSites.table.pageSize': 'Items per page',
-  'constructionSites.table.selectionFilteredOut': 'The open construction site is hidden by the current filters.',
+  'constructionSites.table.selectionFilteredOut':
+    'The open construction site is hidden by the current filters.',
   'constructionSites.table.resetFilters': 'Reset filters',
   'constructionSites.bulkDelete.selected': '{{count}} selected',
   'constructionSites.bulkDelete.selectAll': 'Select all {{count}} results',
   'constructionSites.bulkDelete.clearSelection': 'Clear selection',
   'constructionSites.bulkDelete.action': 'Delete selection',
   'constructionSites.bulkDelete.confirmTitle': 'Delete selected construction sites?',
-  'constructionSites.bulkDelete.confirmMessage': '{{count}} construction sites and their areas and attachments will be permanently deleted.',
+  'constructionSites.bulkDelete.confirmMessage':
+    '{{count}} construction sites and their areas and attachments will be permanently deleted.',
   'constructionSites.bulkDelete.success': '{{count}} construction sites deleted',
   'constructionSites.bulkDelete.failed': 'The selected construction sites could not be deleted.',
   'date.placeholder': 'DD.MM.YYYY',
@@ -352,7 +393,8 @@ const en: Record<keyof typeof de, string> = {
   'date.rangeEnd': 'Period to',
   'import.title': 'Import',
   'import.message': 'Construction-site data can be imported directly from a trench shapefile.',
-  'import.trenches.explanation': 'Every public-space segment is imported as its own construction site. House connections are skipped. Import and source information remain available as searchable metadata.',
+  'import.trenches.explanation':
+    'Every public-space segment is imported as its own construction site. House connections are skipped. Import and source information remain available as searchable metadata.',
   'import.trenches.drop': 'Drop or select a ZIP file here',
   'import.trenches.formats': 'ZIP containing SHP, DBF and PRJ (WGS 84), maximum 25 MB',
   'import.trenches.noFile': 'No file selected',
@@ -391,50 +433,84 @@ const en: Record<keyof typeof de, string> = {
   'api.authorization.forbidden': 'You are not authorized to perform this action.',
   'api.authentication.required': 'Please sign in again.',
   'api.unavailable': 'The service is temporarily unavailable.',
-  'constructionSites.create.conflict': 'The construction site could not be created due to a concurrent change.',
+  'constructionSites.create.conflict':
+    'The construction site could not be created due to a concurrent change.',
   'constructionSites.update.notFound': 'The construction site was not found.',
-  'constructionSites.update.conflict': 'The construction site was changed in the meantime. Please reload it.',
+  'constructionSites.update.conflict':
+    'The construction site was changed in the meantime. Please reload it.',
   'constructionSites.update.area.notOwned': 'An area does not belong to this construction site.',
   'constructionSites.delete.notFound': 'The construction site was not found.',
   'constructionSites.delete.conflict': 'The construction site changed while it was being deleted.',
   'constructionSites.bulkDelete.emptySelection': 'Select at least one construction site.',
-  'constructionSites.bulkDelete.invalidIdentifiers': 'The selection contains invalid construction-site identifiers.',
-  'constructionSites.bulkDelete.notFound': 'At least one selected construction site was not found. Reload the list.',
-  'constructionSites.bulkDelete.conflict': 'At least one construction site changed while it was being deleted.',
+  'constructionSites.bulkDelete.invalidIdentifiers':
+    'The selection contains invalid construction-site identifiers.',
+  'constructionSites.bulkDelete.notFound':
+    'At least one selected construction site was not found. Reload the list.',
+  'constructionSites.bulkDelete.conflict':
+    'At least one construction site changed while it was being deleted.',
   'constructionSites.import.fileRequired': 'Select a ZIP file.',
   'constructionSites.import.fileTypeInvalid': 'This import requires a ZIP file.',
   'constructionSites.import.fileTooLarge': 'The import file must not exceed 25 MB.',
   'constructionSites.import.bufferInvalid': 'The area buffer must be between 0.1 and 20 metres.',
-  'constructionSites.import.fileInvalid': 'The import file does not contain supported construction-site data.',
-  'constructionSites.import.duplicate': 'This exact file has already been imported. Delete the previous import first.',
-  'constructionSites.import.conflict': 'The imported construction sites could not be saved because data changed concurrently.',
+  'constructionSites.import.fileInvalid':
+    'The import file does not contain supported construction-site data.',
+  'constructionSites.import.duplicate':
+    'This exact file has already been imported. Delete the previous import first.',
+  'constructionSites.import.conflict':
+    'The imported construction sites could not be saved because data changed concurrently.',
   'constructionSites.changeStatus.notFound': 'The construction site was not found.',
-  'constructionSites.changeStatus.conflict': 'The construction site changed while its status was being updated.',
+  'constructionSites.changeStatus.conflict':
+    'The construction site changed while its status was being updated.',
   'constructionSites.get.notFound': 'The construction site was not found.',
   'constructionSites.validation.title.required': 'A title is required.',
   'constructionSites.validation.title.tooLong': 'The title must not exceed 200 characters.',
   'constructionSites.validation.status.invalid': 'The status is invalid.',
   'constructionSites.validation.plannedStart.required': 'A start date is required.',
   'constructionSites.validation.plannedEnd.required': 'An end date is required.',
-  'constructionSites.validation.plannedEnd.beforeStart': 'The end date must not be before the start date.',
+  'constructionSites.validation.plannedEnd.beforeStart':
+    'The end date must not be before the start date.',
   'constructionSites.validation.areas.required': 'At least one area is required.',
   'constructionSites.validation.areas.namesNotUnique': 'Area names must be unique.',
-  'constructionSites.validation.areas.identifiersNotUnique': 'An area identifier may only occur once.',
+  'constructionSites.validation.areas.identifiersNotUnique':
+    'An area identifier may only occur once.',
   'constructionSites.validation.area.name.required': 'An area name is required.',
   'constructionSites.validation.area.name.tooLong': 'The area name must not exceed 100 characters.',
   'constructionSites.validation.area.geometry.invalid': 'The area geometry is invalid.',
-  'constructionSites.validation.metadata.tooManyEntries': 'No more than 100 metadata entries are allowed.',
+  'constructionSites.validation.metadata.tooManyEntries':
+    'No more than 100 metadata entries are allowed.',
   'constructionSites.validation.metadata.key.required': 'A metadata key is required.',
-  'constructionSites.validation.metadata.key.tooLong': 'A metadata key must not exceed 100 characters.',
+  'constructionSites.validation.metadata.key.tooLong':
+    'A metadata key must not exceed 100 characters.',
   'constructionSites.validation.metadata.value.required': 'A metadata value is required.',
-  'constructionSites.validation.metadata.value.tooLong': 'A metadata value must not exceed 4,000 characters.',
+  'constructionSites.validation.metadata.value.tooLong':
+    'A metadata value must not exceed 4,000 characters.',
   'constructionSites.validation.metadata.keysNotUnique': 'Metadata keys must be unique.',
 }
 
 void i18n.use(initReactI18next).init({
   resources: {
-    de: { translation: { ...de, ...workspaceDe, ...recordDe, ...geometryDe, ...importDe, ...paneDe, ...dockingDe } },
-    en: { translation: { ...en, ...workspaceEn, ...recordEn, ...geometryEn, ...importEn, ...paneEn, ...dockingEn } },
+    de: {
+      translation: {
+        ...de,
+        ...workspaceDe,
+        ...recordDe,
+        ...geometryDe,
+        ...importDe,
+        ...paneDe,
+        ...dockingDe,
+      },
+    },
+    en: {
+      translation: {
+        ...en,
+        ...workspaceEn,
+        ...recordEn,
+        ...geometryEn,
+        ...importEn,
+        ...paneEn,
+        ...dockingEn,
+      },
+    },
   },
   lng: 'de',
   fallbackLng: 'de',

@@ -7,7 +7,9 @@ const rootStyles = getComputedStyle(document.documentElement)
 
 function themeValue(name: string): string {
   const value = rootStyles.getPropertyValue(name).trim()
-  if (!value) throw new Error(`Missing theme value: ${name}. Check /theme.css.`)
+  if (!value) {
+    throw new Error(`Missing theme value: ${name}. Check /theme.css.`)
+  }
   return value
 }
 
@@ -98,7 +100,10 @@ export const applicationTheme: ThemeConfig = {
 
 export const mapTheme = {
   saved: { fill: themeValue('--map-saved-fill'), stroke: themeValue('--map-saved-stroke') },
-  selected: { fill: themeValue('--map-selected-fill'), stroke: themeValue('--map-selected-stroke') },
+  selected: {
+    fill: themeValue('--map-selected-fill'),
+    stroke: themeValue('--map-selected-stroke'),
+  },
   editor: { fill: themeValue('--map-editor-fill'), stroke: themeValue('--map-editor-stroke') },
   marker: { fill: themeValue('--map-marker-fill'), stroke: themeValue('--map-marker-stroke') },
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { advancePanelDrag, consumeDragEscape } from '../src/shared/docking/dragSession.ts'
+import { advancePanelDrag, consumeDragEscape } from '../src/shared/docking/drag-session.ts'
 
 const session = (changes = {}) => ({
   sourceId: 'map',
@@ -14,7 +14,10 @@ const session = (changes = {}) => ({
 })
 
 test('another pointer cannot start or change the active drag session', () => {
-  for (const drag of [session(), session({ started: true, target: { panelId: 'sites', edge: 'right' } })]) {
+  for (const drag of [
+    session(),
+    session({ started: true, target: { panelId: 'sites', edge: 'right' } }),
+  ]) {
     const next = advancePanelDrag(drag, { x: 800, y: 600 }, 8, () => {
       assert.fail('another pointer must not resolve or replace the active destination')
     })
@@ -24,10 +27,16 @@ test('another pointer cannot start or change the active drag session', () => {
 
 test('movement below the grab threshold keeps the panel in its committed position', () => {
   const drag = session()
-  for (const point of [{ x: 127.99, y: 60 }, { x: 125, y: 66 }]) {
-    assert.equal(advancePanelDrag(drag, point, 7, () => {
-      assert.fail('a click or slight pointer movement must not create a destination')
-    }), drag)
+  for (const point of [
+    { x: 127.99, y: 60 },
+    { x: 125, y: 66 },
+  ]) {
+    assert.equal(
+      advancePanelDrag(drag, point, 7, () => {
+        assert.fail('a click or slight pointer movement must not create a destination')
+      }),
+      drag,
+    )
   }
 })
 
@@ -69,9 +78,8 @@ test('a started drag stays active at the grab origin and supplies its prior dest
 })
 
 test('the release coordinates replace the last hover destination before committing a drop', () => {
-  const resolve = (point) => point.x < 500
-    ? { panelId: 'sites', edge: 'right' }
-    : { panelId: 'details', edge: 'top' }
+  const resolve = (point) =>
+    point.x < 500 ? { panelId: 'sites', edge: 'right' } : { panelId: 'details', edge: 'top' }
   const hover = advancePanelDrag(session(), { x: 300, y: 100 }, 7, resolve)
   assert.deepEqual(hover.target, { panelId: 'sites', edge: 'right' })
   const release = advancePanelDrag(hover, { x: 800, y: 120 }, 7, resolve)
@@ -92,11 +100,15 @@ test('Escape cancels docking before a competing drawing listener can discard a m
   const target = new EventTarget()
   let cancellations = 0
   let drawingCancellations = 0
-  target.addEventListener('keydown', event => consumeDragEscape(event, () => {
-    assert.equal(event.defaultPrevented, true)
-    cancellations += 1
-  }))
-  target.addEventListener('keydown', () => { drawingCancellations += 1 })
+  target.addEventListener('keydown', (event) =>
+    consumeDragEscape(event, () => {
+      assert.equal(event.defaultPrevented, true)
+      cancellations += 1
+    }),
+  )
+  target.addEventListener('keydown', () => {
+    drawingCancellations += 1
+  })
   const event = keyEvent('Escape')
   assert.equal(target.dispatchEvent(event), false)
   assert.equal(cancellations, 1)
@@ -107,8 +119,14 @@ test('other keys keep propagating and do not cancel docking', () => {
   const target = new EventTarget()
   let cancellations = 0
   let laterListeners = 0
-  target.addEventListener('keydown', event => consumeDragEscape(event, () => { cancellations += 1 }))
-  target.addEventListener('keydown', () => { laterListeners += 1 })
+  target.addEventListener('keydown', (event) =>
+    consumeDragEscape(event, () => {
+      cancellations += 1
+    }),
+  )
+  target.addEventListener('keydown', () => {
+    laterListeners += 1
+  })
   const event = keyEvent('Enter')
   assert.equal(target.dispatchEvent(event), true)
   assert.equal(event.defaultPrevented, false)

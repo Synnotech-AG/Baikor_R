@@ -7,6 +7,13 @@
 - Use persistence sessions (`IConstructionSitesSession` for construction sites), keeping EF Core in adapters and entities free of business logic. Reuse frontend `src/shared` utilities and localized messages.
 - Store geometries in PostGIS with EPSG:25832. GeoServer reads public SQL views directly from the application database.
 
+## Frontend coding conventions
+
+- Use lowercase kebab-case for every authored file and folder under `src/baikor-r-web`, including components, hooks, tests, scripts, assets and documentation. Dotted config/test suffixes are allowed, for example `vite.config.ts` and `file-names.test.mjs`. Keep React component names in PascalCase and hooks/functions in camelCase; this naming rule applies to paths.
+- Always use braces for `if`, `else if` and `else` bodies. Put the body and closing brace on separate lines; never write a one-line `if` statement. Follow the same bracing convention for loops.
+- Use the frontend Prettier configuration for formatting; do not hand-format code against it or disable convention checks to bypass a failure. Generated/vendor directories are excluded from authored-file checks.
+- After frontend edits, run `pnpm run lint:fix`, then `pnpm run lint`, `pnpm test` and `pnpm run build` from `src/baikor-r-web`. Resolve naming errors explicitly and update every reference when renaming a file. `pnpm run lint` enforces path names, Oxlint code rules and Prettier formatting; CI runs the same checks.
+
 ## Feature development
 
 1. Understand the existing flow before editing. Define acceptance criteria, permissions and public/private data boundaries. Prefer existing patterns and dependencies; avoid unrelated refactoring.
@@ -35,7 +42,7 @@ Use checks relevant to the change; prerequisites and exact CI invocations live i
 | Change | Checks |
 | --- | --- |
 | Backend | `dotnet test BaikorR.sln --configuration Release` |
-| Frontend | In `src/baikor-r-web`: `pnpm install --frozen-lockfile`, `pnpm run lint`, `pnpm run build` |
+| Frontend | In `src/baikor-r-web`: `pnpm install --frozen-lockfile`, `pnpm run lint`, `pnpm test`, `pnpm run build` |
 | Helm | `helm lint deploy/helm/baikor-r`; `python -m unittest discover -s tests/helm -v` |
 | Release/OpenAPI | `node --test tests/release/*.test.mjs`; OpenAPI lint from CI |
 | Auth/import integration | `python tests/platform/run_ci.py` ([isolated Docker fixture](tests/platform/README.md)) |
