@@ -1,16 +1,18 @@
-import { DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons'
-import { Button, Space, Table, Tag } from 'antd'
+import { DeleteOutlined, SettingOutlined } from '@ant-design/icons'
+import { Button, Dropdown, Pagination, Space, Table, Tag } from 'antd'
 import type { TableProps } from 'antd'
-import type { Dayjs } from 'dayjs'
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatArea, formatDate, formatDateTime } from '../../../shared/formatters'
 import { statusTranslationKey } from '../constants'
 import type { ConstructionSiteStatus, ConstructionSiteSummary } from '../types'
-import { ConstructionSiteFilters } from './ConstructionSiteFilters'
+import './table-pagination.css'
+
+const PAGE_SIZE = 10
 
 interface ConstructionSitesTableProps {
   items: ConstructionSiteSummary[]
+  totalCount?: number
   selectedId: string | null
   loading: boolean
   selectedIds: string[]
@@ -23,6 +25,7 @@ interface ConstructionSitesTableProps {
 
 export function ConstructionSitesTable({
   items,
+  totalCount = items.length,
   selectedId,
   loading,
   selectedIds,
@@ -34,41 +37,14 @@ export function ConstructionSitesTable({
 }: ConstructionSitesTableProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n.resolvedLanguage?.startsWith('de') ? 'de-DE' : 'en-US'
-  const [searchTerm, setSearchTerm] = useState('')
-  const [status, setStatus] = useState<ConstructionSiteStatus | 'all'>('all')
-  const [period, setPeriod] = useState<[Dayjs | null, Dayjs | null] | null>(null)
-  const [pageSize, setPageSize] = useState(() => {
-    const stored = Number(window.localStorage.getItem('constructionSites.pageSize'))
-    return [5, 10, 20, 50].includes(stored) ? stored : 10
-  })
+  const [optionalColumns, setOptionalColumns] = useState(['updatedAt'])
+  const [page, setPage] = useState(1)
+  const lastPage = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  const currentPage = Math.min(page, lastPage)
 
-  const filteredItems = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLocaleLowerCase(locale)
-    const periodStart = period?.[0]?.format('YYYY-MM-DD')
-    const periodEnd = period?.[1]?.format('YYYY-MM-DD')
-    return items.filter((item) => {
-      const searchableText = [
-        item.title,
-        ...Object.entries(item.metadata ?? {}).flatMap(([key, value]) => [key, value]),
-      ].join(' ').toLocaleLowerCase(locale)
-      if (normalizedSearch && !searchableText.includes(normalizedSearch)) return false
-      if (status !== 'all' && item.status !== status) return false
-      if (periodStart && (!item.plannedEnd || item.plannedEnd < periodStart)) return false
-      if (periodEnd && (!item.plannedStart || item.plannedStart > periodEnd)) return false
-      return true
-    })
-  }, [items, locale, period, searchTerm, status])
-
-  const selectedSiteIsFilteredOut = Boolean(
-    selectedId && items.some((item) => item.id === selectedId)
-      && !filteredItems.some((item) => item.id === selectedId),
-  )
-
-  const resetFilters = () => {
-    setSearchTerm('')
-    setStatus('all')
-    setPeriod(null)
-  }
+  useEffect(() => {
+    setPage((current) => Math.min(current, lastPage))
+  }, [lastPage])
 
   const columns: TableProps<ConstructionSiteSummary>['columns'] = [
     {
@@ -112,21 +88,22 @@ export function ConstructionSitesTable({
 
   return (
     <section className="records-panel" aria-label={t('constructionSites.table.heading')}>
-      <ConstructionSiteFilters
-        searchTerm={searchTerm}
-        status={status}
-        period={period}
-        onSearchChange={setSearchTerm}
-        onStatusChange={setStatus}
-        onPeriodChange={setPeriod}
-      />
-      {(selectedIds.length > 0 || filteredItems.length > 0) && canBulkDelete && (
+      <div className="table-options">
+        <Dropdown trigger={['click']} menu={{
+          selectable: true, multiple: true, selectedKeys: optionalColumns,
+          items: [{ key: 'areaSquareMetres', label: t('constructionSites.area') }, { key: 'updatedAt', label: t('constructionSites.table.updated') }],
+          onClick: ({ key }) => setOptionalColumns((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key]),
+        }}>
+          <Button type="text" size="small" icon={<SettingOutlined />}>{t('workspace.columns')}</Button>
+        </Dropdown>
+      </div>
+      {selectedIds.length > 0 && canBulkDelete && (
         <div className="table-selection-toolbar">
           <span>{t('constructionSites.bulkDelete.selected', { count: selectedIds.length })}</span>
           <Space size="small" wrap>
-            {selectedIds.length < filteredItems.length && (
-              <Button type="text" size="small" onClick={() => onSelectionChange(filteredItems.map(item => item.id))}>
-                {t('constructionSites.bulkDelete.selectAll', { count: filteredItems.length })}
+            {selectedIds.length < items.length && (
+              <Button type="text" size="small" onClick={() => onSelectionChange(items.map(item => item.id))}>
+                {t('constructionSites.bulkDelete.selectAll', { count: items.length })}
               </Button>
             )}
             {selectedIds.length > 0 && (
@@ -148,23 +125,16 @@ export function ConstructionSitesTable({
           </Space>
         </div>
       )}
-      {selectedSiteIsFilteredOut && (
-        <div className="filtered-selection-notice" role="status">
-          <InfoCircleOutlined aria-hidden />
-          <span>{t('constructionSites.table.selectionFilteredOut')}</span>
-          <Button type="link" size="small" onClick={resetFilters}>{t('constructionSites.table.resetFilters')}</Button>
-        </div>
-      )}
       <Table
         className="construction-sites-table"
         rowKey="id"
         size="small"
         showSorterTooltip={false}
         loading={loading}
-        columns={columns}
-        dataSource={filteredItems}
+        columns={columns.filter((column) => !('dataIndex' in column) || !['areaSquareMetres', 'updatedAt'].includes(String(column.dataIndex)) || optionalColumns.includes(String(column.dataIndex)))}
+        dataSource={items}
         tableLayout="fixed"
-        scroll={{ x: 760 }}
+        scroll={{ x: 544 + (optionalColumns.includes('areaSquareMetres') ? 96 : 0) + (optionalColumns.includes('updatedAt') ? 120 : 0) }}
         rowSelection={canBulkDelete ? {
           columnWidth: 44,
           selectedRowKeys: selectedIds,
@@ -176,33 +146,47 @@ export function ConstructionSitesTable({
         locale={{
           emptyText: loading
             ? null
-            : items.length === 0
-              ? t('constructionSites.table.empty')
-              : t('constructionSites.table.noMatches'),
+            : t('constructionSites.table.noMatches'),
         }}
         pagination={{
-          pageSize,
-          pageSizeOptions: [5, 10, 20, 50],
-          showSizeChanger: { 'aria-label': t('constructionSites.table.pageSize') },
-          onShowSizeChange: (_, size) => {
-            setPageSize(size)
-            window.localStorage.setItem('constructionSites.pageSize', String(size))
-          },
-          showTotal: () => t('constructionSites.table.total', { filtered: filteredItems.length, total: items.length }),
+          current: currentPage,
+          pageSize: PAGE_SIZE,
+          placement: ['none'],
+          onChange: setPage,
         }}
         rowClassName={(item) => item.id === selectedId ? 'is-selected' : ''}
         onRow={(item) => ({
           tabIndex: 0,
+          'data-site-id': item.id,
           'aria-selected': item.id === selectedId,
           onClick: () => onSelect(item),
           onKeyDown: (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
+            if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
               event.preventDefault()
               onSelect(item)
             }
           },
         })}
       />
+      <footer className="construction-sites-table-footer">
+        <nav className="construction-sites-table-pages" aria-label={t('workspace.pagination')}>
+          <Pagination
+            current={currentPage}
+            pageSize={PAGE_SIZE}
+            total={items.length}
+            onChange={setPage}
+            showSizeChanger={false}
+            showLessItems
+            size="small"
+            responsive
+          />
+        </nav>
+        <span className="construction-sites-table-count" role="status">
+          {totalCount > items.length
+            ? t('workspace.results', { filtered: items.length, total: totalCount })
+            : t('workspace.records', { count: items.length })}
+        </span>
+      </footer>
     </section>
   )
 }

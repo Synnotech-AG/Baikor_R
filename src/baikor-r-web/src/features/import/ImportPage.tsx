@@ -1,5 +1,5 @@
 import { FileZipOutlined, InboxOutlined } from '@ant-design/icons'
-import { App as AntApp, Button, Card, Descriptions, Space, Typography, Upload } from 'antd'
+import { Alert, App as AntApp, Button, Card, Collapse, Descriptions, Space, Statistic, Typography, Upload } from 'antd'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useImportTrenchesEndpoint } from '../../api/endpoints/useImportTrenchesEndpoint'
@@ -8,14 +8,32 @@ import { parseApiError } from '../../api/errors'
 
 interface ImportPageProps {
   enabled: boolean
+  onViewSites?: () => void
 }
 
-export function ImportPage({ enabled }: ImportPageProps) {
+export function ImportPage({ enabled, onViewSites }: ImportPageProps) {
   const { t, i18n } = useTranslation()
   const { notification } = AntApp.useApp()
   const [file, setFile] = useState<File | null>(null)
   const [result, setResult] = useState<ImportTrenchesResponse | null>(null)
   const { execute: importTrenches, isLoading } = useImportTrenchesEndpoint()
+
+  const describeWarning = (warning: string) => {
+    if (warning === 'The source contains line geometries without a construction width; each line was buffered using the configured area buffer.') {
+      return t('importUx.warnings.buffered')
+    }
+    const skipped = warning.match(/^(\d+) house-connection features were skipped because they do not affect public space\.$/)
+    if (skipped) {
+      return t('importUx.warnings.skipped', { count: Number(skipped[1]) })
+    }
+    if (warning === "Source statuses 'Executed' and 'Documented' are mapped to Active. 'Canceled' is mapped to Draft and retained in metadata.") {
+      return t('importUx.warnings.statuses', {
+        active: t('constructionSites.status.active'),
+        draft: t('constructionSites.status.draft'),
+      })
+    }
+    return warning
+  }
 
   const importFile = async () => {
     if (!file || !enabled) return
@@ -68,18 +86,55 @@ export function ImportPage({ enabled }: ImportPageProps) {
           </div>
           {result && (
             <Card size="small" className="import-result" title={t('import.result')}>
-              <Descriptions size="small" column={2}>
-                <Descriptions.Item label={t('import.project')}>{result.sourceProjectId}</Descriptions.Item>
-                <Descriptions.Item label={t('import.batch')}>{result.batchId}</Descriptions.Item>
-                <Descriptions.Item label={t('import.features')}>{result.featureCount}</Descriptions.Item>
-                <Descriptions.Item label={t('import.skipped')}>{result.skippedCount}</Descriptions.Item>
-                <Descriptions.Item label={t('import.created')}>{result.createdCount}</Descriptions.Item>
-              </Descriptions>
-              <Space size={[8, 4]} wrap>
-                {Object.entries(result.createdBySourceStatus).map(([status, count]) => (
-                  <Typography.Text type="secondary" key={status}>{status}: {count}</Typography.Text>
-                ))}
-              </Space>
+              <Typography.Paragraph>{t('importUx.saved')}</Typography.Paragraph>
+              <div className="import-result-summary" aria-live="polite">
+                <Statistic title={t('importUx.created')} value={result.createdCount} />
+                <Statistic title={t('importUx.skipped')} value={result.skippedCount} />
+              </div>
+              {result.warnings.length > 0 && (
+                <Alert
+                  className="import-result-notes"
+                  type="warning"
+                  showIcon
+                  title={t('importUx.notes')}
+                  description={(
+                    <ul>
+                      {result.warnings.map((warning, index) => (
+                        <li key={`${index}-${warning}`}>{describeWarning(warning)}</li>
+                      ))}
+                    </ul>
+                  )}
+                />
+              )}
+              {onViewSites && (
+                <div className="import-result-actions">
+                  <Button type="primary" onClick={onViewSites}>{t('importUx.viewSites')}</Button>
+                  <Typography.Text type="secondary">{t('importUx.viewSitesHint')}</Typography.Text>
+                </div>
+              )}
+              <Collapse
+                className="import-result-details"
+                ghost
+                items={[{
+                  key: 'details',
+                  label: t('importUx.details'),
+                  children: (
+                    <>
+                      <Descriptions size="small" column={1}>
+                        <Descriptions.Item label={t('import.project')}>{result.sourceProjectId}</Descriptions.Item>
+                        <Descriptions.Item label={t('import.batch')}>{result.batchId}</Descriptions.Item>
+                        <Descriptions.Item label={t('importUx.features')}>{result.featureCount}</Descriptions.Item>
+                      </Descriptions>
+                      <Typography.Paragraph strong>{t('importUx.sourceStatuses')}</Typography.Paragraph>
+                      <Space size={[8, 4]} wrap>
+                        {Object.entries(result.createdBySourceStatus).map(([status, count]) => (
+                          <Typography.Text type="secondary" key={status}>{status}: {count}</Typography.Text>
+                        ))}
+                      </Space>
+                    </>
+                  ),
+                }]}
+              />
             </Card>
           )}
         </div>

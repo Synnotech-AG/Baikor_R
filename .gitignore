@@ -66,6 +66,7 @@ secrets.json
 CLAUDE.md
 
 # Local review and generated scratch artifacts
+/docs/superpowers/
 tmp/
 __pycache__/
 *.py[cod]

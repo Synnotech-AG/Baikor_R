@@ -1,14 +1,15 @@
-import { CloseOutlined, DeleteOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, Tooltip } from 'antd'
-import { useCallback } from 'react'
-import { useWatch, type FieldErrors, type UseFormReturn } from 'react-hook-form'
+import { Form } from 'antd'
+import { useCallback, useRef } from 'react'
+import type { FieldErrors, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { ConstructionSiteFormValues, ConstructionSiteSummary, EditorArea } from '../types'
 import { AttachmentsEditor } from './AttachmentsEditor'
 import { ConstructionSiteAdditionalDataSection } from './ConstructionSiteAdditionalDataSection'
 import { ConstructionSiteAreasSection } from './ConstructionSiteAreasSection'
 import { ConstructionSiteGeneralSection } from './ConstructionSiteGeneralSection'
+import { ConstructionSiteFooter } from './ConstructionSiteFooter'
 import { ConstructionSiteSectionTitle } from './ConstructionSiteSectionTitle'
+import '../record-workspace.css'
 
 type EditorSectionKey = 'general' | 'areas' | 'additional-data' | 'attachments'
 
@@ -26,7 +27,9 @@ interface ConstructionSiteEditorProps {
   areas: EditorArea[]
   selectedAreaKey: string | null
   canEdit: boolean
+  isNew: boolean
   drawing: boolean
+  editingGeometry: boolean
   geometryDirty: boolean
   feedback: { type: 'error' | 'info'; message: string } | null
   saving: boolean
@@ -36,8 +39,7 @@ interface ConstructionSiteEditorProps {
   onSelectArea: (key: string) => void
   onDeleteArea: (key: string) => void
   onDiscard: () => void
-  onClose: () => void
-  onDelete: () => void
+  onDelete: () => Promise<void>
 }
 
 export function ConstructionSiteEditor({
@@ -46,7 +48,9 @@ export function ConstructionSiteEditor({
   areas,
   selectedAreaKey,
   canEdit,
+  isNew,
   drawing,
+  editingGeometry,
   geometryDirty,
   feedback,
   saving,
@@ -56,23 +60,22 @@ export function ConstructionSiteEditor({
   onSelectArea,
   onDeleteArea,
   onDiscard,
-  onClose,
   onDelete,
 }: ConstructionSiteEditorProps) {
   const { t } = useTranslation()
-  const { control, handleSubmit, formState: { errors, isDirty } } = form
-  const currentTitle = useWatch({ control, name: 'title' }).trim()
-  const hasChanges = isDirty || geometryDirty
+  const { handleSubmit, formState: { errors, isDirty } } = form
+  const sectionsRef = useRef<HTMLDivElement>(null)
+  const hasChanges = isDirty || geometryDirty || drawing
   const generalHasErrors = Boolean(errors.title || errors.plannedStart || errors.plannedEnd || errors.status || errors.contacts)
   const additionalDataHasErrors = Boolean(errors.diversion || errors.communications || errors.metadata)
 
   const revealSectionAndError = useCallback((sectionKey: EditorSectionKey) => {
     window.setTimeout(() => {
-      const section = document.querySelector<HTMLElement>(`[data-editor-section="${sectionKey}"]`)
+      const section = sectionsRef.current?.querySelector<HTMLElement>(`[data-editor-section="${sectionKey}"]`)
       const error = section?.querySelector<HTMLElement>(
         '.ant-form-item-has-error input, .ant-form-item-has-error textarea, .ant-form-item-has-error .ant-select-selector, [role="alert"]',
       )
-      error?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      error?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
       error?.focus({ preventScroll: true })
     }, 0)
   }, [])
@@ -84,78 +87,37 @@ export function ConstructionSiteEditor({
 
   return (
     <Form
-      className="editor-panel"
+      className="editor-panel record-workspace record-editor"
       layout="vertical"
       requiredMark={false}
       onFinish={handleSubmit(onSubmit, handleInvalid)}
     >
-      <div className="section-heading">
-        <div className="section-heading-title">
-          {currentTitle && <span className="construction-site-title-label">{currentTitle}</span>}
-          <strong>{selectedSite
-            ? t('constructionSites.editor.editTitle')
-            : t('constructionSites.editor.createTitle')}</strong>
-        </div>
-        <div className="section-heading-actions">
-          {canEdit && <Tooltip title={t('constructionSites.delete.action')}>
-            <Button
-              danger
-              type="text"
-              htmlType="button"
-              icon={<DeleteOutlined />}
-              loading={deleting}
-              disabled={saving}
-              aria-label={t('constructionSites.delete.action')}
-              onClick={onDelete}
-            />
-          </Tooltip>}
-          <Tooltip title={t('constructionSites.close.action')}>
-            <Button
-              type="text"
-              htmlType="button"
-              icon={<CloseOutlined />}
-              disabled={saving || deleting}
-              aria-label={t('constructionSites.close.action')}
-              onClick={onClose}
-            />
-          </Tooltip>
-        </div>
-      </div>
-
-      <div className="editor-sections">
-        <section className="editor-section" data-editor-section="general">
+      <div ref={sectionsRef} className="editor-sections record-editor-content">
+        <section className="editor-section" data-editor-section="general" tabIndex={-1} aria-label={t('constructionSites.sections.general')}>
           <ConstructionSiteSectionTitle label={t('constructionSites.sections.general')} hasError={generalHasErrors} />
           <ConstructionSiteGeneralSection form={form} canEdit={canEdit} />
         </section>
 
-        <section className="editor-section" data-editor-section="areas">
+        <section className="editor-section" data-editor-section="areas" tabIndex={-1} aria-label={t('constructionSites.sections.areas')}>
           <ConstructionSiteAreasSection areas={areas} selectedAreaKey={selectedAreaKey}
-            canEdit={canEdit} drawing={drawing} onToggleDrawing={onToggleDrawing}
+            canEdit={canEdit} drawing={drawing} editingGeometry={editingGeometry}
+            onToggleDrawing={onToggleDrawing}
             onSelectArea={onSelectArea} onDeleteArea={onDeleteArea} />
         </section>
 
-        <section className="editor-section" data-editor-section="additional-data">
+        <section className="editor-section" data-editor-section="additional-data" tabIndex={-1} aria-label={t('constructionSites.sections.additionalData')}>
           <ConstructionSiteSectionTitle label={t('constructionSites.sections.additionalData')} hasError={additionalDataHasErrors} />
           <ConstructionSiteAdditionalDataSection form={form} canEdit={canEdit} />
         </section>
 
-        <section className="editor-section" data-editor-section="attachments">
-          <AttachmentsEditor constructionSiteId={selectedSite?.id ?? null} canEdit={canEdit} />
+        <section className="editor-section" data-editor-section="attachments" tabIndex={-1} aria-label={t('constructionSites.attachments.label')}>
+          <AttachmentsEditor constructionSiteId={isNew ? null : selectedSite?.id ?? null} canEdit={canEdit} />
         </section>
       </div>
 
-      {feedback && <Alert className="save-message" type={feedback.type} title={feedback.message} showIcon />}
-
-      {hasChanges && (
-        <div className="editor-actions">
-          <Button className="discard-action" htmlType="button" block disabled={saving || !canEdit} onClick={onDiscard}>
-            {t('constructionSites.discard')}
-          </Button>
-          <Button className="save-action" htmlType="submit" block loading={saving} disabled={saving || !canEdit}>
-            {t('constructionSites.save')}
-          </Button>
-        </div>
-      )}
+      <ConstructionSiteFooter mode={isNew ? 'create' : 'edit'} selectedSite={selectedSite}
+        canEdit={canEdit} hasChanges={hasChanges} drawing={drawing} saving={saving} deleting={deleting}
+        feedback={feedback} onDiscard={onDiscard} onDelete={onDelete} />
     </Form>
   )
 }

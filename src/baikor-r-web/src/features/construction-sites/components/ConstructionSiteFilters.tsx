@@ -29,7 +29,7 @@ export function ConstructionSiteFilters({
         <span>{t('constructionSites.table.search')}</span>
         <Input
           id="construction-site-search"
-          size="large"
+          size="middle"
           aria-label={t('constructionSites.table.searchPlaceholder')}
           value={searchTerm}
           allowClear
@@ -42,7 +42,7 @@ export function ConstructionSiteFilters({
         <span>{t('constructionSites.status.label')}</span>
         <Select
           id="construction-site-status"
-          size="large"
+          size="middle"
           aria-label={t('constructionSites.status.label')}
           value={status}
           onChange={onStatusChange}
@@ -58,7 +58,7 @@ export function ConstructionSiteFilters({
       <div className="filter-field filter-period" role="group" aria-labelledby="construction-site-period-label">
         <span id="construction-site-period-label">{t('constructionSites.table.period')}</span>
         <DatePicker.RangePicker
-          size="large"
+          size="middle"
           value={period}
           format="DD.MM.YYYY"
           placeholder={[t('date.rangeStart'), t('date.rangeEnd')]}

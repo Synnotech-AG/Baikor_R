@@ -1,0 +1,38 @@
+.records-panel {
+  container-type: inline-size;
+}
+
+.construction-sites-table-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.construction-sites-table-pages {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+}
+
+.construction-sites-table-count {
+  grid-column: 3;
+  justify-self: end;
+  max-width: 100%;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 600px) {
+  .construction-sites-table-footer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .construction-sites-table-pages,
+  .construction-sites-table-count {
+    grid-column: 1;
+  }
+}

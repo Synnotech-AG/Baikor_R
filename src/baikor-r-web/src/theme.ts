@@ -46,6 +46,7 @@ export const applicationTheme: ThemeConfig = {
     colorTextSecondary: color('text-secondary'),
     colorTextTertiary: color('text-secondary'),
     colorTextDisabled: color('text-disabled'),
+    colorTextPlaceholder: color('text-secondary'),
     colorTextLightSolid: color('on-primary'),
     colorBgBase: color('surface'),
     colorBgContainer: color('surface'),
@@ -55,11 +56,30 @@ export const applicationTheme: ThemeConfig = {
     colorBorder: color('border-strong'),
     colorBorderSecondary: color('border'),
     controlOutline: color('focus-ring'),
+    controlOutlineWidth: 2,
     fontFamily: themeValue('--font-family'),
     borderRadius: Number.parseFloat(themeValue('--border-radius')),
   },
   components: {
-    Button: { fontWeight: 650 },
+    Button: {
+      fontWeight: 650,
+      defaultShadow: 'none',
+      primaryShadow: 'none',
+      dangerShadow: 'none',
+      colorPrimaryBorder: color('focus'),
+    },
+    Input: {
+      activeBorderColor: color('primary'),
+      activeShadow: `0 0 0 2px ${color('focus-ring')}`,
+    },
+    Select: {
+      activeBorderColor: color('primary'),
+      activeOutlineColor: color('focus-ring'),
+    },
+    Segmented: {
+      boxShadowTertiary: 'none',
+      colorPrimaryBorder: color('focus'),
+    },
     Table: {
       headerBg: themeValue('--table-header-background'),
       headerColor: themeValue('--table-header-foreground'),

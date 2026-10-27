@@ -1,15 +1,17 @@
-import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Tooltip } from 'antd'
+import { CloseOutlined } from '@ant-design/icons'
+import { Button } from 'antd'
 import { useTranslation } from 'react-i18next'
 import type { EditorArea } from '../types'
 import { ConstructionSiteSectionTitle } from './ConstructionSiteSectionTitle'
 import { GeometryList } from './GeometryList'
+import './geometry-controls.css'
 
 interface ConstructionSiteAreasSectionProps {
   areas: EditorArea[]
   selectedAreaKey: string | null
   canEdit: boolean
   drawing: boolean
+  editingGeometry?: boolean
   onToggleDrawing: () => void
   onSelectArea: (key: string) => void
   onDeleteArea: (key: string) => void
@@ -20,6 +22,7 @@ export function ConstructionSiteAreasSection({
   selectedAreaKey,
   canEdit,
   drawing,
+  editingGeometry = false,
   onToggleDrawing,
   onSelectArea,
   onDeleteArea,
@@ -30,31 +33,23 @@ export function ConstructionSiteAreasSection({
     <div className="geometry-panel-content">
       <ConstructionSiteSectionTitle
         label={t('constructionSites.sections.areas')}
-        action={(
-          <Tooltip
-            title={drawing ? t('constructionSites.cancelDrawing') : t('constructionSites.draw')}
-            open={drawing ? false : undefined}
-          >
-            <Button
-              className="section-icon-action"
-              htmlType="button"
-              size="small"
-              shape="circle"
-              danger={drawing}
-              icon={drawing ? <CloseOutlined /> : <PlusOutlined />}
-              disabled={!canEdit}
-              aria-label={drawing ? t('constructionSites.cancelDrawing') : t('constructionSites.draw')}
-              onClick={onToggleDrawing}
-            />
-          </Tooltip>
-        )}
       />
+      {canEdit && drawing && (
+        <div className="geometry-mode-actions" role="group" aria-label={t('geometry.controls')}>
+          <Button htmlType="button" size="small" danger icon={<CloseOutlined aria-hidden />}
+            aria-pressed={drawing} onClick={onToggleDrawing}>
+            {t('geometry.cancelDrawing')}
+          </Button>
+        </div>
+      )}
       <GeometryList
         areas={areas}
         canEdit={canEdit}
+        canDelete={canEdit && editingGeometry && !drawing}
         selectedAreaKey={selectedAreaKey}
         onSelect={onSelectArea}
         onDelete={onDeleteArea}
+        onAdd={canEdit && !drawing ? onToggleDrawing : undefined}
       />
     </div>
   )

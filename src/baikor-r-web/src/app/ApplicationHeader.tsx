@@ -1,4 +1,4 @@
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { LogoutOutlined } from '@ant-design/icons'
 import { Button, Tooltip } from 'antd'
 import { useTranslation } from 'react-i18next'
 import type { AntiforgeryToken, UserSession } from '../features/construction-sites/types'
@@ -31,7 +31,6 @@ export function ApplicationHeader({ page, session, antiforgeryToken, onPageChang
       <div className="topbar-status">
         {session && (
           <form method="post" action="/auth/logout" className="user-session" aria-label={t('auth.userSession')}>
-            <span className="user-session-name"><UserOutlined aria-hidden /> {session.name}</span>
             <input type="hidden" name="__RequestVerificationToken" value={antiforgeryToken?.token ?? ''} />
             <Tooltip title={t('auth.logout')}>
               <Button

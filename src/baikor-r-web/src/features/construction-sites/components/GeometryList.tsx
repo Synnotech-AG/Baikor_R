@@ -1,22 +1,27 @@
-import { DeleteOutlined, GatewayOutlined } from '@ant-design/icons'
-import { Button, Card, Tooltip } from 'antd'
+import { DeleteOutlined, GatewayOutlined, PlusOutlined } from '@ant-design/icons'
+import { Button, Card, Empty, Tooltip } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { formatArea } from '../../../shared/formatters'
 import type { EditorArea } from '../types'
+import './geometry-controls.css'
 
 interface GeometryListProps {
   areas: EditorArea[]
   canEdit: boolean
+  canDelete?: boolean
   selectedAreaKey: string | null
   onSelect: (key: string) => void
-  onDelete: (key: string) => void
+  onDelete?: (key: string) => void
+  onAdd?: () => void
 }
 
-export function GeometryList({ areas, canEdit, selectedAreaKey, onSelect, onDelete }: GeometryListProps) {
+export function GeometryList({ areas, canEdit, canDelete = canEdit, selectedAreaKey, onSelect, onDelete, onAdd }: GeometryListProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n.resolvedLanguage?.startsWith('de') ? 'de-DE' : 'en-US'
 
-  if (areas.length === 0) return null
+  if (areas.length === 0 && !(canEdit && onAdd)) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('geometry.empty')} />
+  }
 
   return (
     <div className="details-card-list area-card-list" aria-label={t('constructionSites.areaList')}>
@@ -42,12 +47,11 @@ export function GeometryList({ areas, canEdit, selectedAreaKey, onSelect, onDele
               <span>{formatArea(area.areaSquareMetres, locale)}</span>
             </div>
           </Card>
-          <Tooltip title={t('constructionSites.deleteArea', { name: area.name })}>
+          {canEdit && canDelete && onDelete && <Tooltip title={t('constructionSites.deleteArea', { name: area.name })}>
             <Button
               className="details-card-delete"
               shape="circle"
               danger
-              disabled={!canEdit}
               aria-label={t('constructionSites.deleteArea', { name: area.name })}
               icon={<DeleteOutlined />}
               onClick={(event) => {
@@ -55,9 +59,13 @@ export function GeometryList({ areas, canEdit, selectedAreaKey, onSelect, onDele
                 onDelete(area.key)
               }}
             />
-          </Tooltip>
+          </Tooltip>}
         </article>
       ))}
+      {canEdit && onAdd && <Button className="area-card area-card-add" type="dashed" htmlType="button"
+        icon={<PlusOutlined aria-hidden />} onClick={onAdd}>
+        {t('geometry.add')}
+      </Button>}
     </div>
   )
 }

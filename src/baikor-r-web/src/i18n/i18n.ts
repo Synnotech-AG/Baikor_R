@@ -1,5 +1,11 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { workspaceDe, workspaceEn } from './workspaceMessages'
+import { recordDe, recordEn } from './recordMessages'
+import { geometryDe, geometryEn } from './geometryMessages'
+import { importDe, importEn } from './importMessages'
+import { paneDe, paneEn } from './paneMessages'
+import { dockingDe, dockingEn } from './dockingMessages'
 
 const de = {
   'app.title': 'Baustellenmanagement',
@@ -426,7 +432,10 @@ const en: Record<keyof typeof de, string> = {
 }
 
 void i18n.use(initReactI18next).init({
-  resources: { de: { translation: de }, en: { translation: en } },
+  resources: {
+    de: { translation: { ...de, ...workspaceDe, ...recordDe, ...geometryDe, ...importDe, ...paneDe, ...dockingDe } },
+    en: { translation: { ...en, ...workspaceEn, ...recordEn, ...geometryEn, ...importEn, ...paneEn, ...dockingEn } },
+  },
   lng: 'de',
   fallbackLng: 'de',
   keySeparator: false,

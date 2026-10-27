@@ -80,6 +80,7 @@ Run all baseline checks:
 ```powershell
 dotnet test BaikorR.sln
 Set-Location src/baikor-r-web
+pnpm run test
 pnpm run lint
 pnpm run build
 ```
@@ -117,7 +118,7 @@ helm lint deploy/helm/baikor-r
 ## GitHub Actions and releases
 
 The [CI workflow](.github/workflows/ci.yml) runs backend tests, frontend
-lint/build, Helm validation, release guard tests and a real Keycloak/PostGIS
+tests/lint/build, Helm validation, release guard tests and a real Keycloak/PostGIS
 smoke test on pushes and pull requests. The smoke test creates its own disposable
 environment and does not access a developer or customer cluster.
 
