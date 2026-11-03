@@ -1,5 +1,6 @@
 import type {
   ConstructionSiteAreaRequest,
+  ConstructionSiteArchive,
   ConstructionSiteFormValues,
   ConstructionSiteStatus,
   ConstructionSiteSummary,
@@ -13,6 +14,7 @@ export interface WorkspaceFilters {
   periodStart: string | null
   periodEnd: string | null
   includeUndated: boolean
+  archive?: ConstructionSiteArchive
 }
 
 export function filterConstructionSites(
@@ -22,6 +24,12 @@ export function filterConstructionSites(
 ) {
   const search = filters.search.trim().toLocaleLowerCase(locale)
   return items.filter((item) => {
+    if ((filters.archive ?? 'active') === 'active' && item.isDeleted) {
+      return false
+    }
+    if (filters.archive === 'archived' && !item.isDeleted) {
+      return false
+    }
     const text = [item.title, ...Object.entries(item.metadata ?? {}).flat()]
       .join(' ')
       .toLocaleLowerCase(locale)

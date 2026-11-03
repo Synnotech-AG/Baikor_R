@@ -1,0 +1,91 @@
+.filter-popover {
+  width: min(340px, calc(100vw - 56px));
+  max-height: min(620px, calc(100dvh - 96px));
+  overflow: auto;
+  color: var(--color-text);
+}
+
+.filter-popover-fields {
+  display: grid;
+  gap: 12px;
+  padding-block: 14px;
+}
+
+.filter-popover-fields label,
+.filter-popover-fields .filter-popover-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.filter-popover-fields .ant-select,
+.filter-popover-fields .ant-picker {
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-popover-fields .ant-checkbox-wrapper {
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.filter-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.filter-tag.ant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 5px 3px 8px;
+  line-height: 18px;
+  color: var(--color-text);
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+}
+
+.filter-tag-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-tag-remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.filter-tag-remove:hover {
+  color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.filter-tag-remove:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}

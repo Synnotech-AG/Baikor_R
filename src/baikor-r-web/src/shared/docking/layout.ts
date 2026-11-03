@@ -115,6 +115,7 @@ function reconcileRoot(value: unknown, panelIds: readonly string[]): DockNode | 
 export function createLayout(
   defaultRoot: DockNode | null,
   panelIds: readonly string[],
+  defaultCollapsed: readonly string[] = [],
 ): DockLayout {
   let root: DockNode | null
   try {
@@ -122,28 +123,47 @@ export function createLayout(
   } catch {
     root = reconcileRoot(null, panelIds)
   }
-  return { version: 1, root, collapsed: [] }
+  return {
+    version: 1,
+    root,
+    collapsed: [...new Set(defaultCollapsed.filter((id) => panelIds.includes(id)))],
+  }
+}
+
+function panelIdsInTree(value: unknown): string[] {
+  if (!isRecord(value)) {
+    return []
+  }
+  if (value.kind === 'panel' && typeof value.id === 'string') {
+    return [value.id]
+  }
+  return value.kind === 'split'
+    ? [...panelIdsInTree(value.first), ...panelIdsInTree(value.second)]
+    : []
 }
 
 export function normalizeLayout(
   value: unknown,
   defaultRoot: DockNode | null,
   panelIds: readonly string[],
+  defaultCollapsed: readonly string[] = [],
 ): DockLayout {
   try {
     if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.collapsed)) {
-      return createLayout(defaultRoot, panelIds)
+      return createLayout(defaultRoot, panelIds, defaultCollapsed)
     }
     const root = reconcileRoot(value.root, panelIds)
     const known = new Set(registeredIds(panelIds))
+    const previousPanels = new Set(panelIdsInTree(value.root))
     const collapsed = [
-      ...new Set(
-        value.collapsed.filter((id): id is string => typeof id === 'string' && known.has(id)),
-      ),
+      ...new Set([
+        ...value.collapsed.filter((id): id is string => typeof id === 'string' && known.has(id)),
+        ...defaultCollapsed.filter((id) => known.has(id) && !previousPanels.has(id)),
+      ]),
     ]
     return { version: 1, root, collapsed }
   } catch {
-    return createLayout(defaultRoot, panelIds)
+    return createLayout(defaultRoot, panelIds, defaultCollapsed)
   }
 }
 

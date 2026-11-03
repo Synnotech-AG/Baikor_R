@@ -1,4 +1,5 @@
 using BaikorR.Core.Features.ConstructionSites.Attachments.Common;
+using BaikorR.Core.Features.ConstructionSites.Common;
 using BaikorR.Core.Persistence.Entities;
 using BaikorR.Core.Persistence.Sessions;
 using FluentResults;
@@ -8,7 +9,8 @@ namespace BaikorR.Core.Features.ConstructionSites.Attachments.Upload;
 
 public sealed class UploadConstructionSiteAttachmentService(
     IConstructionSiteAttachmentsSession session,
-    IValidator<UploadConstructionSiteAttachmentRequest> validator)
+    IValidator<UploadConstructionSiteAttachmentRequest> validator,
+    TimeProvider timeProvider)
     : IUploadConstructionSiteAttachmentService
 {
     public async Task<Result<ConstructionSiteAttachmentResponse>> ExecuteAsync(
@@ -22,9 +24,15 @@ public sealed class UploadConstructionSiteAttachmentService(
             return UploadConstructionSiteAttachmentResults.ValidationFailed(validation);
         }
 
-        if (!await session.ConstructionSiteExistsAsync(constructionSiteId, cancellationToken))
+        var constructionSite = await session.GetConstructionSiteForUpdateAsync(constructionSiteId, cancellationToken);
+        if (constructionSite is null)
         {
             return UploadConstructionSiteAttachmentResults.NotFound();
+        }
+
+        if (constructionSite.IsDeleted)
+        {
+            return Result.Fail<ConstructionSiteAttachmentResponse>(ConstructionSiteArchiveErrors.Archived());
         }
 
         var normalizedFileName = Path.GetFileName(request.FileName.Replace('\\', '/')).Trim();
@@ -40,6 +48,7 @@ public sealed class UploadConstructionSiteAttachmentService(
             Data = request.Data
         };
         session.Add(attachment);
+        session.TouchConstructionSite(constructionSite, timeProvider.GetUtcNow());
         if (!await session.SaveChangesAsync(cancellationToken))
         {
             return UploadConstructionSiteAttachmentResults.Conflict();

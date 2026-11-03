@@ -99,6 +99,18 @@ export const applicationTheme: ThemeConfig = {
 }
 
 export const mapTheme = {
+  alert: {
+    fill: themeValue('--map-alert-fill'),
+    stroke: themeValue('--map-alert-stroke'),
+    text: themeValue('--map-alert-text'),
+    halo: themeValue('--map-alert-halo'),
+    selectedStroke: themeValue('--map-alert-selected-stroke'),
+  },
+  route: {
+    stroke: themeValue('--map-route-stroke'),
+    selectedStroke: themeValue('--map-route-selected-stroke'),
+    halo: themeValue('--map-route-halo'),
+  },
   saved: { fill: themeValue('--map-saved-fill'), stroke: themeValue('--map-saved-stroke') },
   selected: {
     fill: themeValue('--map-selected-fill'),

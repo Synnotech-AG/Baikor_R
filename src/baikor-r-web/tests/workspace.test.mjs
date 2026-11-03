@@ -41,6 +41,21 @@ test('search finds metadata and combines it with status without mutating records
   assert.equal(sites.length, 4)
 })
 
+test('archive filter hides archived records by default and can show archived or all sites', () => {
+  const records = [...sites, { ...base, id: 'archived', title: 'Alt', isDeleted: true }]
+  assert.deepEqual(
+    filterConstructionSites(records, filters, 'de-DE').map((site) => site.id),
+    ['a', 'b', 'c', 'd'],
+  )
+  assert.deepEqual(
+    filterConstructionSites(records, { ...filters, archive: 'archived' }, 'de-DE').map(
+      (site) => site.id,
+    ),
+    ['archived'],
+  )
+  assert.equal(filterConstructionSites(records, { ...filters, archive: 'all' }, 'de-DE').length, 5)
+})
+
 test('period uses inclusive overlap and explicitly includes incomplete dates', () => {
   const period = { ...filters, periodStart: '2026-10-20', periodEnd: '2026-10-31' }
   assert.deepEqual(

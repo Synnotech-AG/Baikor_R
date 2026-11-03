@@ -24,6 +24,6 @@ public sealed class LaunchPageTests
         Assert.Null(response.Headers.Location);
         Assert.Contains("/launch.js", await response.Content.ReadAsStringAsync());
         var script = await client.GetStringAsync("/launch.js");
-        Assert.Contains("window.location.replace(\"/\")", script);
+        Assert.Matches(@"window\.location\.replace\((['""])/\1\)", script);
     }
 }

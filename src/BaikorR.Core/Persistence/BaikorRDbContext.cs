@@ -1,4 +1,7 @@
 using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Detection;
+using BaikorR.Core.Persistence.Routes;
+using BaikorR.Core.Persistence.Alerts;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaikorR.Core.Persistence;
@@ -16,13 +19,77 @@ public sealed class BaikorRDbContext(DbContextOptions<BaikorRDbContext> options)
 
     public DbSet<ConstructionSiteAttachment> ConstructionSiteAttachments => Set<ConstructionSiteAttachment>();
 
+    public DbSet<RouteDefinition> RouteDefinitions => Set<RouteDefinition>();
+    public DbSet<GtfsImportSource> GtfsImportSources => Set<GtfsImportSource>();
+    public DbSet<RoutePath> RoutePaths => Set<RoutePath>();
+    public DbSet<RoutePathVersion> RoutePathVersions => Set<RoutePathVersion>();
+    public DbSet<RouteOperatingPeriod> RouteOperatingPeriods => Set<RouteOperatingPeriod>();
+    public DbSet<AlertRecord> Alerts => Set<AlertRecord>();
+    public DbSet<AlertRule> AlertRules => Set<AlertRule>();
+    public DbSet<RouteConflictAlert> RouteConflictAlerts => Set<RouteConflictAlert>();
+    public DbSet<RouteConflictEvidence> RouteConflictEvidence => Set<RouteConflictEvidence>();
+    public DbSet<AlertEvent> AlertEvents => Set<AlertEvent>();
+    public DbSet<AlertDetectionWork> AlertDetectionWork => Set<AlertDetectionWork>();
+    public DbSet<AlertScanRun> AlertScanRuns => Set<AlertScanRun>();
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess) =>
+        SaveChangesAsync(acceptAllChangesOnSuccess, CancellationToken.None).GetAwaiter().GetResult();
+
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        var invalidations = DetectionChangeCollector.Collect(this);
+        if (invalidations.Count == 0)
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        var ownsTransaction = Database.CurrentTransaction is null;
+        await using var transaction = ownsTransaction
+            ? await DetectionTransaction.EnterAsync(this, cancellationToken)
+            : null;
+        if (!ownsTransaction)
+        {
+            await DetectionTransaction.LockAsync(this, cancellationToken);
+        }
+        var now = DateTimeOffset.UtcNow;
+        var work = invalidations.Select(item => new AlertDetectionWork
+        {
+            Kind = item.Kind, SubjectId = item.SubjectId, CreatedAt = now, AvailableAt = now
+        }).ToArray();
+        AlertDetectionWork.AddRange(work);
+        try
+        {
+            var changed = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+            return changed;
+        }
+        catch
+        {
+            foreach (var item in work)
+            {
+                Entry(item).State = EntityState.Detached;
+            }
+            throw;
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
+        RouteModelConfiguration.Configure(modelBuilder);
+        AlertModelConfiguration.Configure(modelBuilder);
+        DetectionModelConfiguration.Configure(modelBuilder);
 
         var constructionSite = modelBuilder.Entity<ConstructionSite>();
         constructionSite.ToTable("construction_sites", "baikor");
         constructionSite.HasKey(item => item.Id);
+
+        constructionSite.Property(item => item.IsDeleted)
+            .HasDefaultValue(false);
 
         constructionSite.Property(item => item.Title)
             .HasMaxLength(200)

@@ -132,14 +132,19 @@ def main():
     context = ssl.create_default_context(cafile=str(ca_file))
     keycloak = args.keycloak_url.rstrip("/")
     admin = Session(context)
-    status, body, _ = admin.request(
-        keycloak + "/realms/master/protocol/openid-connect/token", "POST",
-        form={"client_id": "admin-cli", "grant_type": "password",
-              "username": username, "password": admin_password},
-    )
-    if status != 200:
-        raise RuntimeError(f"Keycloak administrator login failed: HTTP {status}")
-    headers = {"Authorization": "Bearer " + json.loads(body)["access_token"]}
+    admin_username = username
+
+    def administrator_headers():
+        status, body, _ = admin.request(
+            keycloak + "/realms/master/protocol/openid-connect/token", "POST",
+            form={"client_id": "admin-cli", "grant_type": "password",
+                  "username": admin_username, "password": admin_password},
+        )
+        if status != 200:
+            raise RuntimeError(f"Keycloak administrator login failed: HTTP {status}")
+        return {"Authorization": "Bearer " + json.loads(body)["access_token"]}
+
+    headers = administrator_headers()
     realm = keycloak + "/admin/realms/" + urllib.parse.quote(args.realm, safe="")
     base = args.base_url.rstrip("/")
     status, body, _ = admin.request(realm + "/clients?clientId=" + urllib.parse.quote(args.client_id, safe=""), headers=headers)
@@ -233,6 +238,10 @@ def main():
         check("approver status endpoint", approver.api(base, path + "/status", "POST", {"status": "active"})[0], 200)
         check("admin reads shared record", sessions["admin"].api(base, path)[0], 200)
 
+        if args.admin_source == "environment" and args.realm == "baikor-ci":
+            from routes_alerts_checks import verify_routes_alerts
+            verify_routes_alerts(base, sessions, marker, check)
+
         boundary = "baikor-test-" + secrets.token_hex(8)
         attachment_data = (
             f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\n"
@@ -283,12 +292,18 @@ def main():
         except Exception as error:
             check("record cleanup login", type(error).__name__, "successful login")
         finally:
-            for kind, user_id in users.items():
-                try:
-                    status, _, _ = admin.request(realm + "/users/" + user_id, "DELETE", headers=headers)
-                    check(f"remove disposable {kind} account", status, 204)
-                except Exception as error:
-                    check(f"remove disposable {kind} account", type(error).__name__, "HTTP 204")
+            try:
+                # Long-running checks can outlive the administrator access token.
+                # Obtain a fresh token before removing only this run's accounts.
+                cleanup_headers = administrator_headers()
+                for kind, user_id in users.items():
+                    try:
+                        status, _, _ = admin.request(realm + "/users/" + user_id, "DELETE", headers=cleanup_headers)
+                        check(f"remove disposable {kind} account", status, 204)
+                    except Exception as error:
+                        check(f"remove disposable {kind} account", type(error).__name__, "HTTP 204")
+            except Exception as error:
+                check("account cleanup administrator login", type(error).__name__, "successful login")
 
     print(f"Completed {checks} checks with {len(failures)} failures", flush=True)
     return 1 if failures else 0

@@ -1,4 +1,17 @@
 export const recordDe = {
+  'record.archived': 'Archiviert',
+  'record.restore': 'Wiederherstellen',
+  'record.restored': 'Baustelle wiederhergestellt',
+  'record.restoreFailed': 'Wiederherstellen fehlgeschlagen.',
+  'constructionSites.restore.notFound': 'Die Baustelle wurde nicht gefunden.',
+  'constructionSites.restore.conflict':
+    'Die Baustelle wurde zwischenzeitlich geändert. Laden Sie sie vor dem Wiederherstellen neu.',
+  'constructionSites.validation.archive.invalid': 'Wählen Sie einen gültigen Archivfilter aus.',
+  'constructionSites.archived':
+    'Diese Baustelle ist archiviert. Stellen Sie sie zum Bearbeiten wieder her.',
+  'record.retainedSiteHint':
+    'Die Baustelle wurde früher endgültig gelöscht. Hier sehen Sie den im Hinweis gespeicherten Nachweis.',
+  'record.retainedPeriod': 'Im Hinweis erfasster Konfliktzeitraum',
   'record.details': 'Baustellendetails',
   'record.edit': 'Bearbeiten',
   'record.back': 'Zurück',
@@ -47,6 +60,18 @@ export const recordDe = {
 }
 
 export const recordEn: Record<keyof typeof recordDe, string> = {
+  'record.archived': 'Archived',
+  'record.restore': 'Restore',
+  'record.restored': 'Construction site restored',
+  'record.restoreFailed': 'Restoring failed.',
+  'constructionSites.restore.notFound': 'The construction site was not found.',
+  'constructionSites.restore.conflict':
+    'The construction site changed. Reload it before restoring.',
+  'constructionSites.validation.archive.invalid': 'Select a valid archive filter.',
+  'constructionSites.archived': 'This construction site is archived. Restore it before editing.',
+  'record.retainedSiteHint':
+    'The construction site was permanently deleted earlier. This view shows the evidence retained with the alert.',
+  'record.retainedPeriod': 'Conflict period retained with the alert',
   'record.details': 'Construction site details',
   'record.edit': 'Edit',
   'record.back': 'Back',

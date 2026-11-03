@@ -22,6 +22,9 @@ httpClient.interceptors.request.use((config) => {
 httpClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
+    if (axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
     if (!axios.isAxiosError(error) || !error.response || error.response.status >= 500) {
       const parsed = parseApiError(error, 'The server is currently unavailable.')
       reportServerError({

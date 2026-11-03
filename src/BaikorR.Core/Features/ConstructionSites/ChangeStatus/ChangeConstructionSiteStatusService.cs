@@ -19,6 +19,11 @@ public sealed class ChangeConstructionSiteStatusService(
             return ChangeConstructionSiteStatusResults.NotFound();
         }
 
+        if (constructionSite.IsDeleted)
+        {
+            return Result.Fail<ConstructionSiteResponse>(ConstructionSiteArchiveErrors.Archived());
+        }
+
         constructionSite.Status = request.Status;
         constructionSite.UpdatedAt = timeProvider.GetUtcNow();
         if (!await session.SaveChangesAsync(cancellationToken))

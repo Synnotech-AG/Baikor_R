@@ -15,9 +15,10 @@ public sealed class ListConstructionSitesController(
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ConstructionSiteResponse>>> Get(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] string archive = "active")
     {
-        var result = await service.ExecuteAsync(cancellationToken);
+        var result = await service.ExecuteAsync(cancellationToken, archive);
         return result.ToApiActionResult(this);
     }
 }

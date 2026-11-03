@@ -72,3 +72,20 @@ required. For a separately provisioned disposable environment, select
 `BAIKOR_TEST_ADMIN_PASSWORD` through the environment. This mode never falls back
 to Kubernetes. The isolated CI runner sets these values automatically and never
 invokes `kubectl`.
+
+## Routes and alerts
+
+The backend CI job also starts its own disposable PostGIS service and sets
+`BAIKOR_TEST_POSTGIS` for the .NET database tests. Each test creates a uniquely
+named database, applies the migration chain and drops that database afterwards.
+Without this variable, local `dotnet test` skips the PostGIS tests. To run them
+locally, set it to an administrator connection on a disposable test server;
+never point it at a shared application database.
+
+The disposable `baikor-ci` run also verifies private routes/alerts with real OIDC
+accounts: Viewer reads, Editor route changes and evidence-bound handling,
+Administrator settings/full scans, and Importer denial across all new endpoints.
+It checks future inclusive overlap, review preservation through an unchanged scan,
+material geometry reopening, and retained evidence after route removal. Those
+retained-history checks are gated to the disposable realm/environment mode and
+do not run against the existing Core profile.

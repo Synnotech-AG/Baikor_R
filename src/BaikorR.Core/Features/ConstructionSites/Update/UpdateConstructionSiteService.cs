@@ -32,6 +32,11 @@ public sealed class UpdateConstructionSiteService(
             return UpdateConstructionSiteResults.NotFound();
         }
 
+        if (constructionSite.IsDeleted)
+        {
+            return Result.Fail<ConstructionSiteResponse>(ConstructionSiteArchiveErrors.Archived());
+        }
+
         var ownershipErrors = new List<IError>();
         var existingAreas = constructionSite.Areas.ToDictionary(area => area.Id);
         foreach (var parsedArea in parsedAreas.Where(area => area.Id.HasValue))

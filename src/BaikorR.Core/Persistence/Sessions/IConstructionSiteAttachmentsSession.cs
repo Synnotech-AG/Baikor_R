@@ -6,6 +6,9 @@ public interface IConstructionSiteAttachmentsSession
 {
     Task<bool> ConstructionSiteExistsAsync(Guid constructionSiteId, CancellationToken cancellationToken);
 
+    Task<ConstructionSite?> GetConstructionSiteForUpdateAsync(
+        Guid constructionSiteId, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<ConstructionSiteAttachment>> ListAsync(
         Guid constructionSiteId,
         CancellationToken cancellationToken);
@@ -18,6 +21,8 @@ public interface IConstructionSiteAttachmentsSession
     void Add(ConstructionSiteAttachment attachment);
 
     void Remove(ConstructionSiteAttachment attachment);
+
+    void TouchConstructionSite(ConstructionSite constructionSite, DateTimeOffset updatedAt);
 
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken);
 }

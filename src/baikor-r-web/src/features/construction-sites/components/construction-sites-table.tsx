@@ -1,4 +1,4 @@
-import { DeleteOutlined, SettingOutlined } from '@ant-design/icons'
+import { InboxOutlined, SettingOutlined } from '@ant-design/icons'
 import { Button, Dropdown, Pagination, Space, Table, Tag } from 'antd'
 import type { TableProps } from 'antd'
 import { useEffect, useState } from 'react'
@@ -9,6 +9,9 @@ import type { ConstructionSiteStatus, ConstructionSiteSummary } from '../types'
 import './table-pagination.css'
 
 const PAGE_SIZE = 10
+const TITLE_MIN_WIDTH = 240
+const SELECTION_WIDTH = 44
+const optionalColumnKeys = ['plannedStart', 'areaSquareMetres', 'updatedAt']
 
 interface ConstructionSitesTableProps {
   items: ConstructionSiteSummary[]
@@ -41,6 +44,7 @@ export function ConstructionSitesTable({
   const [page, setPage] = useState(1)
   const lastPage = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
   const currentPage = Math.min(page, lastPage)
+  const archivableItems = items.filter((site) => !site.isDeleted)
 
   useEffect(() => {
     setPage((current) => Math.min(current, lastPage))
@@ -53,7 +57,12 @@ export function ConstructionSitesTable({
       ellipsis: true,
       className: 'table-site-title',
       sorter: (left, right) => left.title.localeCompare(right.title, locale),
-      render: (title: string) => <strong title={title}>{title}</strong>,
+      render: (title: string, site) => (
+        <>
+          <strong title={title}>{title}</strong>
+          {site.isDeleted && <Tag>{t('record.archived')}</Tag>}
+        </>
+      ),
     },
     {
       title: t('constructionSites.status.label'),
@@ -104,6 +113,16 @@ export function ConstructionSitesTable({
       render: (value: string) => formatDateTime(value, locale),
     },
   ]
+  const visibleColumns = columns.filter(
+    (column) =>
+      !('dataIndex' in column) ||
+      !optionalColumnKeys.includes(String(column.dataIndex)) ||
+      optionalColumns.includes(String(column.dataIndex)),
+  )
+  const minimumTableWidth = visibleColumns.reduce(
+    (width, column) => width + (typeof column.width === 'number' ? column.width : TITLE_MIN_WIDTH),
+    canBulkDelete ? SELECTION_WIDTH : 0,
+  )
 
   return (
     <section className="records-panel" aria-label={t('constructionSites.table.heading')}>
@@ -115,6 +134,7 @@ export function ConstructionSitesTable({
             multiple: true,
             selectedKeys: optionalColumns,
             items: [
+              { key: 'plannedStart', label: t('constructionSites.table.period') },
               { key: 'areaSquareMetres', label: t('constructionSites.area') },
               { key: 'updatedAt', label: t('constructionSites.table.updated') },
             ],
@@ -133,13 +153,13 @@ export function ConstructionSitesTable({
         <div className="table-selection-toolbar">
           <span>{t('constructionSites.bulkDelete.selected', { count: selectedIds.length })}</span>
           <Space size="small" wrap>
-            {selectedIds.length < items.length && (
+            {selectedIds.length < archivableItems.length && (
               <Button
                 type="text"
                 size="small"
-                onClick={() => onSelectionChange(items.map((item) => item.id))}
+                onClick={() => onSelectionChange(archivableItems.map((item) => item.id))}
               >
-                {t('constructionSites.bulkDelete.selectAll', { count: items.length })}
+                {t('constructionSites.bulkDelete.selectAll', { count: archivableItems.length })}
               </Button>
             )}
             {selectedIds.length > 0 && (
@@ -151,7 +171,7 @@ export function ConstructionSitesTable({
               danger
               type="text"
               size="small"
-              icon={<DeleteOutlined />}
+              icon={<InboxOutlined />}
               disabled={selectedIds.length === 0}
               loading={bulkDeleting}
               onClick={onBulkDelete}
@@ -167,28 +187,18 @@ export function ConstructionSitesTable({
         size="small"
         showSorterTooltip={false}
         loading={loading}
-        columns={columns.filter(
-          (column) =>
-            !('dataIndex' in column) ||
-            !['areaSquareMetres', 'updatedAt'].includes(String(column.dataIndex)) ||
-            optionalColumns.includes(String(column.dataIndex)),
-        )}
+        columns={visibleColumns}
         dataSource={items}
         tableLayout="fixed"
-        scroll={{
-          x:
-            544 +
-            (optionalColumns.includes('areaSquareMetres') ? 96 : 0) +
-            (optionalColumns.includes('updatedAt') ? 120 : 0),
-        }}
+        scroll={{ x: minimumTableWidth }}
         rowSelection={
           canBulkDelete
             ? {
-                columnWidth: 44,
+                columnWidth: SELECTION_WIDTH,
                 selectedRowKeys: selectedIds,
                 preserveSelectedRowKeys: true,
                 onChange: (keys) => onSelectionChange(keys.map(String)),
-                getCheckboxProps: () => ({ disabled: bulkDeleting }),
+                getCheckboxProps: (site) => ({ disabled: bulkDeleting || site.isDeleted }),
                 onCell: () => ({ onClick: (event) => event.stopPropagation() }),
               }
             : undefined

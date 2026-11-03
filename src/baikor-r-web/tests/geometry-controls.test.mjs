@@ -556,6 +556,88 @@ for (const language of ['de', 'en']) {
     }
   })
 
+  test(`archive actions and server errors resolve to localized messages (${language})`, async () => {
+    await i18n.changeLanguage(language)
+    for (const key of [
+      'constructionSites.delete.action',
+      'constructionSites.delete.confirmTitle',
+      'constructionSites.delete.confirmMessage',
+      'constructionSites.delete.success',
+      'constructionSites.delete.failed',
+      'constructionSites.bulkDelete.action',
+      'constructionSites.bulkDelete.selected',
+      'constructionSites.bulkDelete.selectAll',
+      'constructionSites.bulkDelete.clearSelection',
+      'constructionSites.bulkDelete.confirmTitle',
+      'constructionSites.bulkDelete.confirmMessage',
+      'constructionSites.bulkDelete.success',
+      'constructionSites.bulkDelete.failed',
+      'constructionSites.bulkDelete.emptySelection',
+      'constructionSites.bulkDelete.invalidIdentifiers',
+      'constructionSites.bulkDelete.notFound',
+      'constructionSites.bulkDelete.conflict',
+    ]) {
+      assert.ok(i18n.exists(key), `Missing archive translation: ${key}`)
+    }
+    assert.equal(
+      i18n.t('constructionSites.delete.action'),
+      language === 'de' ? 'Baustelle archivieren' : 'Archive construction site',
+    )
+  })
+
+  test(`archived details offer only restore to editors and retain the archived badge (${language})`, async () => {
+    await i18n.changeLanguage(language)
+    const restoreName = language === 'de' ? 'Wiederherstellen' : 'Restore'
+    const archivedName = language === 'de' ? 'Archiviert' : 'Archived'
+    const html = render(ConstructionSiteDetails, {
+      ...detailsProps,
+      site: { ...site, isDeleted: true },
+      onRestore: noop,
+    })
+    const footer = assertRecordFooter(html, [restoreName], false)
+    assert.equal(namedButton(footer, restoreName).disabled, false)
+    assert.ok(
+      [...html.matchAll(/<span\b[^>]*class="[^"]*\bant-tag\b[^"]*"[^>]*>([\s\S]*?)<\/span>/g)].some(
+        (match) => textContent(match[1]) === archivedName,
+      ),
+      'The archived state must remain visible as a localized badge',
+    )
+    assert.ok(
+      !/role="combobox"/.test(html),
+      'Archived details must remain read-only until the record is restored',
+    )
+  })
+
+  test(`archived details expose no footer writes to readers even with restore supplied (${language})`, async () => {
+    await i18n.changeLanguage(language)
+    const html = render(ConstructionSiteDetails, {
+      ...detailsProps,
+      site: { ...site, isDeleted: true },
+      canEdit: false,
+      onRestore: noop,
+    })
+    assertRecordFooter(html, [], false)
+  })
+
+  test(`archived restore is disabled during restoring or deletion (${language})`, async () => {
+    await i18n.changeLanguage(language)
+    const restoreName = language === 'de' ? 'Wiederherstellen' : 'Restore'
+    for (const state of [{ restoring: true }, { deleting: true }]) {
+      const html = render(ConstructionSiteDetails, {
+        ...detailsProps,
+        site: { ...site, isDeleted: true },
+        onRestore: noop,
+        ...state,
+      })
+      const footer = assertRecordFooter(html, [restoreName], false)
+      assert.equal(
+        namedButton(footer, restoreName).disabled,
+        true,
+        'A pending request must prevent duplicate restore requests',
+      )
+    }
+  })
+
   test(`read-only footer disables edit and delete during deletion (${language})`, async () => {
     await i18n.changeLanguage(language)
     const html = render(ConstructionSiteDetails, { ...detailsProps, deleting: true })

@@ -6,7 +6,10 @@ public interface IConstructionSitesSession
 {
     Task<IReadOnlyList<ConstructionSite>> ListAsync(
         int maximumCount,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        ConstructionSiteArchiveFilter archive = ConstructionSiteArchiveFilter.Active);
+
+    Task<bool> HasImportedFileAsync(string fileHash, CancellationToken cancellationToken);
 
     Task<ConstructionSite?> GetAsync(Guid id, CancellationToken cancellationToken);
 
@@ -17,10 +20,6 @@ public interface IConstructionSitesSession
         CancellationToken cancellationToken);
 
     void Add(ConstructionSite constructionSite);
-
-    void Remove(ConstructionSite constructionSite);
-
-    void RemoveRange(IEnumerable<ConstructionSite> constructionSites);
 
     void AddArea(ConstructionSite constructionSite, ConstructionSiteArea area);
 

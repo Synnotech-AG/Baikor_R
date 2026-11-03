@@ -6,5 +6,6 @@ namespace BaikorR.Core.Features.ConstructionSites.List;
 public interface IListConstructionSitesService
 {
     Task<Result<IReadOnlyList<ConstructionSiteResponse>>> ExecuteAsync(
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string archive = "active");
 }

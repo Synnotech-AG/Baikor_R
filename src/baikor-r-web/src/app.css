@@ -972,6 +972,20 @@
   border-color: var(--map-selected-stroke);
 }
 
+.map-legend-swatch.route {
+  height: 0;
+  border: 0;
+  border-top: 3px dashed var(--map-route-stroke);
+  border-radius: 0;
+}
+
+.map-legend-swatch.selected-route {
+  height: 0;
+  border: 0;
+  border-top: 3px solid var(--map-route-selected-stroke);
+  border-radius: 0;
+}
+
 .splitter {
   position: relative;
   z-index: 5;
@@ -1200,7 +1214,7 @@
   box-shadow: var(--shadow-panel);
 }
 
-.import-card .ant-card-body {
+.import-card > .ant-card-body {
   padding: 24px 26px;
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);

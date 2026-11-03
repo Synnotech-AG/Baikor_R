@@ -11,6 +11,11 @@ public sealed class ConstructionSiteAttachmentDbSession(BaikorRDbContext dbConte
         CancellationToken cancellationToken) =>
         dbContext.ConstructionSites.AnyAsync(site => site.Id == constructionSiteId, cancellationToken);
 
+    public Task<ConstructionSite?> GetConstructionSiteForUpdateAsync(
+        Guid constructionSiteId,
+        CancellationToken cancellationToken) =>
+        dbContext.ConstructionSites.SingleOrDefaultAsync(site => site.Id == constructionSiteId, cancellationToken);
+
     public async Task<IReadOnlyList<ConstructionSiteAttachment>> ListAsync(
         Guid constructionSiteId,
         CancellationToken cancellationToken) =>
@@ -44,6 +49,13 @@ public sealed class ConstructionSiteAttachmentDbSession(BaikorRDbContext dbConte
 
     public void Remove(ConstructionSiteAttachment attachment) =>
         dbContext.ConstructionSiteAttachments.Remove(attachment);
+
+    public void TouchConstructionSite(ConstructionSite constructionSite, DateTimeOffset updatedAt)
+    {
+        constructionSite.UpdatedAt = updatedAt;
+        // Updating the parent row makes an attachment mutation conflict with a concurrent archive.
+        dbContext.Entry(constructionSite).Property(site => site.UpdatedAt).IsModified = true;
+    }
 
     public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
     {

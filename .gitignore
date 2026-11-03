@@ -67,6 +67,7 @@ CLAUDE.md
 
 # Local review and generated scratch artifacts
 /docs/superpowers/
+/.superpowers/
 tmp/
 __pycache__/
 *.py[cod]

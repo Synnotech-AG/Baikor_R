@@ -146,7 +146,7 @@
             "description": "The authenticated principal lacks an allowed import role. Bearer authorization normally returns no JSON body; cookie authorization may return text. No stable errorKey is guaranteed."
           },
           "409": {
-            "description": "Exact archive bytes were already imported, or persistence reported a concurrency conflict. Duplicate detection searches up to 2000 existing construction sites by import.fileSha256; it is not a global idempotency guarantee. Resolve a duplicate with an authorized operator before resubmitting.",
+            "description": "Exact archive bytes were already imported, or persistence reported a concurrency conflict. Duplicate detection searches all retained construction sites, including archived records, by import.fileSha256; it does not compare semantic content or serialize concurrent submissions. Archive preserves source identity and does not permit another import of the same file. An authorized operator can restore the existing records if needed; this endpoint never automatically restores them.",
             "content": {
               "application/problem+json": {
                 "schema": { "$ref": "#/components/schemas/Problem" },
@@ -155,7 +155,7 @@
                     "value": {
                       "title": "Request conflict",
                       "status": 409,
-                      "detail": "This exact file has already been imported. Delete the previous import before importing it again.",
+                      "detail": "This exact file has already been imported. The existing import may be archived. Restore it if needed.",
                       "instance": "/api/construction-sites/imports/trenches",
                       "errorKey": "constructionSites.import.duplicate"
                     }

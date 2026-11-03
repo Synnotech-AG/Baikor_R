@@ -34,7 +34,7 @@ LABEL org.opencontainers.image.source="https://github.com/Synnotech-AG/Baikor_R"
     org.opencontainers.image.revision="${REVISION}" \
     org.opencontainers.image.licenses="EUPL-1.2"
 WORKDIR /app
-RUN apk add --no-cache krb5-libs
+RUN apk add --no-cache krb5-libs tzdata
 COPY --from=host-build /app/publish ./
 COPY --from=frontend-build /src/web/dist ./wwwroot
 COPY LICENSE ./LICENSE

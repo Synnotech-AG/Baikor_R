@@ -1,6 +1,8 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
 using BaikorR.Core.Importers.Rkom;
 using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Persistence.Sessions;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Esri;
@@ -60,8 +62,10 @@ public sealed class RkomTrenchesImporterTests
             constructionSites.Single(site => site.Metadata["source.status"] == "Assigned").Status);
     }
 
-    [Fact]
-    public async Task ImportRejectsTheSameFileTwice()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ImportRejectsTheSameFileTwiceIncludingArchivedImports(bool archived)
     {
         var session = new InMemoryConstructionSitesSession();
         var importer = new RkomTrenchesImporter(
@@ -72,12 +76,59 @@ public sealed class RkomTrenchesImporterTests
         var request = new RkomTrenchesImportRequest("R-10002_Trenches.zip", CreateArchive());
 
         Assert.True((await importer.ExecuteAsync(request, CancellationToken.None)).IsSuccess);
+        foreach (var site in await session.ListAsync(10, CancellationToken.None))
+        {
+            site.IsDeleted = archived;
+        }
         var duplicate = await importer.ExecuteAsync(request, CancellationToken.None);
 
         Assert.True(duplicate.IsFailed);
         Assert.Contains(duplicate.Errors, error =>
             error.Metadata.TryGetValue("Key", out var key)
             && Equals(key, RkomTrenchesImportResults.DuplicateErrorKey));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ImportRejectsAnOlderFileBeyondTheSiteListLimit(bool archived)
+    {
+        var session = new InMemoryConstructionSitesSession();
+        var content = CreateArchive();
+        var importedAt = new DateTimeOffset(2026, 9, 1, 8, 0, 0, TimeSpan.Zero);
+        session.Add(new ConstructionSite
+        {
+            Id = Guid.NewGuid(),
+            Title = "Original import",
+            CreatedAt = importedAt,
+            IsDeleted = archived,
+            Metadata = new Dictionary<string, string>
+            {
+                ["import.fileSha256"] = Convert.ToHexString(SHA256.HashData(content))
+            }
+        });
+        foreach (var index in Enumerable.Range(1, 2001))
+        {
+            session.Add(new ConstructionSite
+            {
+                Id = Guid.NewGuid(),
+                Title = $"Newer site {index}",
+                CreatedAt = importedAt.AddDays(1)
+            });
+        }
+        var importer = new RkomTrenchesImporter(
+            session,
+            TimeProvider.System,
+            new RkomTrenchesShapefileParser(),
+            new RkomTrenchesImportRequest.Validator());
+
+        var result = await importer.ExecuteAsync(new RkomTrenchesImportRequest("renamed.zip", content), default);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(result.Errors, error =>
+            error.Metadata.TryGetValue("Key", out var key)
+            && Equals(key, RkomTrenchesImportResults.DuplicateErrorKey));
+        Assert.Equal(2002, (await session.ListAsync(3000, default, ConstructionSiteArchiveFilter.All)).Count);
     }
 
     private static byte[] CreateArchive()

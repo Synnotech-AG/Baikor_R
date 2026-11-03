@@ -31,6 +31,36 @@ const layout = () => createLayout(defaultRoot, ids)
 const leafIds = (node) =>
   !node ? [] : node.kind === 'panel' ? [node.id] : [...leafIds(node.first), ...leafIds(node.second)]
 
+test('new optional widgets start collapsed without changing the saved visible geometry', () => {
+  const original = layout()
+  const next = normalizeLayout(
+    original,
+    defaultRoot,
+    [...ids, 'routes', 'alerts'],
+    ['routes', 'alerts'],
+  )
+  assert.deepEqual(next.collapsed.sort(), ['alerts', 'routes'])
+  const bounds = { width: 1400, height: 800 }
+  assert.deepEqual(
+    calculateGeometry(next, bounds, {}).panels,
+    calculateGeometry(original, bounds, {}).panels,
+  )
+  const restored = setPanelCollapsed(next, 'alerts', false)
+  const reloaded = normalizeLayout(
+    restored,
+    defaultRoot,
+    [...ids, 'routes', 'alerts'],
+    ['routes', 'alerts'],
+  )
+  assert.ok(!reloaded.collapsed.includes('alerts'), 'a user-restored panel stays restored')
+})
+
+test('a fresh layout honors optional panel defaults and keeps their restore entries', () => {
+  const fresh = createLayout(defaultRoot, [...ids, 'routes'], ['routes'])
+  assert.deepEqual(fresh.collapsed, ['routes'])
+  assert.ok(leafIds(fresh.root).includes('routes'))
+})
+
 test('edge docking removes the source, collapses its former branch and nests beside its target', () => {
   const original = layout()
   const snapshot = structuredClone(original)

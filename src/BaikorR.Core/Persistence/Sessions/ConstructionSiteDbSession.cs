@@ -8,9 +8,12 @@ public sealed class ConstructionSiteDbSession(BaikorRDbContext dbContext)
 {
     public async Task<IReadOnlyList<ConstructionSite>> ListAsync(
         int maximumCount,
-        CancellationToken cancellationToken) =>
+        CancellationToken cancellationToken,
+        ConstructionSiteArchiveFilter archive = ConstructionSiteArchiveFilter.Active) =>
         await dbContext.ConstructionSites
             .AsNoTracking()
+            .Where(item => archive == ConstructionSiteArchiveFilter.All
+                || item.IsDeleted == (archive == ConstructionSiteArchiveFilter.Archived))
             .Include(item => item.Areas)
             .Include(item => item.Contacts)
             .Include(item => item.Communications)
@@ -19,6 +22,14 @@ public sealed class ConstructionSiteDbSession(BaikorRDbContext dbContext)
             .ThenBy(item => item.Title)
             .Take(maximumCount)
             .ToListAsync(cancellationToken);
+
+    public Task<bool> HasImportedFileAsync(string fileHash, CancellationToken cancellationToken) =>
+        dbContext.Database.SqlQuery<bool>($"""
+            SELECT EXISTS (
+                SELECT 1 FROM baikor.construction_sites
+                WHERE lower("Metadata" ->> 'import.fileSha256') = {fileHash.ToLowerInvariant()}
+            ) AS "Value"
+            """).SingleAsync(cancellationToken);
 
     public Task<ConstructionSite?> GetAsync(Guid id, CancellationToken cancellationToken) =>
         dbContext.ConstructionSites
@@ -56,12 +67,6 @@ public sealed class ConstructionSiteDbSession(BaikorRDbContext dbContext)
 
     public void Add(ConstructionSite constructionSite) =>
         dbContext.ConstructionSites.Add(constructionSite);
-
-    public void Remove(ConstructionSite constructionSite) =>
-        dbContext.ConstructionSites.Remove(constructionSite);
-
-    public void RemoveRange(IEnumerable<ConstructionSite> constructionSites) =>
-        dbContext.ConstructionSites.RemoveRange(constructionSites);
 
     public void AddArea(ConstructionSite constructionSite, ConstructionSiteArea area)
     {

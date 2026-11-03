@@ -1,0 +1,2525 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Baikor_R private routes and alerts",
+    "version": "1.0.0",
+    "description": "Authenticated application contract. Importer-only tokens have no access to these endpoints. All geometries are EPSG:25832. Conflict evidence has inclusive calendar-date precision. Browser writes use existing CSRF protection; authentication failures may redirect to OpenID Connect.",
+    "license": {
+      "name": "EUPL-1.2",
+      "url": "https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://baikor.example.invalid",
+      "description": "Replace with your application origin"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Routes",
+      "description": "Private route paths and verified GTFS import"
+    },
+    {
+      "name": "Alerts",
+      "description": "Retained potential-conflict cases, evidence, handling and evaluation health"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "browserSession": []
+    }
+  ],
+  "paths": {
+    "/api/routes": {
+      "get": {
+        "summary": "List routes",
+        "description": "Requires the existing Viewer policy. Lists stable route parents with paths[], rather than one row per shape. Each child retains its own calendars.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutePage"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "includeSuppressed",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "operationId": "getApiRoutes",
+        "tags": [
+          "Routes"
+        ]
+      },
+      "post": {
+        "summary": "Create an independent manual route with named paths",
+        "description": "Requires the existing Editor policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteWrite"
+              }
+            }
+          }
+        },
+        "operationId": "postApiRoutes",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/routes/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read a route parent, child paths and operating periods",
+        "description": "Requires the existing Viewer policy. A retained legacy child UUID can resolve to its parent; list responses and new writes use parent UUIDs.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiRoutesId",
+        "tags": [
+          "Routes"
+        ],
+        "parameters": [
+          {
+            "name": "includeSuppressed",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Explicitly include a retained suppressed route."
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a manual route using its observed version",
+        "description": "Requires the existing Editor policy. Cookie mutations require X-CSRF-TOKEN. The observed parent version protects the entire paths aggregate. Imported routes are source managed. Flat geometry updates require exactly one existing child.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RouteWrite"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "version"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "putApiRoutesId",
+        "tags": [
+          "Routes"
+        ]
+      },
+      "delete": {
+        "summary": "Suppress a route while retaining source identity",
+        "description": "Requires the existing Editor policy. Cookie mutations require X-CSRF-TOKEN. Suppresses the parent without changing individual child suppression provenance; imports cannot restore it.",
+        "responses": {
+          "204": {
+            "description": "Successfully removed or suppressed"
+          },
+          "403": {
+            "description": "Required role is absent"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          }
+        },
+        "operationId": "deleteApiRoutesId",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/routes/imports/gtfs": {
+      "post": {
+        "summary": "Import GTFS paths and service calendars, with optional API preview",
+        "description": "Requires the existing Editor policy and browser CSRF protection. Omitted sourceId resolves a durable private provider binding from canonical agency URLs, ignoring optional agency IDs, publisher metadata, names, dates, feed versions and archive names. A unique exact legacy route/shape and geometry match preserves prior UUIDs; ambiguous matches return 409. Missing agency URLs require an explicit operator sourceId. Explicit namespaces remain supported and are never redirected or rebound. Parent identity is (sourceId, route_id); child identity is (sourceId, route_id, shape_id). Missing bindings are retained and suppression is preserved. Result counters distinguish parents from paths.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GtfsResult"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "description": "ZIP at most 25 MiB; complete request at most 26 MiB. Failed validation writes nothing. Omit sourceId for automatic provider identification; supply a stable explicit namespace for operator reconciliation. preview=true validates without saving data or provider bindings.",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,99}$(?![\\s\\S])",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Optional explicit stable provider namespace. Omit for automatic agency URL identification. A supplied empty or invalid value is rejected. Explicit imports may establish an unbound provider-to-namespace mapping, but never rebind existing mappings."
+                  },
+                  "preview": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "postApiRoutesImportsGtfs",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/alerts": {
+      "get": {
+        "summary": "List generic alert cases",
+        "description": "Requires the existing Viewer policy. Superseded histories are excluded from the list and remain accessible through linked case details and evidence endpoints.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPage"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "$ref": "#/components/schemas/Condition"
+            }
+          },
+          {
+            "name": "handling",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "$ref": "#/components/schemas/Handling"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "description": "Civil-date classification in Europe/Berlin; detection always includes future dates.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "current",
+                "upcoming",
+                "past"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Inclusive date filter; omitted means unbounded.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Inclusive date filter; omitted means unbounded.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "operationId": "getApiAlerts",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read selected typed immutable evidence and journal",
+        "description": "Requires the existing Viewer policy. Current and superseded cases remain readable. Details expose related retained histories and the canonical target; superseded cases are read-only.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetails"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiAlertsId",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/{id}/handling": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Record handling for the exact observed evidence and alert version",
+        "description": "Requires the existing Editor policy. Cookie mutations require X-CSRF-TOKEN. Only current cases can be handled; a superseded case returns 409 and must be reviewed through its canonical target.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetails"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Stale alert version or evidence revision, or a superseded read-only case",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandlingRequest"
+              }
+            }
+          }
+        },
+        "operationId": "postApiAlertsIdHandling",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/rules/route-conflict": {
+      "get": {
+        "summary": "Read route-conflict settings",
+        "description": "Requires the existing Viewer policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rule"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiAlertsRulesRouteConflict",
+        "tags": [
+          "Alerts"
+        ]
+      },
+      "put": {
+        "summary": "Update settings and queue reconciliation",
+        "description": "Requires the existing Administrator policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rule"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleWrite"
+              }
+            }
+          }
+        },
+        "operationId": "putApiAlertsRulesRouteConflict",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/scans": {
+      "post": {
+        "summary": "Request or coalesce a tracked full reconciliation",
+        "description": "Requires the existing Administrator policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scan"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postApiAlertsScans",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/scans/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read a tracked scan",
+        "description": "Requires the existing Viewer policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scan"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiAlertsScansId",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/alerts/detection-status": {
+      "get": {
+        "summary": "Read pending and failed evaluation health",
+        "description": "Requires the existing Viewer policy. Cookie mutations require X-CSRF-TOKEN.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetectionStatus"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiAlertsDetectionStatus",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/routes/{id}/restore": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Restore a suppressed route using its observed version",
+        "description": "Requires Editor and browser CSRF. Uses the observed parent version, retains parent/child UUIDs, source bindings and calendars, and queues conflict evaluation. Individually suppressed children remain suppressed. Returns the parent. Stale versions return 409. Ordinary imports never restore a suppressed parent or child.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteRestore"
+              }
+            }
+          }
+        },
+        "operationId": "postApiRoutesIdRestore",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/alerts/{id}/evidence/{revision}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "revision",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read an immutable retained evidence revision",
+        "description": "Requires Viewer. Returns retained snapshot geometry and labels even after source changes or removal. Carries no handling state or writable review version. Missing or unavailable revisions return 404.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertEvidence"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getApiAlertsIdEvidenceRevision",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/routes/{id}/paths/{pathId}/restore": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "pathId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Restore an individually suppressed child using its parent version",
+        "description": "Requires Editor and browser CSRF. The path must belong to the specified active parent; restore a suppressed parent first. Uses the observed parent version and returns the updated parent with paths[]. Retains path UUID, source binding and calendars and queues conflict evaluation. Stale versions or a suppressed parent return 409; an unknown parent/path pair returns 404.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "Concurrency or source ownership conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteRestore"
+              }
+            }
+          }
+        },
+        "operationId": "postApiRoutesIdPathsPathIdRestore",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/routes/{id}/paths/{pathId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "pathId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Delete an individual route path using its parent version",
+        "description": "Requires Editor and browser CSRF. Soft-deletes only the child path by marking it suppressed, retaining its UUID, source binding, calendars and historical alert evidence. The specified parent must be active and remains active even when its final active path is deleted; without active paths it contributes no map or conflict-detection geometry. Uses the observed parent version, queues conflict evaluation and returns the updated parent with paths[] and its new version. Repeating with the current parent version is idempotent. Reimports preserve the suppression; the existing child restore endpoint can restore it. Missing version returns 400 (routes.version.required), stale version returns 409 (routes.conflict), a suppressed parent returns 409 (routes.suppressed), and an unknown or mismatched parent/path pair returns 404 (routes.paths.notFound).",
+        "responses": {
+          "200": {
+            "description": "Updated active parent with the suppressed path retained in paths[]",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated or invalid bearer request may redirect to OpenID Connect"
+          },
+          "400": {
+            "description": "Invalid input, binding or browser antiforgery failure",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated principal lacks the required application role"
+          },
+          "404": {
+            "description": "The requested resource does not exist"
+          },
+          "409": {
+            "description": "The parent version is stale or the parent is suppressed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutePathDelete"
+              }
+            }
+          }
+        },
+        "operationId": "deleteApiRoutesIdPathsPathId",
+        "tags": [
+          "Routes"
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "browserSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-BaikorR.Auth"
+      }
+    },
+    "schemas": {
+      "Point": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Point"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "MultiLineString": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiLineString"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "Polygon": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "Period": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "RouteVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/MultiLineString"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "sourceCoverageStart": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "sourceCoverageEnd": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "hasOperatingCalendar": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Period"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "geometry",
+          "validFrom",
+          "validTo",
+          "sourceCoverageStart",
+          "sourceCoverageEnd",
+          "hasOperatingCalendar",
+          "periods"
+        ]
+      },
+      "Route": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalRouteId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isSuppressed": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutePath"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "sourceId",
+          "externalRouteId",
+          "isSuppressed",
+          "createdAt",
+          "updatedAt",
+          "version",
+          "paths"
+        ],
+        "description": "Stable route parent. Child paths retain separate geometry versions, source coverage and calendars; there is no merged parent geometry or calendar. Parent version protects aggregate writes."
+      },
+      "RouteWrite": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 10000
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/MultiLineString"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/RouteWritePath"
+            }
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "description": "Manual route aggregate. Provide paths or legacy flat geometry, never both. Flat validity fields apply to the single legacy child; flat updates are supported only for a route with one child. PUT requires the observed parent version. Existing children omitted from paths are removed; historical alert evidence is retained. Imported routes cannot be manually edited.",
+        "oneOf": [
+          {
+            "required": [
+              "paths"
+            ]
+          },
+          {
+            "required": [
+              "geometry"
+            ]
+          }
+        ]
+      },
+      "GtfsResult": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string"
+          },
+          "createdCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied parent routes classified as created."
+          },
+          "updatedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied parent routes classified as updated."
+          },
+          "unchangedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied parent routes classified as unchanged."
+          },
+          "suppressedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied parent routes classified as suppressed."
+          },
+          "routeCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied eligible parent route identities, not the stored total."
+          },
+          "tripCount": {
+            "type": "integer",
+            "description": "Number of trip records in the supplied feed."
+          },
+          "shapeCount": {
+            "type": "integer",
+            "description": "Number of shapes represented in the supplied feed."
+          },
+          "coverageStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "coverageEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdPathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied child route/shape bindings classified as created."
+          },
+          "updatedPathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied child route/shape bindings classified as updated."
+          },
+          "unchangedPathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied child route/shape bindings classified as unchanged."
+          },
+          "suppressedPathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied child route/shape bindings classified as suppressed."
+          },
+          "pathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of supplied eligible child route/shape bindings, not the stored total."
+          }
+        },
+        "required": [
+          "sourceId",
+          "createdCount",
+          "updatedCount",
+          "unchangedCount",
+          "suppressedCount",
+          "routeCount",
+          "tripCount",
+          "shapeCount",
+          "coverageStart",
+          "coverageEnd",
+          "warnings",
+          "createdPathCount",
+          "updatedPathCount",
+          "unchangedPathCount",
+          "suppressedPathCount",
+          "pathCount"
+        ]
+      },
+      "Handling": {
+        "type": "string",
+        "enum": [
+          "open",
+          "acknowledged",
+          "handled"
+        ]
+      },
+      "Condition": {
+        "type": "string",
+        "enum": [
+          "present",
+          "cleared"
+        ]
+      },
+      "Alert": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Condition"
+          },
+          "handling": {
+            "$ref": "#/components/schemas/Handling"
+          },
+          "occurrence": {
+            "type": "integer"
+          },
+          "evidenceRevision": {
+            "type": "integer"
+          },
+          "location": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Period"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastEvaluatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "summary",
+          "description",
+          "condition",
+          "handling",
+          "occurrence",
+          "evidenceRevision",
+          "location",
+          "periods",
+          "createdAt",
+          "updatedAt",
+          "lastEvaluatedAt",
+          "version"
+        ]
+      },
+      "AlertEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "occurrence": {
+            "type": "integer"
+          },
+          "evidenceRevision": {
+            "type": "integer"
+          },
+          "handling": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Handling"
+              }
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "explanation",
+          "actor",
+          "createdAt",
+          "occurrence",
+          "evidenceRevision",
+          "handling",
+          "note"
+        ]
+      },
+      "ConflictArea": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/Polygon"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "focusEnvelope": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "geometry",
+          "location",
+          "focusEnvelope"
+        ]
+      },
+      "ConflictPath": {
+        "type": "object",
+        "properties": {
+          "geometry": {
+            "$ref": "#/components/schemas/MultiLineString"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "hasOperatingCalendar": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Period"
+            }
+          },
+          "sourceCoverageStart": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "sourceCoverageEnd": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "pathId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Stable affected child path ID; absent or null in legacy evidence."
+          },
+          "pathTitle": {
+            "type": "string",
+            "nullable": true,
+            "description": "Child path title captured with this evidence; absent or null in legacy evidence."
+          }
+        },
+        "required": [
+          "geometry",
+          "validFrom",
+          "validTo",
+          "hasOperatingCalendar",
+          "periods",
+          "sourceCoverageStart",
+          "sourceCoverageEnd"
+        ],
+        "description": "Only an affected child version and its own availability are included. Legacy immutable snapshots may omit pathId and pathTitle."
+      },
+      "RouteConflictDetails": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Parent route UUID for grouped evidence. Immutable legacy evidence retains its original route identity."
+          },
+          "routeTitle": {
+            "type": "string"
+          },
+          "constructionSiteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "constructionSiteTitle": {
+            "type": "string"
+          },
+          "distanceMetres": {
+            "type": "number",
+            "format": "double"
+          },
+          "sensitivityMetres": {
+            "type": "number",
+            "format": "double"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Period"
+            }
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConflictArea"
+            }
+          },
+          "routeGeometry": {
+            "$ref": "#/components/schemas/MultiLineString"
+          },
+          "siteGeometries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Polygon"
+            }
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConflictPath"
+            }
+          },
+          "sitePlannedStart": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "sitePlannedEnd": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "precision": {
+            "type": "string",
+            "enum": [
+              "dateLevelPotentialOverlap"
+            ]
+          }
+        },
+        "required": [
+          "routeId",
+          "routeTitle",
+          "constructionSiteId",
+          "constructionSiteTitle",
+          "distanceMetres",
+          "sensitivityMetres",
+          "periods",
+          "areas",
+          "routeGeometry",
+          "siteGeometries",
+          "paths",
+          "sitePlannedStart",
+          "sitePlannedEnd",
+          "precision"
+        ],
+        "description": "One potential conflict per rule, parent route and construction site. Each affected child is evaluated using its own calendar; disjoint overlap periods are retained."
+      },
+      "HandlingRequest": {
+        "type": "object",
+        "properties": {
+          "handling": {
+            "$ref": "#/components/schemas/Handling"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4000
+          },
+          "evidenceRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        },
+        "required": [
+          "handling",
+          "evidenceRevision",
+          "version"
+        ]
+      },
+      "Rule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "sensitivityMetres": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "eligibleStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "planned",
+                "approved",
+                "active"
+              ]
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "sensitivityMetres",
+          "eligibleStatuses",
+          "version"
+        ]
+      },
+      "RuleWrite": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "sensitivityMetres": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "eligibleStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "planned",
+                "approved",
+                "active"
+              ]
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        },
+        "required": [
+          "enabled",
+          "sensitivityMetres",
+          "eligibleStatuses",
+          "version"
+        ]
+      },
+      "Scan": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string"
+          },
+          "totalCount": {
+            "type": "integer"
+          },
+          "completedCount": {
+            "type": "integer"
+          },
+          "failedCount": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "totalCount",
+          "completedCount",
+          "failedCount",
+          "createdAt",
+          "completedAt"
+        ]
+      },
+      "DetectionStatus": {
+        "type": "object",
+        "properties": {
+          "pendingCount": {
+            "type": "integer"
+          },
+          "failedCount": {
+            "type": "integer"
+          },
+          "lastEvaluatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Time of the last actual successful detector evaluation, including assessed partitions with no matches. Queue completion and paused work do not refresh this timestamp."
+          },
+          "latestScan": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Scan"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "unassessableSiteCount": {
+            "type": "integer"
+          },
+          "pausedTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Distinct disabled rule types; retained cases remain visible while their evaluation is paused."
+          }
+        },
+        "required": [
+          "pendingCount",
+          "failedCount",
+          "lastEvaluatedAt",
+          "latestScan",
+          "unassessableSiteCount",
+          "pausedTypes"
+        ]
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "errorKey": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "errorKeys": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "title",
+          "status"
+        ]
+      },
+      "AlertDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Alert"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "details": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RouteConflictDetails"
+                  }
+                ],
+                "nullable": true,
+                "type": "object"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AlertEvent"
+                }
+              },
+              "reviewedEvidenceRevision": {
+                "type": "integer",
+                "nullable": true
+              },
+              "handlingActor": {
+                "type": "string",
+                "nullable": true
+              },
+              "handlingNote": {
+                "type": "string",
+                "nullable": true
+              },
+              "handledAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "focusEnvelope": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "nullable": true
+              },
+              "evidenceRevisions": {
+                "type": "array",
+                "description": "Retained revisions available through the evidence endpoint.",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "supersededByAlertId": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "description": "Canonical case for a superseded, read-only history. Null for a current case."
+              },
+              "relatedAlerts": {
+                "type": "array",
+                "description": "Linked retained cases, including the canonical target where applicable. Reviewer decisions and evidence remain on their original cases.",
+                "items": {
+                  "$ref": "#/components/schemas/RelatedAlert"
+                }
+              }
+            },
+            "required": [
+              "details",
+              "events",
+              "reviewedEvidenceRevision",
+              "handlingActor",
+              "handlingNote",
+              "handledAt",
+              "focusEnvelope",
+              "evidenceRevisions",
+              "supersededByAlertId",
+              "relatedAlerts"
+            ]
+          }
+        ]
+      },
+      "RoutePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Route"
+            }
+          },
+          "totalCount": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize"
+        ]
+      },
+      "AlertPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            }
+          },
+          "totalCount": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize"
+        ]
+      },
+      "RouteRestore": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      },
+      "AlertEvidence": {
+        "type": "object",
+        "required": [
+          "alertId",
+          "type",
+          "evidenceRevision",
+          "createdAt",
+          "location",
+          "focusEnvelope",
+          "details"
+        ],
+        "properties": {
+          "alertId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "evidenceRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Point"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "focusEnvelope": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "minItems": 4,
+            "maxItems": 4,
+            "nullable": true
+          },
+          "details": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RouteConflictDetails"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          }
+        }
+      },
+      "RoutePath": {
+        "type": "object",
+        "description": "Named child path with a stable UUID and its own geometry/calendar versions. It is active only when both parent and child are not suppressed.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "externalShapeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isSuppressed": {
+            "type": "boolean"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RouteVersion"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "externalShapeId",
+          "isSuppressed",
+          "versions"
+        ]
+      },
+      "RouteWritePath": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Omit for a new child. On update, use a unique child ID belonging to this parent to retain that child. IDs are forbidden on create."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/MultiLineString"
+          }
+        },
+        "required": [
+          "title",
+          "geometry"
+        ]
+      },
+      "RelatedAlert": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "handling": {
+            "$ref": "#/components/schemas/Handling"
+          },
+          "evidenceRevision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "summary",
+          "handling",
+          "evidenceRevision"
+        ]
+      },
+      "RoutePathDelete": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      }
+    }
+  }
+}

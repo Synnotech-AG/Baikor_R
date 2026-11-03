@@ -8,6 +8,8 @@ public sealed class ConstructionSite
 
     public ConstructionSiteStatus Status { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public DateOnly? PlannedStart { get; set; }
 
     public DateOnly? PlannedEnd { get; set; }

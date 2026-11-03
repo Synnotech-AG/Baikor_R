@@ -4,7 +4,8 @@ import type { ConstructionSiteSummary } from '../../features/construction-sites/
 
 export function useGetConstructionSiteEndpoint() {
   return useEndpoint(
-    async (id: string) =>
-      (await httpClient.get<ConstructionSiteSummary>(`/api/construction-sites/${id}`)).data,
+    async (id: string, signal?: AbortSignal) =>
+      (await httpClient.get<ConstructionSiteSummary>(`/api/construction-sites/${id}`, { signal }))
+        .data,
   )
 }

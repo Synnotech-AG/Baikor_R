@@ -94,6 +94,14 @@
   --color-map-canvas: #d9e1dc;
   --map-saved-fill: rgba(34, 109, 134, 0.22);
   --map-saved-stroke: #176d85;
+  --map-route-stroke: var(--color-primary);
+  --map-route-selected-stroke: var(--color-primary-active);
+  --map-route-halo: var(--color-surface);
+  --map-alert-fill: #ffd45c;
+  --map-alert-stroke: #6b4900;
+  --map-alert-text: #382600;
+  --map-alert-halo: var(--color-surface);
+  --map-alert-selected-stroke: var(--color-primary);
   --map-selected-fill: rgba(200, 214, 62, 0.3);
   --map-selected-stroke: #e2b600;
   --map-editor-fill: rgba(208, 73, 52, 0.24);

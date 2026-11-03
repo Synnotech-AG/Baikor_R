@@ -21,7 +21,6 @@ export const geometryDe = {
   'geometry.addressSearching': 'Adressen werden gesucht …',
   'geometry.addressSearchHint': 'Verschiebt den Kartenausschnitt; filtert keine Baustellen.',
   'geometry.controls': 'Geometriewerkzeuge',
-  'geometry.showResults': 'Ergebnisse auf Karte zeigen',
 }
 
 export const geometryEn = {
@@ -47,5 +46,4 @@ export const geometryEn = {
   'geometry.addressSearching': 'Searching for addresses …',
   'geometry.addressSearchHint': 'Moves the map; does not filter construction sites.',
   'geometry.controls': 'Geometry tools',
-  'geometry.showResults': 'Show results on map',
 }

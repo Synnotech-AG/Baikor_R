@@ -6,7 +6,7 @@ namespace BaikorR.Api.Tests;
 public sealed class BulkDeleteConstructionSitesServiceTests
 {
     [Fact]
-    public async Task BulkDeleteRemovesAllSelectedConstructionSitesAtomically()
+    public async Task BulkDeleteArchivesAllSelectedConstructionSitesAtomically()
     {
         var session = new InMemoryConstructionSitesSession();
         var first = CreateConstructionSite("First");
@@ -17,7 +17,7 @@ public sealed class BulkDeleteConstructionSitesServiceTests
         session.Add(retained);
         var service = new BulkDeleteConstructionSitesService(
             session,
-            new BulkDeleteConstructionSitesRequest.Validator());
+            new BulkDeleteConstructionSitesRequest.Validator(), TimeProvider.System);
 
         var result = await service.ExecuteAsync(
             new BulkDeleteConstructionSitesRequest([first.Id, second.Id]),
@@ -25,24 +25,29 @@ public sealed class BulkDeleteConstructionSitesServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(2, result.Value.DeletedCount);
+        Assert.True(first.IsDeleted);
+        Assert.True(second.IsDeleted);
+        Assert.Same(first, await session.GetAsync(first.Id, CancellationToken.None));
+        Assert.Same(second, await session.GetAsync(second.Id, CancellationToken.None));
         Assert.Equal(retained.Id, (await session.ListAsync(10, CancellationToken.None)).Single().Id);
     }
 
     [Fact]
-    public async Task BulkDeleteDoesNotDeleteAnythingWhenOneIdentifierIsMissing()
+    public async Task BulkDeleteDoesNotArchiveAnythingWhenOneIdentifierIsMissing()
     {
         var session = new InMemoryConstructionSitesSession();
         var existing = CreateConstructionSite("Existing");
         session.Add(existing);
         var service = new BulkDeleteConstructionSitesService(
             session,
-            new BulkDeleteConstructionSitesRequest.Validator());
+            new BulkDeleteConstructionSitesRequest.Validator(), TimeProvider.System);
 
         var result = await service.ExecuteAsync(
             new BulkDeleteConstructionSitesRequest([existing.Id, Guid.NewGuid()]),
             CancellationToken.None);
 
         Assert.True(result.IsFailed);
+        Assert.False(existing.IsDeleted);
         Assert.Single(await session.ListAsync(10, CancellationToken.None));
     }
 
@@ -60,7 +65,7 @@ public sealed class BulkDeleteConstructionSitesServiceTests
 
         var service = new BulkDeleteConstructionSitesService(
             session,
-            new BulkDeleteConstructionSitesRequest.Validator());
+            new BulkDeleteConstructionSitesRequest.Validator(), TimeProvider.System);
 
         var result = await service.ExecuteAsync(
             new BulkDeleteConstructionSitesRequest(constructionSites.Select(item => item.Id).ToArray()),

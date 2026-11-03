@@ -266,6 +266,64 @@ public sealed class AuthorizationHttpTests
         Assert.Empty(await database.ListAsync(10, CancellationToken.None));
     }
 
+    [Theory]
+    [InlineData("baikor_viewer", false)]
+    [InlineData("baikor_importer", false)]
+    [InlineData("baikor_editor", true)]
+    [InlineData("baikor_approver", true)]
+    [InlineData("baikor_admin", true)]
+    public async Task ArchiveAndRestoreUseTheExistingEditorPermission(string role, bool allowed)
+    {
+        foreach (var operation in new[] { "delete", "bulk-delete", "restore" })
+        {
+            var database = new InMemoryConstructionSitesSession();
+            var site = SeedSite(database);
+            site.IsDeleted = operation == "restore";
+            await using var factory = CreateFactory(database);
+            using var client = CreateAuthenticatedClient(factory, role);
+            var token = await client.GetFromJsonAsync<AntiforgeryTokenResponse>("/api/antiforgery");
+            Assert.NotNull(token);
+            using var request = operation switch
+            {
+                "delete" => new HttpRequestMessage(HttpMethod.Delete, $"/api/construction-sites/{site.Id}"),
+                "bulk-delete" => new HttpRequestMessage(HttpMethod.Post, "/api/construction-sites/bulk-delete")
+                {
+                    Content = JsonContent.Create(new { ids = new[] { site.Id } })
+                },
+                _ => new HttpRequestMessage(HttpMethod.Post, $"/api/construction-sites/{site.Id}/restore")
+                {
+                    Content = JsonContent.Create(new { version = site.Version })
+                }
+            };
+            request.Headers.Add("X-CSRF-TOKEN", token.Token);
+
+            using var response = await client.SendAsync(request);
+
+            Assert.Equal(allowed
+                ? operation == "delete" ? HttpStatusCode.NoContent : HttpStatusCode.OK
+                : HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Same(site, await database.GetAsync(site.Id, CancellationToken.None));
+            Assert.Equal(allowed ? operation != "restore" : operation == "restore", site.IsDeleted);
+        }
+    }
+
+    [Fact]
+    public async Task ViewerCanReadArchivedDetailsAndArchiveLists()
+    {
+        var database = new InMemoryConstructionSitesSession();
+        var site = SeedSite(database);
+        site.IsDeleted = true;
+        await using var factory = CreateFactory(database);
+        using var client = CreateAuthenticatedClient(factory, "baikor_viewer");
+
+        using var details = await client.GetAsync($"/api/construction-sites/{site.Id}");
+        using var list = await client.GetAsync("/api/construction-sites?archive=archived");
+
+        Assert.Equal(HttpStatusCode.OK, details.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        Assert.Contains(site.Id.ToString(), await list.Content.ReadAsStringAsync());
+    }
+
     [Fact]
     public async Task AntiforgeryTokenCannotBeReusedAfterSwitchingAccounts()
     {

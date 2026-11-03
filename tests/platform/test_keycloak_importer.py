@@ -160,6 +160,20 @@ def main():
         ("delete", "DELETE", site_path),
         ("bulk delete", "POST", "/api/construction-sites/bulk-delete"),
         ("status", "POST", site_path + "/status"),
+        ("list routes", "GET", "/api/routes"),
+        ("read route", "GET", "/api/routes/00000000-0000-0000-0000-000000000001"),
+        ("create route", "POST", "/api/routes"),
+        ("edit route", "PUT", "/api/routes/00000000-0000-0000-0000-000000000001"),
+        ("delete route", "DELETE", "/api/routes/00000000-0000-0000-0000-000000000001"),
+        ("import routes", "POST", "/api/routes/imports/gtfs"),
+        ("restore route path", "POST", "/api/routes/00000000-0000-0000-0000-000000000001/paths/00000000-0000-0000-0000-000000000002/restore"),
+        ("list alerts", "GET", "/api/alerts"),
+        ("read alert", "GET", "/api/alerts/00000000-0000-0000-0000-000000000001"),
+        ("handle alerts", "POST", "/api/alerts/00000000-0000-0000-0000-000000000001/handling"),
+        ("read alert rules", "GET", "/api/alerts/rules/route-conflict"),
+        ("edit alert rules", "PUT", "/api/alerts/rules/route-conflict"),
+        ("scan alerts", "POST", "/api/alerts/scans"),
+        ("read detection status", "GET", "/api/alerts/detection-status"),
     ):
         status, _, _ = session.request(app + path, method, headers=headers)
         check("machine token cannot " + label, status, 403)

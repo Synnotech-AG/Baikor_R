@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, InboxOutlined, UndoOutlined, EditOutlined } from '@ant-design/icons'
 import { Alert, Button, Popconfirm } from 'antd'
 import { useTranslation } from 'react-i18next'
 import type { ConstructionSiteSummary } from '../types'
@@ -8,6 +8,8 @@ interface SharedFooterProps {
   canEdit: boolean
   deleting: boolean
   onDelete: () => Promise<void>
+  onRestore?: () => Promise<void>
+  restoring?: boolean
 }
 
 type ConstructionSiteFooterProps = SharedFooterProps &
@@ -25,9 +27,10 @@ type ConstructionSiteFooterProps = SharedFooterProps &
 
 export function ConstructionSiteFooter(props: ConstructionSiteFooterProps) {
   const { t } = useTranslation()
-  const { selectedSite, canEdit, deleting, onDelete } = props
+  const { selectedSite, canEdit, deleting, onDelete, onRestore, restoring = false } = props
+  const archived = Boolean(selectedSite?.isDeleted)
   const saving = props.mode !== 'readonly' && props.saving
-  const actionsDisabled = saving || deleting || !canEdit
+  const actionsDisabled = saving || deleting || restoring || !canEdit
 
   return (
     <footer className="record-footer">
@@ -41,7 +44,19 @@ export function ConstructionSiteFooter(props: ConstructionSiteFooterProps) {
       )}
       <div className="record-footer-actions">
         <div className="record-footer-primary">
-          {props.mode === 'readonly' ? (
+          {props.mode === 'readonly' && archived ? (
+            canEdit &&
+            onRestore && (
+              <Button
+                icon={<UndoOutlined aria-hidden />}
+                onClick={() => void onRestore()}
+                loading={restoring}
+                disabled={deleting || restoring}
+              >
+                {t('record.restore')}
+              </Button>
+            )
+          ) : props.mode === 'readonly' ? (
             canEdit && (
               <Button
                 htmlType="button"
@@ -90,7 +105,7 @@ export function ConstructionSiteFooter(props: ConstructionSiteFooterProps) {
             </Button>
           )}
         </div>
-        {canEdit && props.mode !== 'create' && selectedSite && (
+        {canEdit && !archived && props.mode !== 'create' && selectedSite && (
           <Popconfirm
             title={t('constructionSites.delete.confirmTitle')}
             description={t('constructionSites.delete.confirmMessage', {
@@ -110,7 +125,7 @@ export function ConstructionSiteFooter(props: ConstructionSiteFooterProps) {
               danger
               type="text"
               htmlType="button"
-              icon={<DeleteOutlined aria-hidden />}
+              icon={<InboxOutlined aria-hidden />}
               loading={deleting}
               disabled={actionsDisabled}
               title={t('constructionSites.delete.action')}

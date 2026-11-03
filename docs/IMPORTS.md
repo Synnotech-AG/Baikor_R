@@ -65,7 +65,7 @@ Every imported construction site contains these metadata keys:
 
 The construction-site table searches metadata keys and values as well as the title. Searching for an `import.batchId`, project ID, source status, or file name therefore locates the complete import.
 
-## Bulk deletion
+## Bulk archive
 
 `POST /api/construction-sites/bulk-delete`
 
@@ -77,9 +77,9 @@ Request body:
 }
 ```
 
-Any number of unique construction sites can be requested for atomic deletion. Database lookups are split into bounded internal batches, so large selections do not exceed database parameter limits. The table supports selecting all filtered results, making it possible to search for an import batch and remove all its construction sites in one operation.
+The endpoint retains its existing URL and archives the selected construction sites atomically. Database lookups are split into bounded internal batches, so large selections do not exceed database parameter limits. The table supports selecting all filtered results, making it possible to search for an import batch and archive all its construction sites in one operation. Archived sites retain their areas, attachments and import metadata and can be restored by an editor.
 
-Duplicate detection checks the exact file's SHA-256 against up to 2,000 existing construction sites carrying `import.fileSha256`; this bounded lookup is not a global idempotency guarantee. An operator with an editing role can remove a previous import for an intentional delete-and-reimport workflow. The dedicated importer role cannot perform this deletion.
+Duplicate detection checks the exact file's SHA-256 against all retained construction sites carrying `import.fileSha256`, including archived sites. Restore an archived import instead of submitting the same file again. This is not semantic deduplication: repackaging the ZIP changes its hash, and concurrent submissions are not serialized. The dedicated importer role cannot read, archive or restore construction sites.
 
 ## Operator integration
 

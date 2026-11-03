@@ -8,6 +8,9 @@ builder
     .AddApplicationObservability()
     .AddApplicationPersistence()
     .AddConstructionSiteFeatures()
+    .AddRouteFeatures()
+    .AddAlertFeatures()
+    .AddAlertDetection()
     .AddApplicationSecurity(runMigrations)
     .AddApplicationWeb();
 

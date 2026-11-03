@@ -36,6 +36,10 @@ jobs:
       - run: node --test tests/release/*.test.mjs
       - name: Validate the geodata import OpenAPI contract
         run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/geodata-import.openapi.json --extends minimal
+      - name: Validate the routes and alerts OpenAPI contract
+        run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/routes-alerts.openapi.json --extends minimal
+      - name: Validate the construction site archive OpenAPI contract
+        run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/construction-site-archive.openapi.json --extends minimal
 
   platform-tests:
     name: Platform smoke tests
@@ -45,6 +49,21 @@ jobs:
     name: Backend tests
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: baikor_test
+          POSTGRES_PASSWORD: baikor_test
+          POSTGRES_DB: baikor_test
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U baikor_test -d baikor_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 60
+          --shm-size 256m
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -53,6 +72,8 @@ jobs:
         with:
           global-json-file: global.json
       - name: Run backend tests
+        env:
+          BAIKOR_TEST_POSTGIS: Host=127.0.0.1;Port=${{ job.services.postgis.ports[5432] }};Database=baikor_test;Username=baikor_test;Password=baikor_test
         run: >-
           dotnet test BaikorR.sln
           --configuration Release

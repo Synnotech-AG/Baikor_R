@@ -24,6 +24,11 @@ import {
 import { createDeferredMapFit } from '../map/deferred-map-fit'
 import { GeometryHistory, type GeometrySnapshot } from '../map/geometry-snapshots'
 import type { ConstructionSiteAreaRequest, ConstructionSiteSummary, EditorArea } from '../types'
+import type { MultiLineStringDto, RoutePathResponse } from '../../routes/types'
+import { useRouteMap } from '../../routes/use-route-map'
+import { useMapLayers } from './use-map-layers'
+import { useAlertMap } from '../../alerts/map/use-alert-map'
+import type { MapLayerId } from '../map/map-layer-model'
 
 interface UseConstructionSiteMapOptions {
   canEdit: boolean
@@ -31,7 +36,13 @@ interface UseConstructionSiteMapOptions {
   selectedId: string | null
   showSelectedGeometry?: boolean
   onSelectConstructionSite: (id: string) => void
+  routes?: RoutePathResponse[]
+  canEditRoutes?: boolean
+  onSelectRoute?: (id: string, pathId?: string) => void
+  onSelectAlert?: (id: string) => void
 }
+
+const noRoutes: RoutePathResponse[] = []
 
 export function useConstructionSiteMap({
   canEdit,
@@ -39,14 +50,30 @@ export function useConstructionSiteMap({
   selectedId,
   showSelectedGeometry = true,
   onSelectConstructionSite,
+  routes = noRoutes,
+  canEditRoutes = false,
+  onSelectRoute,
+  onSelectAlert,
 }: UseConstructionSiteMapOptions) {
   const mapElementRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<Map | null>(null)
   const [mapFit] = useState(() => createDeferredMapFit(() => mapRef.current))
   const editorLayerRef = useRef<VectorLayer<VectorSource> | null>(null)
+  const savedLayerRef = useRef<VectorLayer<VectorSource> | null>(null)
+  const { visibility: layerVisibility, setLayerVisible, revealLayer } = useMapLayers()
+  const layerVisibilityRef = useRef(layerVisibility)
+  layerVisibilityRef.current = layerVisibility
+  const showSelectedGeometryRef = useRef(showSelectedGeometry)
+  showSelectedGeometryRef.current = showSelectedGeometry
   const modifyInteractionRef = useRef<Modify | null>(null)
   const snapInteractionRef = useRef<Snap | null>(null)
   const drawInteractionRef = useRef<Draw | null>(null)
+  const routeDrawingRef = useRef(false)
+  const routeClickRef = useRef<((pixel: number[]) => boolean) | null>(null)
+  const alertClickRef = useRef<((pixel: number[]) => boolean) | null>(null)
+  const clearAlertFocusRef = useRef<(() => void) | null>(null)
+  const [alertSelectionActive, setAlertSelectionActive] = useState(false)
+  const cancelRouteDrawingRef = useRef<(() => void) | null>(null)
   const sketchFeatureRef = useRef<Feature | null>(null)
   const canEditRef = useRef(canEdit)
   canEditRef.current = canEdit
@@ -69,37 +96,51 @@ export function useConstructionSiteMap({
   const [selectedAreaKey, setSelectedAreaKey] = useState<string | null>(null)
   const [geometryDirty, setGeometryDirty] = useState(false)
 
-  const setDrawing = useCallback((value: boolean | ((current: boolean) => boolean)) => {
-    const next =
-      canEditRef.current && (typeof value === 'function' ? value(drawingRef.current) : value)
-    drawingRef.current = next
-    setDrawingState(next)
-    if (next) {
-      editingGeometryRef.current = false
-      setEditingGeometryState(false)
-    } else {
-      drawInteractionRef.current?.abortDrawing()
-    }
-    modifyInteractionRef.current?.setActive(
-      canEditRef.current && editingGeometryRef.current && !next,
-    )
-    snapInteractionRef.current?.setActive(canEditRef.current && editingGeometryRef.current && !next)
-  }, [])
+  const setDrawing = useCallback(
+    (value: boolean | ((current: boolean) => boolean)) => {
+      const next =
+        canEditRef.current && (typeof value === 'function' ? value(drawingRef.current) : value)
+      drawingRef.current = next
+      setDrawingState(next)
+      if (next) {
+        clearAlertFocusRef.current?.()
+        revealLayer('constructionSites')
+        cancelRouteDrawingRef.current?.()
+        editingGeometryRef.current = false
+        setEditingGeometryState(false)
+      } else {
+        drawInteractionRef.current?.abortDrawing()
+      }
+      modifyInteractionRef.current?.setActive(
+        canEditRef.current && editingGeometryRef.current && !next,
+      )
+      snapInteractionRef.current?.setActive(
+        canEditRef.current && editingGeometryRef.current && !next,
+      )
+    },
+    [revealLayer],
+  )
 
-  const setEditingGeometry = useCallback((value: boolean | ((current: boolean) => boolean)) => {
-    const next =
-      canEditRef.current &&
-      (typeof value === 'function' ? value(editingGeometryRef.current) : value)
-    editingGeometryRef.current = next
-    setEditingGeometryState(next)
-    if (next) {
-      drawingRef.current = false
-      setDrawingState(false)
-      drawInteractionRef.current?.abortDrawing()
-    }
-    modifyInteractionRef.current?.setActive(canEditRef.current && next && !drawingRef.current)
-    snapInteractionRef.current?.setActive(canEditRef.current && next && !drawingRef.current)
-  }, [])
+  const setEditingGeometry = useCallback(
+    (value: boolean | ((current: boolean) => boolean)) => {
+      const next =
+        canEditRef.current &&
+        (typeof value === 'function' ? value(editingGeometryRef.current) : value)
+      editingGeometryRef.current = next
+      setEditingGeometryState(next)
+      if (next) {
+        clearAlertFocusRef.current?.()
+        revealLayer('constructionSites')
+        cancelRouteDrawingRef.current?.()
+        drawingRef.current = false
+        setDrawingState(false)
+        drawInteractionRef.current?.abortDrawing()
+      }
+      modifyInteractionRef.current?.setActive(canEditRef.current && next && !drawingRef.current)
+      snapInteractionRef.current?.setActive(canEditRef.current && next && !drawingRef.current)
+    },
+    [revealLayer],
+  )
 
   const getSnapshot = useCallback(
     (): GeometrySnapshot =>
@@ -168,6 +209,7 @@ export function useConstructionSiteMap({
       if (!selectedFeature) {
         return
       }
+      clearAlertFocusRef.current?.()
 
       source.getFeatures().forEach((feature) => feature.setStyle(undefined))
       selectedFeature.setStyle(selectedGeometryStyle)
@@ -175,6 +217,7 @@ export function useConstructionSiteMap({
 
       const geometry = selectedFeature.getGeometry()
       if (focusGeometry && geometry) {
+        revealLayer('constructionSites')
         mapFit.request(geometry.getExtent(), {
           duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 250,
           maxZoom: 18,
@@ -182,11 +225,12 @@ export function useConstructionSiteMap({
         })
       }
     },
-    [mapFit, source],
+    [mapFit, source, revealLayer],
   )
 
   const loadAreas = useCallback(
     (site: ConstructionSiteSummary, focusGeometry = true) => {
+      cancelRouteDrawingRef.current?.()
       mapFit.setContext(`${site.id}:${site.version}`)
       setDrawing(false)
       setEditingGeometry(false)
@@ -215,6 +259,7 @@ export function useConstructionSiteMap({
       updateHistoryState()
 
       if (focusGeometry && sortedAreas.length > 0) {
+        revealLayer('constructionSites')
         const geometry = new MultiPolygon(sortedAreas.map((area) => area.geometry.coordinates))
         mapFit.request(geometry.getExtent(), {
           duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 250,
@@ -234,10 +279,13 @@ export function useConstructionSiteMap({
       source,
       updateHistoryState,
       updateStats,
+      revealLayer,
     ],
   )
 
   const clearGeometry = useCallback(() => {
+    clearAlertFocusRef.current?.()
+    cancelRouteDrawingRef.current?.()
     mapFit.cancel()
     mapFit.setContext(null)
     setDrawing(false)
@@ -341,25 +389,11 @@ export function useConstructionSiteMap({
     [addressSource, mapFit],
   )
 
-  const fitResults = useCallback(() => {
-    const coordinates = constructionSites.flatMap((site) =>
-      site.areas.map((area) => area.geometry.coordinates),
-    )
-    if (coordinates.length === 0) {
-      return
-    }
-    mapFit.request(new MultiPolygon(coordinates).getExtent(), {
-      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300,
-      maxZoom: 17,
-      padding: [80, 80, 80, 80],
-    })
-  }, [constructionSites, mapFit])
-
   useEffect(() => {
     savedSource.clear()
     savedSource.addFeatures(
       constructionSites
-        .filter((site) => site.id !== selectedId && site.areas.length > 0)
+        .filter((site) => (alertSelectionActive || site.id !== selectedId) && site.areas.length > 0)
         .map(
           (site) =>
             new Feature({
@@ -369,15 +403,23 @@ export function useConstructionSiteMap({
             }),
         ),
     )
-  }, [constructionSites, savedSource, selectedId])
+  }, [constructionSites, savedSource, selectedId, alertSelectionActive])
 
   useEffect(() => {
     if (!mapElementRef.current) {
       return
     }
 
-    const editorLayer = new VectorLayer({ source, style: editorGeometryStyle })
-    const savedLayer = new VectorLayer({ source: savedSource, style: savedGeometryStyle })
+    const editorLayer = new VectorLayer({
+      source,
+      style: canEditRef.current ? editorGeometryStyle : selectedGeometryStyle,
+      visible: layerVisibilityRef.current.constructionSites && showSelectedGeometryRef.current,
+    })
+    const savedLayer = new VectorLayer({
+      source: savedSource,
+      style: savedGeometryStyle,
+      visible: layerVisibilityRef.current.constructionSites,
+    })
     const addressLayer = new VectorLayer({ source: addressSource, style: addressMarkerStyle })
     const map = new Map({
       target: mapElementRef.current,
@@ -408,19 +450,26 @@ export function useConstructionSiteMap({
     }
     modify.on('modifyend', handleModifyEnd)
     map.on('singleclick', (event) => {
-      if (drawingRef.current || editingGeometryRef.current) {
+      if (drawingRef.current || editingGeometryRef.current || routeDrawingRef.current) {
+        return
+      }
+      if (alertClickRef.current?.(event.pixel) || routeClickRef.current?.(event.pixel)) {
+        return
+      }
+      if (!layerVisibilityRef.current.constructionSites) {
         return
       }
       const editorFeature = map.forEachFeatureAtPixel(event.pixel, (candidate) => candidate, {
-        layerFilter: (layer) => layer === editorLayer,
+        layerFilter: (layer) => layer === editorLayer && editorLayer.getVisible(),
       })
       const areaKey = editorFeature?.getId()?.toString()
       if (areaKey) {
+        clearAlertFocusRef.current?.()
         selectArea(areaKey, false)
         return
       }
       const savedFeature = map.forEachFeatureAtPixel(event.pixel, (candidate) => candidate, {
-        layerFilter: (layer) => layer === savedLayer,
+        layerFilter: (layer) => layer === savedLayer && savedLayer.getVisible(),
       })
       const siteId = savedFeature?.get('constructionSiteId') as string | undefined
       if (siteId) {
@@ -429,6 +478,7 @@ export function useConstructionSiteMap({
     })
     mapRef.current = map
     editorLayerRef.current = editorLayer
+    savedLayerRef.current = savedLayer
     modifyInteractionRef.current = modify
     snapInteractionRef.current = snap
     updateStats()
@@ -442,6 +492,7 @@ export function useConstructionSiteMap({
       map.setTarget(undefined)
       mapRef.current = null
       editorLayerRef.current = null
+      savedLayerRef.current = null
       modifyInteractionRef.current = null
       snapInteractionRef.current = null
       map.dispose()
@@ -459,8 +510,12 @@ export function useConstructionSiteMap({
   ])
 
   useEffect(() => {
-    editorLayerRef.current?.setVisible(showSelectedGeometry)
-  }, [showSelectedGeometry])
+    savedLayerRef.current?.setVisible(layerVisibility.constructionSites)
+    editorLayerRef.current?.setVisible(
+      layerVisibility.constructionSites && showSelectedGeometry && !alertSelectionActive,
+    )
+    editorLayerRef.current?.setStyle(canEdit ? editorGeometryStyle : selectedGeometryStyle)
+  }, [showSelectedGeometry, layerVisibility.constructionSites, canEdit, alertSelectionActive])
 
   useEffect(() => {
     if (!canEdit) {
@@ -546,7 +601,85 @@ export function useConstructionSiteMap({
   }, [])
 
   const updateSize = useCallback(() => mapFit.flush(), [mapFit])
+  const routeMap = useRouteMap({
+    mapRef,
+    mapFit,
+    routes,
+    canEdit: canEditRoutes,
+    routeDrawingRef,
+    routeClickRef,
+    cancelSiteEditing: () => {
+      setDrawing(false)
+      setEditingGeometry(false)
+    },
+    onSelectRoute,
+    layerVisibility,
+    revealLayer,
+  })
+  cancelRouteDrawingRef.current = routeMap.cancelRouteDrawing
+  const alertMap = useAlertMap({
+    mapRef,
+    mapFit,
+    layerVisibility,
+    revealLayer,
+    clearRouteFocus: routeMap.clearRouteFocus,
+    onSelectionChange: setAlertSelectionActive,
+  })
+  const { clearAlertFocus } = alertMap
+  const {
+    clearRouteFocus: clearRouteHighlight,
+    focusRoute: focusRouteGeometry,
+    startRouteDrawing: startRouteSketch,
+  } = routeMap
+  clearAlertFocusRef.current = alertMap.clearAlertFocus
+  alertClickRef.current = (pixel) => {
+    const map = mapRef.current
+    const id = map ? alertMap.pickAlert(map, pixel) : null
+    if (!id) {
+      return false
+    }
+    onSelectAlert?.(id)
+    return true
+  }
+  const clearRouteFocus = useCallback(() => {
+    clearRouteHighlight()
+    clearAlertFocus()
+  }, [clearRouteHighlight, clearAlertFocus])
+  const focusRoute = useCallback(
+    (route: RoutePathResponse, focusGeometry = true) => {
+      clearAlertFocus()
+      focusRouteGeometry(route, focusGeometry)
+    },
+    [clearAlertFocus, focusRouteGeometry],
+  )
+  const startRouteDrawing = useCallback(
+    (callback: (geometry: MultiLineStringDto) => void) => {
+      clearAlertFocus()
+      startRouteSketch(callback)
+    },
+    [clearAlertFocus, startRouteSketch],
+  )
+  const changeLayerVisibility = useCallback(
+    (id: MapLayerId, visible: boolean) => {
+      if (
+        !visible &&
+        ((id === 'constructionSites' && (drawingRef.current || editingGeometryRef.current)) ||
+          (id === 'routes' && routeDrawingRef.current))
+      ) {
+        return
+      }
+      setLayerVisible(id, visible)
+    },
+    [setLayerVisible],
+  )
   return {
+    ...routeMap,
+    ...alertMap,
+    clearRouteFocus,
+    focusRoute,
+    startRouteDrawing,
+    layerVisibility,
+    changeLayerVisibility,
     mapElementRef,
     drawing,
     setDrawing,
@@ -568,7 +701,6 @@ export function useConstructionSiteMap({
     deleteArea,
     getAreaRequests,
     focusAddress,
-    fitResults,
     updateSize,
   }
 }

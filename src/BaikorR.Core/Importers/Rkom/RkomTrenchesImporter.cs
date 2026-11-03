@@ -28,10 +28,7 @@ public sealed class RkomTrenchesImporter(
         }
 
         var fileHash = Convert.ToHexString(SHA256.HashData(request.Content)).ToLowerInvariant();
-        var existing = await session.ListAsync(2000, cancellationToken);
-        if (existing.Any(site =>
-                site.Metadata.TryGetValue("import.fileSha256", out var importedHash)
-                && string.Equals(importedHash, fileHash, StringComparison.OrdinalIgnoreCase)))
+        if (await session.HasImportedFileAsync(fileHash, cancellationToken))
         {
             return RkomTrenchesImportResults.Duplicate();
         }

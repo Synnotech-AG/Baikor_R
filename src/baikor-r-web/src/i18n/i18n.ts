@@ -1,4 +1,6 @@
 import i18n from 'i18next'
+import { filterDe, filterEn } from '../shared/filters/filter-messages'
+import { alertTimelineDe, alertTimelineEn } from '../features/alerts/live/alert-timeline-messages'
 import { initReactI18next } from 'react-i18next'
 import { workspaceDe, workspaceEn } from './workspace-messages'
 import { recordDe, recordEn } from './record-messages'
@@ -6,6 +8,9 @@ import { geometryDe, geometryEn } from './geometry-messages'
 import { importDe, importEn } from './import-messages'
 import { paneDe, paneEn } from './pane-messages'
 import { dockingDe, dockingEn } from './docking-messages'
+import { routeDe, routeEn } from '../features/routes/route-messages'
+import { alertDe, alertEn } from '../features/alerts/alert-messages'
+import { mapLayerDe, mapLayerEn } from '../features/construction-sites/map/map-layer-messages'
 
 const de = {
   'app.title': 'Baustellenmanagement',
@@ -35,12 +40,12 @@ const de = {
   'constructionSites.close.confirmMessage':
     'Nicht gespeicherte Änderungen gehen beim Schließen verloren.',
   'constructionSites.close.confirm': 'Schließen',
-  'constructionSites.delete.action': 'Baustelle löschen',
-  'constructionSites.delete.confirmTitle': 'Baustelle löschen?',
+  'constructionSites.delete.action': 'Baustelle archivieren',
+  'constructionSites.delete.confirmTitle': 'Baustelle archivieren?',
   'constructionSites.delete.confirmMessage':
-    'Möchten Sie „{{title}}“ wirklich dauerhaft löschen? Anhänge und Teilflächen werden ebenfalls entfernt.',
-  'constructionSites.delete.success': 'Baustelle gelöscht',
-  'constructionSites.delete.failed': 'Löschen fehlgeschlagen.',
+    'Möchten Sie „{{title}}“ archivieren? Daten, Flächen und Anhänge bleiben erhalten.',
+  'constructionSites.delete.success': 'Baustelle archiviert',
+  'constructionSites.delete.failed': 'Archivieren fehlgeschlagen.',
   'constructionSites.discard': 'Verwerfen',
   'constructionSites.draw': 'Baustelle zeichnen',
   'constructionSites.cancelDrawing': 'Zeichnen abbrechen',
@@ -139,13 +144,13 @@ const de = {
   'constructionSites.bulkDelete.selected': '{{count}} ausgewählt',
   'constructionSites.bulkDelete.selectAll': 'Alle {{count}} Treffer auswählen',
   'constructionSites.bulkDelete.clearSelection': 'Auswahl aufheben',
-  'constructionSites.bulkDelete.action': 'Auswahl löschen',
-  'constructionSites.bulkDelete.confirmTitle': 'Ausgewählte Baustellen löschen?',
+  'constructionSites.bulkDelete.action': 'Auswahl archivieren',
+  'constructionSites.bulkDelete.confirmTitle': 'Ausgewählte Baustellen archivieren?',
   'constructionSites.bulkDelete.confirmMessage':
-    '{{count}} Baustellen werden dauerhaft samt Flächen und Anhängen gelöscht.',
-  'constructionSites.bulkDelete.success': '{{count}} Baustellen gelöscht',
+    '{{count}} Baustellen werden archiviert. Daten, Flächen und Anhänge bleiben erhalten.',
+  'constructionSites.bulkDelete.success': '{{count}} Baustellen archiviert',
   'constructionSites.bulkDelete.failed':
-    'Die ausgewählten Baustellen konnten nicht gelöscht werden.',
+    'Die ausgewählten Baustellen konnten nicht archiviert werden.',
   'date.placeholder': 'TT.MM.JJJJ',
   'date.rangeStart': 'Zeitraum von',
   'date.rangeEnd': 'Zeitraum bis',
@@ -199,14 +204,14 @@ const de = {
     'Die Baustelle wurde zwischenzeitlich geändert. Bitte laden Sie sie neu.',
   'constructionSites.update.area.notOwned': 'Eine Fläche gehört nicht zu dieser Baustelle.',
   'constructionSites.delete.notFound': 'Die Baustelle wurde nicht gefunden.',
-  'constructionSites.delete.conflict': 'Die Baustelle wurde während des Löschens geändert.',
+  'constructionSites.delete.conflict': 'Die Baustelle wurde während des Archivierens geändert.',
   'constructionSites.bulkDelete.emptySelection': 'Wählen Sie mindestens eine Baustelle aus.',
   'constructionSites.bulkDelete.invalidIdentifiers':
     'Die Auswahl enthält ungültige Baustellen-IDs.',
   'constructionSites.bulkDelete.notFound':
     'Mindestens eine ausgewählte Baustelle wurde nicht gefunden. Laden Sie die Liste neu.',
   'constructionSites.bulkDelete.conflict':
-    'Mindestens eine Baustelle wurde während des Löschens geändert.',
+    'Mindestens eine Baustelle wurde während des Archivierens geändert.',
   'constructionSites.import.fileRequired': 'Wählen Sie eine ZIP-Datei aus.',
   'constructionSites.import.fileTypeInvalid': 'Für diesen Import wird eine ZIP-Datei benötigt.',
   'constructionSites.import.fileTooLarge': 'Die Importdatei darf höchstens 25 MB groß sein.',
@@ -215,7 +220,7 @@ const de = {
   'constructionSites.import.fileInvalid':
     'Die Importdatei enthält keine unterstützten Baustellendaten.',
   'constructionSites.import.duplicate':
-    'Diese Datei wurde bereits importiert. Löschen Sie zuerst den vorherigen Import.',
+    'Diese Datei wurde bereits importiert. Der vorhandene Import kann archiviert sein. Stellen Sie ihn bei Bedarf wieder her.',
   'constructionSites.import.conflict':
     'Die importierten Baustellen konnten wegen einer gleichzeitigen Änderung nicht gespeichert werden.',
   'constructionSites.changeStatus.notFound': 'Die Baustelle wurde nicht gefunden.',
@@ -278,12 +283,12 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.close.confirmMessage':
     'Unsaved changes will be lost when the editor is closed.',
   'constructionSites.close.confirm': 'Close',
-  'constructionSites.delete.action': 'Delete construction site',
-  'constructionSites.delete.confirmTitle': 'Delete construction site?',
+  'constructionSites.delete.action': 'Archive construction site',
+  'constructionSites.delete.confirmTitle': 'Archive construction site?',
   'constructionSites.delete.confirmMessage':
-    'Do you really want to permanently delete “{{title}}”? Attachments and areas will be removed as well.',
-  'constructionSites.delete.success': 'Construction site deleted',
-  'constructionSites.delete.failed': 'Deleting failed.',
+    'Archive “{{title}}”? Data, areas and attachments will be retained.',
+  'constructionSites.delete.success': 'Construction site archived',
+  'constructionSites.delete.failed': 'Archiving failed.',
   'constructionSites.discard': 'Discard',
   'constructionSites.draw': 'Draw construction site',
   'constructionSites.cancelDrawing': 'Cancel drawing',
@@ -382,12 +387,12 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.bulkDelete.selected': '{{count}} selected',
   'constructionSites.bulkDelete.selectAll': 'Select all {{count}} results',
   'constructionSites.bulkDelete.clearSelection': 'Clear selection',
-  'constructionSites.bulkDelete.action': 'Delete selection',
-  'constructionSites.bulkDelete.confirmTitle': 'Delete selected construction sites?',
+  'constructionSites.bulkDelete.action': 'Archive selection',
+  'constructionSites.bulkDelete.confirmTitle': 'Archive selected construction sites?',
   'constructionSites.bulkDelete.confirmMessage':
-    '{{count}} construction sites and their areas and attachments will be permanently deleted.',
-  'constructionSites.bulkDelete.success': '{{count}} construction sites deleted',
-  'constructionSites.bulkDelete.failed': 'The selected construction sites could not be deleted.',
+    '{{count}} construction sites will be archived. Data, areas and attachments will be retained.',
+  'constructionSites.bulkDelete.success': '{{count}} construction sites archived',
+  'constructionSites.bulkDelete.failed': 'The selected construction sites could not be archived.',
   'date.placeholder': 'DD.MM.YYYY',
   'date.rangeStart': 'Period from',
   'date.rangeEnd': 'Period to',
@@ -440,14 +445,14 @@ const en: Record<keyof typeof de, string> = {
     'The construction site was changed in the meantime. Please reload it.',
   'constructionSites.update.area.notOwned': 'An area does not belong to this construction site.',
   'constructionSites.delete.notFound': 'The construction site was not found.',
-  'constructionSites.delete.conflict': 'The construction site changed while it was being deleted.',
+  'constructionSites.delete.conflict': 'The construction site changed while it was being archived.',
   'constructionSites.bulkDelete.emptySelection': 'Select at least one construction site.',
   'constructionSites.bulkDelete.invalidIdentifiers':
     'The selection contains invalid construction-site identifiers.',
   'constructionSites.bulkDelete.notFound':
     'At least one selected construction site was not found. Reload the list.',
   'constructionSites.bulkDelete.conflict':
-    'At least one construction site changed while it was being deleted.',
+    'At least one construction site changed while it was being archived.',
   'constructionSites.import.fileRequired': 'Select a ZIP file.',
   'constructionSites.import.fileTypeInvalid': 'This import requires a ZIP file.',
   'constructionSites.import.fileTooLarge': 'The import file must not exceed 25 MB.',
@@ -455,7 +460,7 @@ const en: Record<keyof typeof de, string> = {
   'constructionSites.import.fileInvalid':
     'The import file does not contain supported construction-site data.',
   'constructionSites.import.duplicate':
-    'This exact file has already been imported. Delete the previous import first.',
+    'This exact file has already been imported. The existing import may be archived. Restore it if needed.',
   'constructionSites.import.conflict':
     'The imported construction sites could not be saved because data changed concurrently.',
   'constructionSites.changeStatus.notFound': 'The construction site was not found.',
@@ -498,6 +503,11 @@ void i18n.use(initReactI18next).init({
         ...importDe,
         ...paneDe,
         ...dockingDe,
+        ...routeDe,
+        ...alertDe,
+        ...mapLayerDe,
+        ...filterDe,
+        ...alertTimelineDe,
       },
     },
     en: {
@@ -509,6 +519,11 @@ void i18n.use(initReactI18next).init({
         ...importEn,
         ...paneEn,
         ...dockingEn,
+        ...routeEn,
+        ...alertEn,
+        ...mapLayerEn,
+        ...filterEn,
+        ...alertTimelineEn,
       },
     },
   },

@@ -9,6 +9,7 @@ using BaikorR.Core.Features.ConstructionSites.Create;
 using BaikorR.Core.Features.ConstructionSites.Delete;
 using BaikorR.Core.Features.ConstructionSites.Get;
 using BaikorR.Core.Features.ConstructionSites.List;
+using BaikorR.Core.Features.ConstructionSites.Restore;
 using BaikorR.Core.Features.ConstructionSites.Update;
 using BaikorR.Core.Importers.Rkom;
 using FluentValidation;
@@ -25,6 +26,7 @@ internal static class ConstructionSiteFeatureExtensions
         builder.Services.AddScoped<IListConstructionSitesService, ListConstructionSitesService>();
         builder.Services.AddScoped<IUpdateConstructionSiteService, UpdateConstructionSiteService>();
         builder.Services.AddScoped<IDeleteConstructionSiteService, DeleteConstructionSiteService>();
+        builder.Services.AddScoped<IRestoreConstructionSiteService, RestoreConstructionSiteService>();
         builder.Services.AddScoped<IBulkDeleteConstructionSitesService, BulkDeleteConstructionSitesService>();
         builder.Services.AddScoped<IRkomTrenchesImporter, RkomTrenchesImporter>();
         builder.Services.AddSingleton<RkomTrenchesShapefileParser>();

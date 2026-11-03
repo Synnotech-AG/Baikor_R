@@ -10,15 +10,23 @@ public sealed class InMemoryConstructionSitesSession : IConstructionSitesSession
 
     public Task<IReadOnlyList<ConstructionSite>> ListAsync(
         int maximumCount,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ConstructionSiteArchiveFilter archive = ConstructionSiteArchiveFilter.Active)
     {
         IReadOnlyList<ConstructionSite> result = constructionSites
+            .Where(item => archive == ConstructionSiteArchiveFilter.All
+                || item.IsDeleted == (archive == ConstructionSiteArchiveFilter.Archived))
             .OrderByDescending(item => item.CreatedAt)
             .ThenBy(item => item.Title)
             .Take(maximumCount)
             .ToArray();
         return Task.FromResult(result);
     }
+
+    public Task<bool> HasImportedFileAsync(string fileHash, CancellationToken cancellationToken) =>
+        Task.FromResult(constructionSites.Any(site =>
+            site.Metadata.TryGetValue("import.fileSha256", out var importedHash)
+            && string.Equals(importedHash, fileHash, StringComparison.OrdinalIgnoreCase)));
 
     public Task<ConstructionSite?> GetAsync(Guid id, CancellationToken cancellationToken) =>
         Task.FromResult(constructionSites.SingleOrDefault(item => item.Id == id));
@@ -36,10 +44,6 @@ public sealed class InMemoryConstructionSitesSession : IConstructionSitesSession
     }
 
     public void Add(ConstructionSite constructionSite) => constructionSites.Add(constructionSite);
-
-    public void Remove(ConstructionSite constructionSite) => constructionSites.Remove(constructionSite);
-
-    public void RemoveRange(IEnumerable<ConstructionSite> sites) => constructionSites.RemoveAll(sites.Contains);
 
     public void AddArea(ConstructionSite constructionSite, ConstructionSiteArea area) =>
         constructionSite.Areas.Add(area);

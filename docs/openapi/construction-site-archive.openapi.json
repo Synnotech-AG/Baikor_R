@@ -1,0 +1,879 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Baikor_R construction-site archive API",
+    "version": "1.0.0",
+    "description": "Construction-site lifecycle contract. Existing delete routes archive records and preserve UUIDs, areas, contacts, communications, attachments and metadata. Archived UUIDs and historical conflict links remain readable. General updates (PUT /api/construction-sites/{id}), status changes and attachment upload/deletion reject archived records with 409 constructionSites.archived. Attachment listing/download remain available to Viewer accounts. Both public GeoServer views exclude archived sites. Detection clears existing conflicts while retaining evidence and review history; disabled rules retain deferred reconciliation. Restore retains status and dates and re-enables ordinary eligibility checks. These private operations do not grant business or privacy publication approval. See README.md for related import and routes/alerts contracts.",
+    "license": {
+      "name": "EUPL-1.2",
+      "url": "https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Your Baikor_R application origin"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Construction sites",
+      "description": "Private construction-site reads, archive and restore."
+    }
+  ],
+  "paths": {
+    "/api/construction-sites": {
+      "get": {
+        "operationId": "listConstructionSites",
+        "tags": [
+          "Construction sites"
+        ],
+        "summary": "List active or archived construction sites",
+        "description": "Requires Viewer permission. Filters before the existing maximum of 2,000 records. Results are ordered by creation time descending, then title ascending. No pagination parameter. Archived data remains private.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "BrowserCookie": []
+          }
+        ],
+        "x-required-roles-any-of": [
+          "baikor_viewer",
+          "baikor_editor",
+          "baikor_approver",
+          "baikor_admin"
+        ],
+        "parameters": [
+          {
+            "name": "archive",
+            "in": "query",
+            "required": false,
+            "description": "active excludes archived records; archived returns archived records; all returns both.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "archived",
+                "all"
+              ],
+              "default": "active"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching construction sites, including archive state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "maxItems": 2000,
+                  "items": {
+                    "$ref": "#/components/schemas/ConstructionSite"
+                  }
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated requests, including invalid bearer tokens, currently receive an OpenID Connect redirect. Disable automatic redirects in API clients.",
+            "headers": {
+              "Location": {
+                "description": "Identity-provider authorization URL.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid archive filter. Application validation uses errorKey api.validation.failed and errorKeys.archive constructionSites.validation.archive.invalid. Framework binding errors may use another envelope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "One or more validation errors occurred",
+                  "status": 400,
+                  "detail": "Please review the highlighted fields and submit the form again.",
+                  "instance": "/api/construction-sites",
+                  "errorKey": "api.validation.failed",
+                  "errors": {
+                    "archive": [
+                      "Archive must be active, archived or all."
+                    ]
+                  },
+                  "errorKeys": {
+                    "archive": [
+                      "constructionSites.validation.archive.invalid"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
+          }
+        }
+      }
+    },
+    "/api/construction-sites/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ConstructionSiteId"
+        }
+      ],
+      "get": {
+        "operationId": "getConstructionSite",
+        "tags": [
+          "Construction sites"
+        ],
+        "summary": "Read a construction site by its retained UUID",
+        "description": "Requires Viewer permission. Returns active and archived records, including retained private contacts, communications, geometry and metadata. Historical conflict links can continue to resolve this UUID.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "BrowserCookie": []
+          }
+        ],
+        "x-required-roles-any-of": [
+          "baikor_viewer",
+          "baikor_editor",
+          "baikor_approver",
+          "baikor_admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "The construction site. isDeleted indicates archive state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstructionSite"
+                },
+                "example": {
+                  "id": "2eea8571-7802-4aa9-a4c0-5ddacb203d85",
+                  "title": "Road works",
+                  "status": "approved",
+                  "plannedStart": "2026-11-01",
+                  "plannedEnd": "2026-11-30",
+                  "areas": [],
+                  "diversion": null,
+                  "contacts": [],
+                  "communications": [],
+                  "areaSquareMetres": 0,
+                  "createdAt": "2026-10-30T10:00:00Z",
+                  "updatedAt": "2026-11-03T11:00:00Z",
+                  "version": 12345,
+                  "metadata": {
+                    "source.projectId": "DEMO-100"
+                  },
+                  "isDeleted": true
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated requests, including invalid bearer tokens, currently receive an OpenID Connect redirect. Disable automatic redirects in API clients.",
+            "headers": {
+              "Location": {
+                "description": "Identity-provider authorization URL.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
+          },
+          "404": {
+            "description": "No construction site has this UUID.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Resource not found",
+                  "status": 404,
+                  "detail": "The construction site could not be found.",
+                  "errorKey": "constructionSites.get.notFound"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "archiveConstructionSite",
+        "tags": [
+          "Construction sites"
+        ],
+        "summary": "Archive a construction site",
+        "description": "Requires Editor permission. Preserves the existing DELETE contract with no request body or supplied version. Sets IsDeleted=true and updates UpdatedAt; related records and historical alert evidence remain stored. Repeating archive for an already archived UUID returns 204 without another change. Concurrent row updates can return 409. Both bearer and browser-cookie requests require X-CSRF-TOKEN and the antiforgery cookie obtained from GET /api/antiforgery using the same authenticated identity. These endpoints retain the global AutoValidateAntiforgeryToken requirement.",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          },
+          {
+            "BrowserCookie": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          }
+        ],
+        "x-required-roles-any-of": [
+          "baikor_editor",
+          "baikor_approver",
+          "baikor_admin"
+        ],
+        "responses": {
+          "204": {
+            "description": "Archived successfully, or already archived. No response body."
+          },
+          "302": {
+            "description": "Unauthenticated requests, including invalid bearer tokens, currently receive an OpenID Connect redirect. Disable automatic redirects in API clients.",
+            "headers": {
+              "Location": {
+                "description": "Identity-provider authorization URL.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing/invalid antiforgery token. Framework response shape is not guaranteed."
+          },
+          "403": {
+            "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
+          },
+          "404": {
+            "description": "The UUID does not exist.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Resource not found",
+                  "status": 404,
+                  "detail": "The construction site could not be found.",
+                  "errorKey": "constructionSites.delete.notFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent modification prevented archive. Reload before retrying.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Request conflict",
+                  "status": 409,
+                  "detail": "The construction site changed while it was being deleted. Reload it and try again.",
+                  "errorKey": "constructionSites.delete.conflict"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/construction-sites/bulk-delete": {
+      "post": {
+        "operationId": "archiveConstructionSites",
+        "tags": [
+          "Construction sites"
+        ],
+        "summary": "Archive selected construction sites atomically",
+        "description": "Requires Editor permission. Preserves the existing route, request and deletedCount response. All selected UUIDs must exist before any archive changes are saved. Already archived records remain archived and count toward deletedCount, so repeating a selection is idempotent. Related records/source identities remain stored. There is no 500-record selection cap; database reads are batched internally. Both bearer and browser-cookie requests require the antiforgery cookie and X-CSRF-TOKEN obtained from GET /api/antiforgery using the same authenticated identity. These endpoints retain the global AutoValidateAntiforgeryToken requirement.",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          },
+          {
+            "BrowserCookie": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          }
+        ],
+        "x-required-roles-any-of": [
+          "baikor_editor",
+          "baikor_approver",
+          "baikor_admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ids"
+                ],
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Must be a nonempty UUID."
+                    }
+                  }
+                }
+              },
+              "example": {
+                "ids": [
+                  "2eea8571-7802-4aa9-a4c0-5ddacb203d85",
+                  "80ea1825-e245-46f1-90be-2f222150f710"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All selected existing records are archived. deletedCount includes already archived records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "deletedCount"
+                  ],
+                  "properties": {
+                    "deletedCount": {
+                      "type": "integer",
+                      "format": "int32",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "example": {
+                  "deletedCount": 2
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated requests, including invalid bearer tokens, currently receive an OpenID Connect redirect. Disable automatic redirects in API clients.",
+            "headers": {
+              "Location": {
+                "description": "Identity-provider authorization URL.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Empty/invalid selection uses api.validation.failed with field ids and constructionSites.bulkDelete.emptySelection or constructionSites.bulkDelete.invalidIdentifiers. Binding and antiforgery errors may use another shape."
+          },
+          "403": {
+            "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
+          },
+          "404": {
+            "description": "At least one UUID does not exist; nothing is archived.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Resource not found",
+                  "status": 404,
+                  "detail": "At least one selected construction site could not be found. Reload the list and try again.",
+                  "errorKey": "constructionSites.bulkDelete.notFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent modification prevented the atomic archive.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Request conflict",
+                  "status": 409,
+                  "detail": "At least one selected construction site changed while it was being deleted.",
+                  "errorKey": "constructionSites.bulkDelete.conflict"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/construction-sites/{id}/restore": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ConstructionSiteId"
+        }
+      ],
+      "post": {
+        "operationId": "restoreConstructionSite",
+        "tags": [
+          "Construction sites"
+        ],
+        "summary": "Restore an archived construction site",
+        "description": "Requires Editor permission. Supply the current version from a UUID read. Sets IsDeleted=false and updates UpdatedAt without changing status, dates, source identity or related records. Successful changes return the new version. An already active record with the current version returns 200 without another change. Stale versions are rejected even when already active. Restore never creates another construction site. Both bearer and browser-cookie requests require the antiforgery cookie and X-CSRF-TOKEN obtained from GET /api/antiforgery using the same authenticated identity. These endpoints retain the global AutoValidateAntiforgeryToken requirement.",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          },
+          {
+            "BrowserCookie": [],
+            "AntiforgeryCookie": [],
+            "CsrfHeader": []
+          }
+        ],
+        "x-required-roles-any-of": [
+          "baikor_editor",
+          "baikor_approver",
+          "baikor_admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreConstructionSiteRequest"
+              },
+              "example": {
+                "version": 12345
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restored record, or already active record with the current version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstructionSite"
+                },
+                "example": {
+                  "id": "2eea8571-7802-4aa9-a4c0-5ddacb203d85",
+                  "title": "Road works",
+                  "status": "approved",
+                  "plannedStart": "2026-11-01",
+                  "plannedEnd": "2026-11-30",
+                  "areas": [],
+                  "diversion": null,
+                  "contacts": [],
+                  "communications": [],
+                  "areaSquareMetres": 0,
+                  "createdAt": "2026-10-30T10:00:00Z",
+                  "updatedAt": "2026-11-03T11:00:00Z",
+                  "version": 12346,
+                  "metadata": {
+                    "source.projectId": "DEMO-100"
+                  },
+                  "isDeleted": false
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated requests, including invalid bearer tokens, currently receive an OpenID Connect redirect. Disable automatic redirects in API clients.",
+            "headers": {
+              "Location": {
+                "description": "Identity-provider authorization URL.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing version, invalid JSON/uint version, or missing/invalid antiforgery token. Framework response shape is not guaranteed."
+          },
+          "403": {
+            "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
+          },
+          "404": {
+            "description": "The UUID does not exist.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Resource not found",
+                  "status": 404,
+                  "detail": "The construction site could not be found.",
+                  "errorKey": "constructionSites.restore.notFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Supplied version is stale or another update raced with restore. Reload before retrying.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "example": {
+                  "title": "Request conflict",
+                  "status": 409,
+                  "detail": "The construction site changed while it was being restored. Reload it and try again.",
+                  "errorKey": "constructionSites.restore.conflict"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ConstructionSiteId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Retained construction-site UUID. ASP.NET applies a GUID route constraint.",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Access token from Authentication:Authority with aud containing Authentication:ClientId (normally baikor-r). Required permissions derive from the top-level roles claim. The dedicated baikor_importer role is excluded. Archive, bulk archive and restore also require antiforgery cookie/header protection under the existing global MVC filter."
+      },
+      "BrowserCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-BaikorR.Auth",
+        "description": "Authenticated browser session. Mutations also require the antiforgery cookie and X-CSRF-TOKEN obtained from GET /api/antiforgery."
+      },
+      "CsrfHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-TOKEN",
+        "description": "Required for archive, bulk archive and restore with either bearer or browser-cookie authentication. Obtain GET /api/antiforgery using the same authenticated identity, retain its antiforgery cookie and send the returned token."
+      },
+      "AntiforgeryCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-BaikorR.Antiforgery",
+        "description": "Required together with X-CSRF-TOKEN for archive, bulk archive and restore, including bearer requests. Retain this cookie from GET /api/antiforgery using the same authenticated identity. Authentication-disabled local profiles use BaikorR.Antiforgery instead."
+      }
+    },
+    "schemas": {
+      "RestoreConstructionSiteRequest": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295,
+            "description": "PostgreSQL xmin optimistic concurrency version. Read the current value before restoring."
+          }
+        }
+      },
+      "ConstructionSite": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "plannedStart",
+          "plannedEnd",
+          "areas",
+          "diversion",
+          "contacts",
+          "communications",
+          "areaSquareMetres",
+          "createdAt",
+          "updatedAt",
+          "version",
+          "metadata",
+          "isDeleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "planned",
+              "approved",
+              "active"
+            ]
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConstructionSiteArea"
+            }
+          },
+          "diversion": {
+            "type": "string",
+            "maxLength": 10000,
+            "nullable": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConstructionSiteContact"
+            },
+            "description": "Private contacts retained by archive; excluded from public GeoServer views."
+          },
+          "communications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConstructionSiteCommunication"
+            }
+          },
+          "areaSquareMetres": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 4294967295,
+            "description": "PostgreSQL xmin optimistic concurrency version. Read the current value before restoring."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Retained private source and import metadata."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "true means archived. Its UUID remains readable, mutations are rejected until restore, and public views/detection exclude it."
+          }
+        }
+      },
+      "ConstructionSiteArea": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "geometry",
+          "areaSquareMetres"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/Polygon"
+          },
+          "areaSquareMetres": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0
+          }
+        }
+      },
+      "Polygon": {
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "description": "EPSG:25832 polygon. Coordinates are easting/northing in metres.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConstructionSiteContact": {
+        "type": "object",
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "role",
+          "email",
+          "phone1",
+          "phone2"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone1": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone2": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ConstructionSiteCommunication": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "note"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "errorKey": {
+            "type": "string",
+            "description": "Stable application key when supplied; framework binding/authentication errors may omit it."
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "errorKeys": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

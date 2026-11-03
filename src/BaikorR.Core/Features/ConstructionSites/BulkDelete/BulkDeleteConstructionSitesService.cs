@@ -6,7 +6,8 @@ namespace BaikorR.Core.Features.ConstructionSites.BulkDelete;
 
 public sealed class BulkDeleteConstructionSitesService(
     IConstructionSitesSession session,
-    IValidator<BulkDeleteConstructionSitesRequest> validator) : IBulkDeleteConstructionSitesService
+    IValidator<BulkDeleteConstructionSitesRequest> validator,
+    TimeProvider timeProvider) : IBulkDeleteConstructionSitesService
 {
     public async Task<Result<BulkDeleteConstructionSitesResponse>> ExecuteAsync(
         BulkDeleteConstructionSitesRequest request,
@@ -24,7 +25,16 @@ public sealed class BulkDeleteConstructionSitesService(
             return BulkDeleteConstructionSitesResults.NotFound();
         }
 
-        session.RemoveRange(constructionSites);
+        foreach (var constructionSite in constructionSites)
+        {
+            if (constructionSite.IsDeleted)
+            {
+                continue;
+            }
+
+            constructionSite.IsDeleted = true;
+            constructionSite.UpdatedAt = timeProvider.GetUtcNow();
+        }
         return await session.SaveChangesAsync(cancellationToken)
             ? BulkDeleteConstructionSitesResults.Success(constructionSites.Count)
             : BulkDeleteConstructionSitesResults.Conflict();

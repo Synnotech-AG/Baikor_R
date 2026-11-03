@@ -16,7 +16,8 @@ public sealed record ConstructionSiteResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     uint Version,
-    IReadOnlyDictionary<string, string> Metadata)
+    IReadOnlyDictionary<string, string> Metadata,
+    bool IsDeleted = false)
 {
     public static ConstructionSiteResponse Create(ConstructionSite constructionSite)
     {
@@ -49,6 +50,7 @@ public sealed record ConstructionSiteResponse(
             constructionSite.Version,
             constructionSite.Metadata
                 .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(pair => pair.Key, pair => pair.Value));
+                .ToDictionary(pair => pair.Key, pair => pair.Value),
+            constructionSite.IsDeleted);
     }
 }

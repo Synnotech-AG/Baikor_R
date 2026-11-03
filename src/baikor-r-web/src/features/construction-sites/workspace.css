@@ -126,7 +126,7 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  margin: 0 24px 20px;
+  margin: 20px 24px;
 }
 .workspace-record-content,
 .workspace-map-content {
@@ -247,6 +247,9 @@
 }
 .import-result-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
   margin: 18px 0;
 }
 .import-result-details {

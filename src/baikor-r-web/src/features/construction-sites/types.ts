@@ -1,4 +1,5 @@
 export type ConstructionSiteStatus = 'draft' | 'planned' | 'approved' | 'active'
+export type ConstructionSiteArchive = 'active' | 'archived' | 'all'
 
 export interface PolygonGeometry {
   type: 'Polygon'
@@ -26,6 +27,7 @@ export interface ConstructionSiteSummary {
   metadata: Record<string, string>
   updatedAt: string
   version: number
+  isDeleted: boolean
 }
 
 export interface ConstructionSiteContact {

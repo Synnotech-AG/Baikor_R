@@ -16,6 +16,8 @@ interface ConstructionSiteDetailsProps {
   onDelete: () => Promise<void>
   selectedAreaKey: string | null
   onSelectArea: (key: string) => void
+  onRestore?: () => Promise<void>
+  restoring?: boolean
 }
 
 export function ConstructionSiteDetails({
@@ -26,6 +28,8 @@ export function ConstructionSiteDetails({
   onDelete,
   selectedAreaKey,
   onSelectArea,
+  onRestore,
+  restoring,
 }: ConstructionSiteDetailsProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n.resolvedLanguage === 'en' ? 'en-GB' : 'de-DE'
@@ -73,6 +77,7 @@ export function ConstructionSiteDetails({
                 <Tag className={`construction-site-status status-${site.status}`}>
                   {t(statusTranslationKey(site.status))}
                 </Tag>
+                {site.isDeleted && <Tag>{t('record.archived')}</Tag>}
               </dd>
             </div>
           </dl>
@@ -174,6 +179,8 @@ export function ConstructionSiteDetails({
         deleting={deleting}
         onEdit={onEdit}
         onDelete={onDelete}
+        onRestore={onRestore}
+        restoring={restoring}
       />
     </article>
   )

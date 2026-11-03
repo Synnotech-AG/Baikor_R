@@ -24,7 +24,7 @@ internal static class RkomTrenchesImportResults
     public static Result<RkomTrenchesImportResponse> Duplicate() =>
         Result.Fail(ApiError.Conflict(
             DuplicateErrorKey,
-            "This exact file has already been imported. Delete the previous import before importing it again."));
+            "This exact file has already been imported. The existing import may be archived. Restore it if needed."));
 
     public static Result<RkomTrenchesImportResponse> Conflict() =>
         Result.Fail(ApiError.Conflict(

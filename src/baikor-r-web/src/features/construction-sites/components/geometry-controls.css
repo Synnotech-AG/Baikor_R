@@ -45,7 +45,6 @@
   min-width: 0;
 }
 
-.map-address-search .map-fit-results,
 .map-address-search .map-edit-geometry {
   flex: none;
   color: var(--color-text-secondary);

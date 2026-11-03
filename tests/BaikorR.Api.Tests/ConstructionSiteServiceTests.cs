@@ -35,6 +35,7 @@ public sealed class ConstructionSiteServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(status, result.Value.Status);
+        Assert.False(result.Value.IsDeleted);
     }
 
     [Fact]
@@ -316,17 +317,19 @@ public sealed class ConstructionSiteServiceTests
     }
 
     [Fact]
-    public async Task DeleteRemovesTheConstructionSite()
+    public async Task DeleteArchivesAndPreservesTheConstructionSite()
     {
         var session = new InMemoryConstructionSitesSession();
         var constructionSite = CreateConstructionSite();
         session.Add(constructionSite);
-        var service = new DeleteConstructionSiteService(session);
+        var service = new DeleteConstructionSiteService(session, TimeProvider.System);
 
         var result = await service.ExecuteAsync(constructionSite.Id, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Null(await session.GetAsync(constructionSite.Id, CancellationToken.None));
+        Assert.Same(constructionSite, await session.GetAsync(constructionSite.Id, CancellationToken.None));
+        Assert.True(constructionSite.IsDeleted);
+        Assert.Single(constructionSite.Areas);
     }
 
     private static ConstructionSite CreateConstructionSite()

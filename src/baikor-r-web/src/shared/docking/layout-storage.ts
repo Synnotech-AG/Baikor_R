@@ -6,14 +6,21 @@ export function readLayout(
   defaultRoot: DockNode | null,
   panelIds: readonly string[],
   storage?: Pick<Storage, 'getItem'>,
+  defaultCollapsed: readonly string[] = [],
+  transform?: (saved: unknown) => unknown,
 ): DockLayout {
   try {
     const value = (storage ?? globalThis.localStorage)?.getItem(key)
     return value
-      ? normalizeLayout(JSON.parse(value), defaultRoot, panelIds)
-      : createLayout(defaultRoot, panelIds)
+      ? normalizeLayout(
+          transform ? transform(JSON.parse(value)) : JSON.parse(value),
+          defaultRoot,
+          panelIds,
+          defaultCollapsed,
+        )
+      : createLayout(defaultRoot, panelIds, defaultCollapsed)
   } catch {
-    return createLayout(defaultRoot, panelIds)
+    return createLayout(defaultRoot, panelIds, defaultCollapsed)
   }
 }
 
