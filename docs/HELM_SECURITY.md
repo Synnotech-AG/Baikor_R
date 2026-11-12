@@ -14,6 +14,23 @@ Operators can override or remove this controller-specific annotation using
 `ingress.annotations`; do not remove it on ingress-nginx without providing an
 equivalent limit. See the [import contract](openapi/README.md) for boundary responses.
 
+The chart also sets `nginx.ingress.kubernetes.io/proxy-buffer-size: 32k` and
+`nginx.ingress.kubernetes.io/proxy-buffers-number: "8"` on the application Ingress.
+The OIDC callback sets authentication cookies whose response headers can exceed
+ingress-nginx's default 4 KiB header buffer. Without sufficient space, nginx can
+return 502 on `/signin-oidc` even when the application completes sign-in and
+returns 302; its error log reports `upstream sent too big header`.
+These application-scoped settings do not change the controller's global defaults
+or disable authentication checks. Other controllers need their equivalent
+response-header allowance.
+
+Operators can override these values through `ingress.annotations`, or through
+`inv_addons.baikor_r.helm_values.ingress.annotations` in the CIVITAS inventory.
+An empty annotation map retains chart defaults. Set an individual annotation to
+YAML `null` to remove it, or `ingress.annotations: null` to remove the whole map
+when using another controller. Keep equivalent upload and response-header limits
+in the replacement configuration.
+
 The CIVITAS add-on forwards `inv_addons.baikor_r.helm_values` through a recursive
 merge. The same values work in a Helm values file. For example, this inventory
 override gives migrations more CPU and memory without changing the application:

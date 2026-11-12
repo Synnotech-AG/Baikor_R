@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Size ingress-nginx response buffers for OIDC authentication cookies, preventing
+  a 502 at `/signin-oidc` with standard controller settings. Keep the per-Ingress
+  defaults configurable and document overrides for other controllers.
+
 ## 0.2.0
 
 - Reduce duplicate route parsing and alert queries; run the PostGIS regression suite in CI.

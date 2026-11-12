@@ -80,13 +80,42 @@ class HelmChartTests(unittest.TestCase):
         self.assertEqual(ingress["metadata"].get("annotations", {}).get(
             "nginx.ingress.kubernetes.io/proxy-body-size"), "26m")
 
+    def test_ingress_allows_oidc_response_headers_with_empty_addon_annotations(self):
+        ingress = self.resource(self.render({"ingress": {
+            "enabled": True, "annotations": {}}}), "Ingress")
+        annotations = ingress["metadata"].get("annotations", {})
+        self.assertEqual(annotations.get("nginx.ingress.kubernetes.io/proxy-buffer-size"), "32k")
+        self.assertEqual(annotations.get("nginx.ingress.kubernetes.io/proxy-buffers-number"), "8")
+
     def test_operator_can_override_ingress_upload_budget(self):
         ingress = self.resource(self.render({"ingress": {"enabled": True,
             "annotations": {"nginx.ingress.kubernetes.io/proxy-body-size": "30m",
                             "operator.example/note": "custom"}}}), "Ingress")
         self.assertEqual(ingress["metadata"]["annotations"], {
             "nginx.ingress.kubernetes.io/proxy-body-size": "30m",
+            "nginx.ingress.kubernetes.io/proxy-buffer-size": "32k",
+            "nginx.ingress.kubernetes.io/proxy-buffers-number": "8",
             "operator.example/note": "custom"})
+
+    def test_operator_can_override_ingress_response_buffers(self):
+        overrides = {"nginx.ingress.kubernetes.io/proxy-buffer-size": "64k",
+                     "nginx.ingress.kubernetes.io/proxy-buffers-number": "16"}
+        ingress = self.resource(self.render({"ingress": {
+            "enabled": True, "annotations": overrides}}), "Ingress")
+        self.assertEqual(ingress["metadata"]["annotations"], {
+            "nginx.ingress.kubernetes.io/proxy-body-size": "26m", **overrides})
+
+    def test_operator_can_remove_ingress_response_buffer_annotations(self):
+        ingress = self.resource(self.render({"ingress": {"enabled": True, "annotations": {
+            "nginx.ingress.kubernetes.io/proxy-buffer-size": None,
+            "nginx.ingress.kubernetes.io/proxy-buffers-number": None}}}), "Ingress")
+        self.assertEqual(ingress["metadata"].get("annotations"), {
+            "nginx.ingress.kubernetes.io/proxy-body-size": "26m"})
+
+    def test_operator_can_remove_all_ingress_annotations(self):
+        ingress = self.resource(self.render({"ingress": {
+            "enabled": True, "annotations": None}}), "Ingress")
+        self.assertNotIn("annotations", ingress["metadata"])
 
     def test_enabling_policy_without_rules_is_application_only_deny_all(self):
         manifests = self.render({"database": {"existingSecret": {"name": "database"}},

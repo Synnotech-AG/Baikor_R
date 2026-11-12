@@ -86,6 +86,9 @@ ingress:
     # 25 MiB import ZIP plus multipart overhead; matches the API request cap.
     # Other ingress controllers need their equivalent request-size setting.
     nginx.ingress.kubernetes.io/proxy-body-size: "26m"
+    # OIDC sign-in sets authentication cookies that exceed nginx's 4 KiB default.
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
   hosts:
     - host: baikor-r.civitas.test
       paths:
