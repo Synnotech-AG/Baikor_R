@@ -53,8 +53,8 @@ After successful verification, the older GHCR image and chart versions
 **1.7.6 through 1.7.9** were removed on **2026-10-21**. Anonymous requests for all
 eight old package versions returned 404 by both tag and digest. Only **0.2.0**
 remained in both packages, with its verified digests unchanged. Old deployment
-pins can no longer be downloaded from GHCR. Use addon and application/chart
-**0.2.0** for fresh installations. Historical source tags, GitHub releases and
+pins can no longer be downloaded from GHCR. Use the current addon/application
+pairing listed under Verify and deploy for fresh installations. Historical source tags, GitHub releases and
 their attached release assets remain available.
 Retired version numbers must never be reused. This explicitly requested cleanup
 is a one-time exception to the normal package-retention policy below.
@@ -128,8 +128,8 @@ after that release succeeds.
 Verify the published artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:0.2.0
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.2.0
+docker pull ghcr.io/synnotech-ag/baikor-r:0.3.1
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.3.1
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -142,7 +142,7 @@ release does not automatically upgrade customer installations. Update the
 addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
-The published release pairing is application/chart **0.2.0** with addon **0.2.0**.
+The published release pairing is application/chart **0.3.1** with addon **0.3.1**.
 Addon and application release numbers remain independent.
 Historical pairings were application/chart **1.7.9** with addon **1.7.10**,
 application/chart **1.7.8** with addon **1.7.9**, and application/chart **1.7.7**

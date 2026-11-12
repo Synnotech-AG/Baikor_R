@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.1 — 2026-11-12
+
 - Size ingress-nginx response buffers for OIDC authentication cookies, preventing
   a 502 at `/signin-oidc` with standard controller settings. Keep the per-Ingress
   defaults configurable and document overrides for other controllers.

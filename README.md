@@ -138,10 +138,10 @@ See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
 Changes are recorded in [CHANGELOG.md](CHANGELOG.md). Application/chart release
-[**0.2.0**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.2.0) pairs with
-addon [**0.2.0**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.2.0).
+[**0.3.1**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.3.1) pairs with
+addon [**0.3.1**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.3.1).
 Anonymous package downloads and isolated published-image runtime checks passed
-on **2026-10-21**. The older GHCR image/chart versions **1.7.6 through 1.7.9**
+on **2026-11-12**. The older GHCR image/chart versions **1.7.6 through 1.7.9**
 were retired after verification. Historical GitHub releases and source tags
 remain available. See the [version reset and package retirement
 record](docs/RELEASING.md#version-reset-to-020) before using an older version pin.
