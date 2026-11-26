@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.2 — 2026-11-26
+
 - Start a new Keycloak login from the signed-out page and prevent browser caching
   of the app HTML, avoiding a stale workspace and request errors after logout
   and login.
