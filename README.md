@@ -138,11 +138,11 @@ See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
 Changes are recorded in [CHANGELOG.md](CHANGELOG.md). Application/chart release
-[**0.3.2**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.3.2) pairs with
-addon [**0.3.2**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.3.2).
-Anonymous package downloads and release-asset checksum checks passed on
-**2026-11-26**. The previous **0.3.1** application/addon pairing passed anonymous
-package downloads and isolated published-image runtime checks on **2026-11-12**.
+[**0.4.0**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.0) pairs with
+addon [**0.4.0**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.0).
+The addon pins both published artifacts. Sites with a dedicated Node-RED mail
+importer should follow the [mail cutover guide](docs/MAIL_IMPORTS.md#cut-over-an-existing-node-red-mail-importer)
+before enabling the native worker.
 The older GHCR image/chart versions **1.7.6 through 1.7.9**
 were retired after verification. Historical GitHub releases and source tags
 remain available. See the [version reset and package retirement

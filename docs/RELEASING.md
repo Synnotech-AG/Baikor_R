@@ -128,8 +128,8 @@ after that release succeeds.
 Verify the published artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:0.3.2
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.3.2
+docker pull ghcr.io/synnotech-ag/baikor-r:0.4.0
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.4.0
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -143,16 +143,18 @@ addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
 The published release pairing is application/chart
-[**0.3.2**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.3.2) with addon
-[**0.3.2**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.3.2).
+[**0.4.0**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.0) with addon
+[**0.4.0**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.0).
 Addon and application release numbers remain independent.
 
-The [application release run](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45814081061)
-passed all seven jobs, and the [addon validation run](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45814923654)
+The [application release run](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45849839155)
+passed all seven jobs, and the [addon validation run](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45850851198)
 passed all four jobs on **2026-11-26**. Anonymous release-asset downloads and
 checksums, OCI chart downloads, source metadata and artifact digests were verified
-that day. The previous published pairing was application/chart **0.3.1** with
-addon **0.3.1**.
+that day. The public addon source archive pins both artifacts to **0.4.0**.
+The published image passed 267 isolated platform checks and eight browser checks
+with real Keycloak, including expiry in an idle tab and sign-in after expiry.
+The previous published pairing was application/chart **0.3.2** with addon **0.3.2**.
 
 Historical pairings were application/chart **1.7.9** with addon **1.7.10**,
 application/chart **1.7.8** with addon **1.7.9**, and application/chart **1.7.7**
