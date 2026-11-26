@@ -195,8 +195,19 @@ Geoportal workflow at [https://geoportal.civitas.test/portal/](https://geoportal
 
 ## Login and logout
 
-The public `/signed-out.html` confirmation page links to `/auth/login`, which
-starts a new Keycloak authentication round trip. The app HTML is served with
+When a Baikor browser session expires, the open workspace goes to the same
+signed-out page as manual logout. A foreground tab checks the session when its
+server-issued deadline arrives. A suspended tab checks again when the browser
+resumes it. An expired session discovered by an API request also opens this
+page immediately. Unsaved edits are lost when the workspace closes.
+
+The ASP.NET Core authentication ticket uses a sliding lifetime of eight hours
+by default (`Authentication:BrowserSessionLifetime`). Normal application requests
+can renew it. Passive status polling and expiry checks leave the deadline in place.
+Keycloak manages its own SSO session. The explicit **Erneut anmelden** action
+at `/auth/login` asks Keycloak to authenticate the user again.
+
+The app HTML is served with
 `Cache-Control: no-store` at `/`, SPA routes and `/index.html` so browsers fetch
 the current document after login/logout. Other static assets retain their
 normal caching behavior. Reverse proxies must preserve this header and must

@@ -1,5 +1,6 @@
 using BaikorR.Core.Persistence.Entities;
 using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Core.Features.MailImports;
 
 namespace BaikorR.Api.Tests;
 
@@ -7,6 +8,8 @@ public sealed class InMemoryConstructionSitesSession : IConstructionSitesSession
 {
     private readonly List<ConstructionSite> constructionSites = [];
     private readonly Dictionary<Guid, uint> expectedVersions = [];
+    private readonly HashSet<string> receipts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly SemaphoreSlim importGate = new(1, 1);
 
     public Task<IReadOnlyList<ConstructionSite>> ListAsync(
         int maximumCount,
@@ -24,9 +27,31 @@ public sealed class InMemoryConstructionSitesSession : IConstructionSitesSession
     }
 
     public Task<bool> HasImportedFileAsync(string fileHash, CancellationToken cancellationToken) =>
-        Task.FromResult(constructionSites.Any(site =>
+        Task.FromResult(receipts.Contains(fileHash) || constructionSites.Any(site =>
             site.Metadata.TryGetValue("import.fileSha256", out var importedHash)
             && string.Equals(importedHash, fileHash, StringComparison.OrdinalIgnoreCase)));
+
+    public async Task<IArchiveImportTransaction> BeginImportAsync(string fileHash, MailImportLease? mailLease, CancellationToken cancellationToken)
+    {
+        await importGate.WaitAsync(cancellationToken);
+        return new MemoryImportTransaction(this, fileHash, await HasImportedFileAsync(fileHash, cancellationToken));
+    }
+
+    private sealed class MemoryImportTransaction(InMemoryConstructionSitesSession session, string hash, bool duplicate) : IArchiveImportTransaction
+    {
+        public bool IsDuplicate => duplicate;
+        public bool IsAuthorized => true;
+        public Task<bool> CompleteAsync(CancellationToken cancellationToken)
+        {
+            session.receipts.Add(hash);
+            return Task.FromResult(true);
+        }
+        public ValueTask DisposeAsync()
+        {
+            session.importGate.Release();
+            return ValueTask.CompletedTask;
+        }
+    }
 
     public Task<ConstructionSite?> GetAsync(Guid id, CancellationToken cancellationToken) =>
         Task.FromResult(constructionSites.SingleOrDefault(item => item.Id == id));

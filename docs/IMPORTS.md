@@ -1,6 +1,11 @@
 # Construction-site imports
 
-The application exposes a direct, authenticated import endpoint. Node-RED workflows belong to the operator; the addon never installs or modifies them.
+Administrators can configure automatic IMAP imports on Baikor's Import page.
+Baikor's built-in worker imports ZIP attachments directly; no Node-RED workflow
+or dedicated Keycloak import account is needed. See [native email imports](MAIL_IMPORTS.md)
+for setup, key backup and migration from an existing workflow.
+
+The direct authenticated import API remains available for external integrations.
 
 ## Importer architecture
 
@@ -79,8 +84,16 @@ Request body:
 
 The endpoint retains its existing URL and archives the selected construction sites atomically. Database lookups are split into bounded internal batches, so large selections do not exceed database parameter limits. The table supports selecting all filtered results, making it possible to search for an import batch and archive all its construction sites in one operation. Archived sites retain their areas, attachments and import metadata and can be restored by an editor.
 
-Duplicate detection checks the exact file's SHA-256 against all retained construction sites carrying `import.fileSha256`, including archived sites. Restore an archived import instead of submitting the same file again. This is not semantic deduplication: repackaging the ZIP changes its hash, and concurrent submissions are not serialized. The dedicated importer role cannot read, archive or restore construction sites.
+Duplicate detection uses permanent SHA-256 archive receipts committed atomically
+with construction sites. Existing hashes are backfilled from retained records,
+including archived sites. Concurrent manual/API and native-mail submissions of
+the same bytes create one import. Restore an archived import instead of submitting
+the same file again. Repackaging the ZIP changes its hash. Legacy mail-only
+suppression receipts apply to native mail processing without changing the manual
+API's duplicate behavior for old files absent from retained records. The dedicated
+importer role cannot read, archive or restore construction sites.
 
 ## Operator integration
 
-See the [customer import API and Node-RED guide](https://github.com/Synnotech-AG/Baikor_R.Addon#optional-import-api) for service-account setup, requests, error handling and manual workflow configuration.
+See the [customer import API guide](https://github.com/Synnotech-AG/Baikor_R.Addon#optional-import-api)
+for optional machine-client setup, requests and error handling.

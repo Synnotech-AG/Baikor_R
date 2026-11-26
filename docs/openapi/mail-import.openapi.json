@@ -1,0 +1,708 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Baikor_R native IMAP import",
+    "version": "1.0.0",
+    "description": "All operations require baikor_admin. Credentials are write-only; responses contain only hasPassword. Only mail arriving after initial activation is discovered. Messages and flags remain unchanged. Unsafe requests retain the application CSRF requirement. Native import invokes the existing ZIP importer directly without a machine identity."
+  },
+  "servers": [
+    {
+      "url": "https://baikor.example.org"
+    }
+  ],
+  "security": [
+    {
+      "cookieAuth": []
+    },
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Native mail import",
+      "description": "Private administrator controls and durable attachment history."
+    }
+  ],
+  "paths": {
+    "/api/settings/mail-import": {
+      "get": {
+        "operationId": "getMailImportSettings",
+        "summary": "Read administrator-only mail settings",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveMailImportSettings",
+        "summary": "Save settings; first enable captures the current UID baseline",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSettings"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Obtain /api/antiforgery using the same authenticated identity and retain its cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/settings/mail-import/test": {
+      "post": {
+        "operationId": "testMailImportConnection",
+        "summary": "Test draft connection without saving or consuming messages",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionResult"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestConnection"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Obtain /api/antiforgery using the same authenticated identity and retain its cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/settings/mail-import/status": {
+      "get": {
+        "operationId": "getMailImportStatus",
+        "summary": "Read worker status",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        }
+      }
+    },
+    "/api/settings/mail-import/check": {
+      "post": {
+        "operationId": "checkMailImport",
+        "summary": "Schedule a mail check asynchronously",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "202": {
+            "description": "Success"
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Obtain /api/antiforgery using the same authenticated identity and retain its cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/settings/mail-import/history": {
+      "get": {
+        "operationId": "getMailImportHistory",
+        "summary": "Read paginated ZIP import history",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/api/settings/mail-import/history/{id}/retry": {
+      "post": {
+        "operationId": "retryMailImport",
+        "summary": "Retry an eligible failure in the current mailbox generation",
+        "tags": [
+          "Native mail import"
+        ],
+        "responses": {
+          "302": {
+            "description": "Unauthenticated: redirect to the identity provider."
+          },
+          "400": {
+            "description": "Invalid request or missing CSRF token."
+          },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
+          "403": {
+            "description": "Administrator role required."
+          },
+          "409": {
+            "description": "Settings version conflict."
+          },
+          "503": {
+            "description": "Mailbox or credential encryption unavailable."
+          },
+          "202": {
+            "description": "Success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "description": "Obtain /api/antiforgery using the same authenticated identity and retain its cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-BaikorR.Auth"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Settings": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "host",
+          "port",
+          "security",
+          "username",
+          "folder",
+          "pollIntervalSeconds",
+          "bufferMetres",
+          "version",
+          "hasPassword",
+          "encryptionConfigured"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "security": {
+            "type": "string",
+            "enum": [
+              "sslOnConnect",
+              "startTls"
+            ]
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "folder": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "pollIntervalSeconds": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 3600,
+            "default": 60
+          },
+          "bufferMetres": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 20,
+            "default": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "encryptionConfigured": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SaveSettings": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "host",
+          "port",
+          "security",
+          "username",
+          "folder",
+          "pollIntervalSeconds",
+          "bufferMetres",
+          "version"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "security": {
+            "type": "string",
+            "enum": [
+              "sslOnConnect",
+              "startTls"
+            ]
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "folder": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "pollIntervalSeconds": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 3600,
+            "default": 60
+          },
+          "bufferMetres": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 20,
+            "default": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4096,
+            "writeOnly": true,
+            "description": "Empty or omitted preserves the saved password for the same host, port, TLS mode and username. A different connection needs an explicitly supplied password, or clearPassword while disabled."
+          },
+          "clearPassword": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allowed only while disabled."
+          },
+          "resetCursor": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicitly starts from now and abandons pending work for the previous generation."
+          }
+        }
+      },
+      "TestConnection": {
+        "type": "object",
+        "required": [
+          "host",
+          "port",
+          "security",
+          "username",
+          "folder"
+        ],
+        "properties": {
+          "host": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "security": {
+            "type": "string",
+            "enum": [
+              "sslOnConnect",
+              "startTls"
+            ]
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "folder": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4096,
+            "writeOnly": true
+          },
+          "useSavedPassword": {
+            "type": "boolean",
+            "description": "Use the stored password only for the saved host, port, TLS mode and username. The folder can differ.",
+            "default": false
+          }
+        }
+      },
+      "ConnectionResult": {
+        "type": "object",
+        "required": [
+          "connected"
+        ],
+        "properties": {
+          "connected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "state",
+          "pendingCount",
+          "failedCount",
+          "importedCount"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "activatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "errorKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "pendingCount": {
+            "type": "integer"
+          },
+          "failedCount": {
+            "type": "integer"
+          },
+          "importedCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "HistoryItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "fileName",
+          "state",
+          "createdAt",
+          "warnings",
+          "attempts",
+          "canRetry"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdCount": {
+            "type": "integer",
+            "nullable": true
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errorKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "canRetry": {
+            "type": "boolean"
+          }
+        }
+      },
+      "History": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalCount": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,6 +2,7 @@ using BaikorR.Core.Persistence.Entities;
 using BaikorR.Core.Persistence.Detection;
 using BaikorR.Core.Persistence.Routes;
 using BaikorR.Core.Persistence.Alerts;
+using BaikorR.Core.Persistence.MailImports;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaikorR.Core.Persistence;
@@ -31,6 +32,10 @@ public sealed class BaikorRDbContext(DbContextOptions<BaikorRDbContext> options)
     public DbSet<AlertEvent> AlertEvents => Set<AlertEvent>();
     public DbSet<AlertDetectionWork> AlertDetectionWork => Set<AlertDetectionWork>();
     public DbSet<AlertScanRun> AlertScanRuns => Set<AlertScanRun>();
+    public DbSet<MailImportConfiguration> MailImportConfigurations => Set<MailImportConfiguration>();
+    public DbSet<MailImportWorkItem> MailImportWorkItems => Set<MailImportWorkItem>();
+    public DbSet<ArchiveImportReceipt> ArchiveImportReceipts => Set<ArchiveImportReceipt>();
+    public DbSet<MailImportLegacyReceipt> MailImportLegacyReceipts => Set<MailImportLegacyReceipt>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess) =>
         SaveChangesAsync(acceptAllChangesOnSuccess, CancellationToken.None).GetAwaiter().GetResult();
@@ -83,6 +88,7 @@ public sealed class BaikorRDbContext(DbContextOptions<BaikorRDbContext> options)
         RouteModelConfiguration.Configure(modelBuilder);
         AlertModelConfiguration.Configure(modelBuilder);
         DetectionModelConfiguration.Configure(modelBuilder);
+        MailImportModelConfiguration.Configure(modelBuilder);
 
         var constructionSite = modelBuilder.Entity<ConstructionSite>();
         constructionSite.ToTable("construction_sites", "baikor");

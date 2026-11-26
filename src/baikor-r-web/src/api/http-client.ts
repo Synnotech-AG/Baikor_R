@@ -8,11 +8,20 @@ export const httpClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+export const sessionProbeHeaders = { 'X-Baikor-Session-Probe': '1' }
+
 export function setAntiforgeryToken(token: string | null) {
   antiforgeryToken = token
 }
 
 httpClient.interceptors.request.use((config) => {
+  const pageUrl = new URL(globalThis.window?.location?.href ?? 'http://localhost/')
+  const target = new URL(httpClient.getUri(config), pageUrl)
+  if (target.origin !== pageUrl.origin || !target.pathname.startsWith('/api/')) {
+    config.headers.delete(['X-Baikor-Session', 'X-Baikor-Session-Probe', 'X-CSRF-TOKEN'])
+    return config
+  }
+  config.headers.set('X-Baikor-Session', '1')
   if (antiforgeryToken && config.method && config.method.toLowerCase() !== 'get') {
     config.headers.set('X-CSRF-TOKEN', antiforgeryToken)
   }

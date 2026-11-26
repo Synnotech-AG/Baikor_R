@@ -1,6 +1,7 @@
 """Run the real OIDC smoke test in a fresh, isolated Docker Compose project."""
 
 import argparse
+import base64
 import os
 from pathlib import Path
 import re
@@ -41,6 +42,8 @@ def main():
         BAIKOR_TEST_ADMIN_PASSWORD=secrets.token_urlsafe(32),
         BAIKOR_TEST_CLIENT_SECRET=secrets.token_urlsafe(32),
         BAIKOR_TEST_DB_PASSWORD=secrets.token_urlsafe(32),
+        BAIKOR_TEST_MAIL_PASSWORD=secrets.token_urlsafe(32),
+        BAIKOR_TEST_MAIL_ENCRYPTION_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
         BAIKOR_TEST_CERTIFICATES=certificates.as_posix(),
         BAIKOR_TEST_APP_IMAGE=image,
     )
@@ -53,7 +56,7 @@ def main():
         subprocess.run([
             openssl, "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2",
             "-subj", "/CN=Baikor disposable platform test",
-            "-addext", "subjectAltName=DNS:app,DNS:keycloak",
+            "-addext", "subjectAltName=DNS:app,DNS:keycloak,DNS:imap",
             "-keyout", str(certificates / "server.key"),
             "-out", str(certificates / "server.crt"),
         ], check=True, capture_output=True)

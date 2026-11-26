@@ -1,4 +1,5 @@
 using BaikorR.Core.Persistence.Entities;
+using BaikorR.Core.Features.MailImports;
 
 namespace BaikorR.Core.Persistence.Sessions;
 
@@ -10,6 +11,7 @@ public interface IConstructionSitesSession
         ConstructionSiteArchiveFilter archive = ConstructionSiteArchiveFilter.Active);
 
     Task<bool> HasImportedFileAsync(string fileHash, CancellationToken cancellationToken);
+    Task<IArchiveImportTransaction> BeginImportAsync(string fileHash, MailImportLease? mailLease, CancellationToken cancellationToken);
 
     Task<ConstructionSite?> GetAsync(Guid id, CancellationToken cancellationToken);
 

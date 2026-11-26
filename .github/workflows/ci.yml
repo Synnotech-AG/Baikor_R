@@ -40,6 +40,8 @@ jobs:
         run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/routes-alerts.openapi.json --extends minimal
       - name: Validate the construction site archive OpenAPI contract
         run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/construction-site-archive.openapi.json --extends minimal
+      - name: Validate the native mail import OpenAPI contract
+        run: npx --yes @redocly/cli@2.64.1 lint docs/openapi/mail-import.openapi.json --extends minimal
 
   platform-tests:
     name: Platform smoke tests

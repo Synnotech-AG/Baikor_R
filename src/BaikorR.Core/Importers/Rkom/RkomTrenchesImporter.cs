@@ -45,6 +45,17 @@ public sealed class RkomTrenchesImporter(
             return RkomTrenchesImportResults.InvalidFile(exception.Message);
         }
 
+        // Parsing is CPU work. Only the short persistence phase holds the duplicate/fence gate.
+        await using var transaction = await session.BeginImportAsync(fileHash, request.MailLease, cancellationToken);
+        if (!transaction.IsAuthorized)
+        {
+            return RkomTrenchesImportResults.Conflict();
+        }
+        if (transaction.IsDuplicate)
+        {
+            return RkomTrenchesImportResults.Duplicate();
+        }
+
         var batchId = Guid.NewGuid();
         var now = timeProvider.GetUtcNow();
         var typePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -89,6 +100,10 @@ public sealed class RkomTrenchesImporter(
         }
 
         if (!await session.SaveChangesAsync(cancellationToken))
+        {
+            return RkomTrenchesImportResults.Conflict();
+        }
+        if (!await transaction.CompleteAsync(cancellationToken))
         {
             return RkomTrenchesImportResults.Conflict();
         }

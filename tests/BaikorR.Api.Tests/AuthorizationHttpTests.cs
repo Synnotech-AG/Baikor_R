@@ -20,6 +20,132 @@ namespace BaikorR.Api.Tests;
 
 public sealed class AuthorizationHttpTests
 {
+    private static readonly DateTimeOffset SessionTestTime = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+
+    [Theory]
+    [InlineData("GET", "/api/me")]
+    [InlineData("POST", "/api/construction-sites")]
+    public async Task ExpiredBrowserSessionReturnsUnauthorizedBeforeControllerRuns(string method, string path)
+    {
+        await using var factory = CreateFactory(clock: new FixedTimeProvider(SessionTestTime));
+        using var client = CreateAuthenticatedClient(factory, ["baikor_editor"], "expired", new AuthenticationProperties
+        {
+            IssuedUtc = SessionTestTime.AddHours(-8),
+            ExpiresUtc = SessionTestTime.AddSeconds(-1)
+        });
+        using var request = new HttpRequestMessage(new HttpMethod(method), path);
+        request.Headers.Add("X-Baikor-Session", "1");
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Null(response.Headers.Location);
+        Assert.True(response.Headers.CacheControl?.NoStore);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
+    }
+
+    [Theory]
+    [InlineData("/api/me", true, true, "30", false)]
+    [InlineData("/api/construction-sites", true, true, "30", false)]
+    [InlineData("/api/me", false, true, "120", true)]
+    [InlineData("/api/me", false, false, "30", false)]
+    public async Task BrowserSessionReportsEffectiveCookieLifetime(
+        string path, bool passive, bool allowRefresh, string expectedSeconds, bool renewed)
+    {
+        await using var factory = CreateFactory(clock: new FixedTimeProvider(SessionTestTime));
+        using var client = CreateAuthenticatedClient(factory, ["baikor_viewer"], "viewer", new AuthenticationProperties
+        {
+            IssuedUtc = SessionTestTime.AddSeconds(-90),
+            ExpiresUtc = SessionTestTime.AddSeconds(30),
+            AllowRefresh = allowRefresh
+        });
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Add("X-Baikor-Session", "1");
+        if (passive)
+        {
+            request.Headers.Add("X-Baikor-Session-Probe", "1");
+        }
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(expectedSeconds, Assert.Single(response.Headers.GetValues("X-Baikor-Session-Remaining")));
+        Assert.True(response.Headers.CacheControl?.NoStore);
+        Assert.Equal(renewed, response.Headers.TryGetValues("Set-Cookie", out var cookies)
+            && cookies.Any(cookie => cookie.StartsWith("__Host-BaikorR.Auth=")));
+    }
+
+    [Fact]
+    public async Task BrowserSessionRoleFailureRemainsForbidden()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateAuthenticatedClient(factory, "baikor_viewer");
+        client.DefaultRequestHeaders.Add("X-Baikor-Session", "1");
+
+        using var response = await client.GetAsync("/api/settings/mail-import");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Null(response.Headers.Location);
+    }
+
+    [Fact]
+    public void BrowserSessionLifetimeCanBeConfigured()
+    {
+        using var factory = CreateFactory().WithWebHostBuilder(
+            builder => builder.UseSetting("Authentication:BrowserSessionLifetime", "00:00:20"));
+        var cookie = factory.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        Assert.Equal(TimeSpan.FromSeconds(20), cookie.ExpireTimeSpan);
+    }
+
+    [Fact]
+    public void BrowserSessionRejectsNonPositiveLifetime()
+    {
+        using var factory = CreateFactory().WithWebHostBuilder(
+            builder => builder.UseSetting("Authentication:BrowserSessionLifetime", "00:00:00"));
+
+        Assert.Contains("BrowserSessionLifetime", Assert.Throws<InvalidOperationException>(() => factory.Services).Message);
+    }
+
+    [Theory]
+    [InlineData("baikor_viewer")]
+    [InlineData("baikor_editor")]
+    [InlineData("baikor_approver")]
+    [InlineData("baikor_importer")]
+    public async Task EveryMailImportEndpointRequiresAdministrator(string role)
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateAuthenticatedClient(factory, role);
+        foreach (var (method, path) in new[]
+        {
+            ("GET", ""), ("PUT", ""), ("POST", "/test"), ("POST", "/check"),
+            ("GET", "/status"), ("GET", "/history"), ("POST", $"/history/{Guid.NewGuid()}/retry")
+        })
+        {
+            using var request = new HttpRequestMessage(new HttpMethod(method), "/api/settings/mail-import" + path);
+            using var response = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+    }
+
+    [Theory]
+    [InlineData("PUT", "")]
+    [InlineData("POST", "/test")]
+    [InlineData("POST", "/check")]
+    [InlineData("POST", "/history/00000000-0000-0000-0000-000000000001/retry")]
+    public async Task MailImportCookieMutationsRequireAntiforgery(string method, string path)
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateAuthenticatedClient(factory, "baikor_admin");
+        using var request = new HttpRequestMessage(new HttpMethod(method), "/api/settings/mail-import" + path)
+        {
+            Content = JsonContent.Create(new { })
+        };
+        using var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Theory]
     [InlineData("/")]
     [InlineData("/construction-sites")]
@@ -84,6 +210,8 @@ public sealed class AuthorizationHttpTests
 
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
         Assert.Equal("https://identity.example.invalid/authorize", login.Headers.Location?.GetLeftPart(UriPartial.Path));
+        var parameters = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(login.Headers.Location!.Query);
+        Assert.Equal("login", parameters["prompt"].ToString());
     }
 
     [Theory]
@@ -441,7 +569,7 @@ public sealed class AuthorizationHttpTests
     });
 
     private static WebApplicationFactory<Host.Program> CreateFactory(
-        InMemoryConstructionSitesSession? database = null, string? webRoot = null) =>
+        InMemoryConstructionSitesSession? database = null, string? webRoot = null, TimeProvider? clock = null) =>
         new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
         {
             if (webRoot is not null)
@@ -456,6 +584,11 @@ public sealed class AuthorizationHttpTests
             {
                 services.RemoveAll<IConstructionSitesSession>();
                 services.AddSingleton<IConstructionSitesSession>(database ?? new InMemoryConstructionSitesSession());
+                if (clock is not null)
+                {
+                    services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme,
+                        options => options.TimeProvider = clock);
+                }
                 services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
                     options.Configuration = new OpenIdConnectConfiguration
                     {
@@ -472,7 +605,8 @@ public sealed class AuthorizationHttpTests
         CreateAuthenticatedClient(factory, roles, "test-user");
 
     private static HttpClient CreateAuthenticatedClient(
-        WebApplicationFactory<Host.Program> factory, string[] roles, string userId)
+        WebApplicationFactory<Host.Program> factory, string[] roles, string userId,
+        AuthenticationProperties? properties = null)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -485,7 +619,7 @@ public sealed class AuthorizationHttpTests
             [new Claim("sub", userId), new Claim("preferred_username", "Test")],
             scheme, "preferred_username", "roles");
         identity.AddClaims(roles.Select(role => new Claim("roles", role)));
-        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), scheme);
+        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), properties, scheme);
         client.DefaultRequestHeaders.Add("Cookie", options.Cookie.Name + "=" + options.TicketDataFormat.Protect(ticket));
         return client;
     }

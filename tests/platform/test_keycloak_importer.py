@@ -174,6 +174,13 @@ def main():
         ("edit alert rules", "PUT", "/api/alerts/rules/route-conflict"),
         ("scan alerts", "POST", "/api/alerts/scans"),
         ("read detection status", "GET", "/api/alerts/detection-status"),
+        ("read mail settings", "GET", "/api/settings/mail-import"),
+        ("edit mail settings", "PUT", "/api/settings/mail-import"),
+        ("test mailbox", "POST", "/api/settings/mail-import/test"),
+        ("check mailbox", "POST", "/api/settings/mail-import/check"),
+        ("read mail status", "GET", "/api/settings/mail-import/status"),
+        ("read mail history", "GET", "/api/settings/mail-import/history"),
+        ("retry mail", "POST", "/api/settings/mail-import/history/00000000-0000-0000-0000-000000000001/retry"),
     ):
         status, _, _ = session.request(app + path, method, headers=headers)
         check("machine token cannot " + label, status, 403)

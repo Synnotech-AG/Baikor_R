@@ -34,6 +34,17 @@ dataProtection:
     size: 1Gi
     storageClassName: ""
 
+mailImports:
+  # The worker remains idle until an administrator enables a mailbox in Baikor.
+  workerEnabled: true
+  encryption:
+    # Operator-provided Secret containing a base64-encoded random 32-byte key as
+    # its value. All application instances sharing the database need this key.
+    # No key is generated or stored in Helm values/release state.
+    existingSecret:
+      name: ""
+      key: key
+
 database:
   # Public CA bundle only; never mount the database server's private key.
   caConfigMap: ""

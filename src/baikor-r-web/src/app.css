@@ -1208,6 +1208,50 @@
   padding: 64px 28px;
 }
 
+.mail-import-card {
+  margin-top: 24px;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+.mail-import-card > .ant-card-body > .ant-alert,
+.mail-import-card > .ant-card-body > .ant-space,
+.mail-import-card > .ant-card-body > .ant-descriptions {
+  margin-bottom: 16px;
+}
+
+.mail-import-form {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.mail-import-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mail-import-form-row label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.mail-import-form-row .ant-select,
+.mail-import-form-row .ant-input-number {
+  width: 100%;
+}
+
+.mail-import-form small {
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 480px) {
+  .mail-import-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .import-card {
   background: var(--color-surface);
   border-color: var(--color-border);

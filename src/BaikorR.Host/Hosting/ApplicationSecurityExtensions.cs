@@ -13,6 +13,7 @@ namespace BaikorR.Host.Hosting;
 internal static class ApplicationSecurityExtensions
 {
     private const string BrowserOrBearerScheme = "BrowserOrBearer";
+    private const string BrowserChallengeScheme = "BrowserChallenge";
 
     public static WebApplicationBuilder AddApplicationSecurity(
         this WebApplicationBuilder builder,
@@ -79,8 +80,12 @@ internal static class ApplicationSecurityExtensions
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = BrowserOrBearerScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = BrowserChallengeScheme;
             })
+            .AddPolicyScheme(BrowserChallengeScheme, BrowserChallengeScheme, options =>
+                options.ForwardDefaultSelector = context => BrowserSession.IsApiRequest(context.Request)
+                    ? CookieAuthenticationDefaults.AuthenticationScheme
+                    : OpenIdConnectDefaults.AuthenticationScheme)
             .AddPolicyScheme(BrowserOrBearerScheme, BrowserOrBearerScheme, options =>
             {
                 options.ForwardDefaultSelector = context =>
@@ -96,8 +101,16 @@ internal static class ApplicationSecurityExtensions
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.ExpireTimeSpan = configuration.BrowserSessionLifetime;
                 options.SlidingExpiration = true;
+                options.Events.OnCheckSlidingExpiration = BrowserSession.CheckSlidingExpiration;
+                options.Events.OnValidatePrincipal = BrowserSession.ReportRemainingLifetime;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.Headers.CacheControl = "no-store";
+                    return Task.CompletedTask;
+                };
                 options.Events.OnRedirectToAccessDenied = context =>
                 {
                     // The SPA fallback is protected too; redirecting to the default
@@ -169,6 +182,11 @@ internal static class ApplicationSecurityExtensions
 
     private static void EnsureOpenIdConnectConfiguration(AuthenticationConfiguration configuration)
     {
+        if (configuration.BrowserSessionLifetime <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("Authentication:BrowserSessionLifetime must be positive.");
+        }
+
         if (string.IsNullOrWhiteSpace(configuration.Authority))
         {
             throw new InvalidOperationException("Authentication:Authority must be configured.");

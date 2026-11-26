@@ -1,4 +1,4 @@
-# Real Keycloak account smoke tests
+# Real Keycloak and IMAP smoke tests
 
 Run the same disposable integration test used by CI from the repository root:
 
@@ -18,8 +18,8 @@ python tests/platform/run_ci.py --image baikor-r:local
 
 The runner builds the real application Dockerfile, generates a short-lived TLS
 certificate and random fixture credentials, and starts a uniquely named Compose
-project with PostGIS, Keycloak, database migrations, the application and the
-Python smoke client. HTTPS uses private Docker service names (`app`, `keycloak`)
+project with PostGIS, Keycloak, Dovecot, database migrations, the application and
+the Python smoke client. TLS uses private Docker service names (`app`, `keycloak`, `imap`)
 with explicit certificate trust. No ports are published. PostGIS data is kept in
 container-local temporary storage; no existing containers or volumes are reused.
 The imported `baikor-ci` realm is synthetic and its client matches the addon's
@@ -43,6 +43,21 @@ that file, never raw authentication logs, tokens, credentials or certificates.
 An interrupted Docker daemon or force-killed runner may prevent cleanup; identify
 any leftover resources by the printed `baikor-platform-<random>` Compose project
 name before removing that project. Ordinary failures return a nonzero exit code.
+
+Native email checks use the pinned official rootless `dovecot/dovecot:2.4.3`
+image with a container-local temporary mail store. The runner generates a random
+mail password and a separate 32-byte mail encryption key for every run. Its TLS
+certificate is explicitly trusted by both the application and Python client;
+the tests exercise implicit TLS and required STARTTLS without bypassing
+certificate checks. No IMAP port is published and no real mailbox is used.
+
+The mail checks verify administrator permissions and cookie CSRF, saved-password
+redaction and connection testing, a first-enable baseline that skips old mail,
+new read/unread messages, independent attachment failures, duplicate receipts,
+explicit retry, pause/resume, and imported records in the normal construction-site
+API. They compare original message bytes and read/flagged flags afterwards, and
+verify that messages were neither moved nor deleted. These checks run only in
+the disposable `baikor-ci` environment mode, never against the existing Core profile.
 
 Run the CLI guard checks separately:
 

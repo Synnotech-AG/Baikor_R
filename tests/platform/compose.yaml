@@ -1,5 +1,17 @@
 # No published ports or shared volumes: this stack cannot target a local Core deployment.
 services:
+  imap:
+    image: dovecot/dovecot:2.4.3
+    environment:
+      USER_PASSWORD: ${BAIKOR_TEST_MAIL_PASSWORD:?Use run_ci.py}
+    volumes:
+      - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}/server.crt:/etc/dovecot/ssl/tls.crt:ro
+      - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}/server.key:/etc/dovecot/ssl/tls.key:ro
+    tmpfs:
+      - /srv/vmail:uid=1000,gid=1000
+      - /run/dovecot:uid=1000,gid=1000
+      - /tmp
+
   postgis:
     image: postgis/postgis:16-3.4
     environment:
@@ -50,12 +62,15 @@ services:
       Authentication__Authority: https://keycloak:8443/realms/baikor-ci
       Authentication__ClientId: baikor-r
       Authentication__ClientSecret: ${BAIKOR_TEST_CLIENT_SECRET:?Use run_ci.py}
+      MailImports__EncryptionKey: ${BAIKOR_TEST_MAIL_ENCRYPTION_KEY:?Use run_ci.py}
     volumes:
       - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}:/certificates:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
       keycloak:
+        condition: service_started
+      imap:
         condition: service_started
 
   smoke:
@@ -64,6 +79,7 @@ services:
     environment:
       BAIKOR_TEST_ADMIN_USERNAME: ${BAIKOR_TEST_ADMIN_USERNAME:?Use run_ci.py}
       BAIKOR_TEST_ADMIN_PASSWORD: ${BAIKOR_TEST_ADMIN_PASSWORD:?Use run_ci.py}
+      BAIKOR_TEST_MAIL_PASSWORD: ${BAIKOR_TEST_MAIL_PASSWORD:?Use run_ci.py}
       PYTHONUNBUFFERED: "1"
       PYTHONDONTWRITEBYTECODE: "1"
     volumes:

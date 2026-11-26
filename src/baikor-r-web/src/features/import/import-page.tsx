@@ -16,43 +16,27 @@ import { useTranslation } from 'react-i18next'
 import { useImportTrenchesEndpoint } from '../../api/endpoints/use-import-trenches-endpoint'
 import type { ImportTrenchesResponse } from '../../api/endpoints/use-import-trenches-endpoint'
 import { parseApiError } from '../../api/errors'
+import { MailImportSection } from './mail-import-section'
+import { describeImportWarning } from './import-warning'
 
 interface ImportPageProps {
   enabled: boolean
+  canAdmin?: boolean
+  antiforgeryReady?: boolean
   onViewSites?: () => void
 }
 
-export function ImportPage({ enabled, onViewSites }: ImportPageProps) {
+export function ImportPage({
+  enabled,
+  canAdmin = false,
+  antiforgeryReady = false,
+  onViewSites,
+}: ImportPageProps) {
   const { t, i18n } = useTranslation()
   const { notification } = AntApp.useApp()
   const [file, setFile] = useState<File | null>(null)
   const [result, setResult] = useState<ImportTrenchesResponse | null>(null)
   const { execute: importTrenches, isLoading } = useImportTrenchesEndpoint()
-
-  const describeWarning = (warning: string) => {
-    if (
-      warning ===
-      'The source contains line geometries without a construction width; each line was buffered using the configured area buffer.'
-    ) {
-      return t('importUx.warnings.buffered')
-    }
-    const skipped = warning.match(
-      /^(\d+) house-connection features were skipped because they do not affect public space\.$/,
-    )
-    if (skipped) {
-      return t('importUx.warnings.skipped', { count: Number(skipped[1]) })
-    }
-    if (
-      warning ===
-      "Source statuses 'Executed' and 'Documented' are mapped to Active. 'Canceled' is mapped to Draft and retained in metadata."
-    ) {
-      return t('importUx.warnings.statuses', {
-        active: t('constructionSites.status.active'),
-        draft: t('constructionSites.status.draft'),
-      })
-    }
-    return warning
-  }
 
   const importFile = async () => {
     if (!file || !enabled) {
@@ -132,7 +116,7 @@ export function ImportPage({ enabled, onViewSites }: ImportPageProps) {
                   description={
                     <ul>
                       {result.warnings.map((warning, index) => (
-                        <li key={`${index}-${warning}`}>{describeWarning(warning)}</li>
+                        <li key={`${index}-${warning}`}>{describeImportWarning(warning, t)}</li>
                       ))}
                     </ul>
                   }
@@ -185,6 +169,7 @@ export function ImportPage({ enabled, onViewSites }: ImportPageProps) {
           )}
         </div>
       </Card>
+      {canAdmin && <MailImportSection canAdmin={canAdmin} antiforgeryReady={antiforgeryReady} />}
     </main>
   )
 }

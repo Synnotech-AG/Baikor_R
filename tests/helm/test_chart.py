@@ -46,6 +46,32 @@ class HelmChartTests(unittest.TestCase):
         self.assertNotIn("NetworkPolicy", [item["kind"] for item in manifests])
         self.assertNotIn("Job", [item["kind"] for item in manifests])
 
+    def test_mail_worker_can_run_without_a_configured_mailbox_key(self):
+        deployment = self.resource(self.render(), "Deployment")
+        env = {entry["name"]: entry for entry in deployment["spec"]["template"]["spec"]["containers"][0]["env"]}
+        self.assertEqual(env.get("MailImports__WorkerEnabled"), {
+            "name": "MailImports__WorkerEnabled", "value": "true"})
+        self.assertNotIn("MailImports__EncryptionKey", env)
+
+    def test_mail_key_is_only_referenced_by_application_not_migration(self):
+        manifests = self.render({"database": {"existingSecret": {"name": "database"}},
+                                 "mailImports": {"encryption": {"existingSecret": {
+                                     "name": "shared-mail-key", "key": "encryption-key"}}}})
+        app = self.resource(manifests, "Deployment")["spec"]["template"]["spec"]["containers"][0]
+        env = {entry["name"]: entry for entry in app["env"]}
+        self.assertEqual(env.get("MailImports__EncryptionKey"), {
+            "name": "MailImports__EncryptionKey", "valueFrom": {"secretKeyRef": {
+                "name": "shared-mail-key", "key": "encryption-key", "optional": True}}})
+        migration = self.resource(manifests, "Job")["spec"]["template"]["spec"]["containers"][0]
+        self.assertNotIn("MailImports__EncryptionKey", [entry["name"] for entry in migration.get("env", [])])
+        self.assertNotIn("Secret", [item["kind"] for item in manifests])
+
+    def test_mail_worker_can_be_disabled_without_disabling_the_application(self):
+        deployment = self.resource(self.render({"mailImports": {"workerEnabled": False}}), "Deployment")
+        env = {entry["name"]: entry for entry in deployment["spec"]["template"]["spec"]["containers"][0]["env"]}
+        self.assertEqual(env.get("MailImports__WorkerEnabled"), {
+            "name": "MailImports__WorkerEnabled", "value": "false"})
+
     def test_migration_gets_resources_for_each_database_configuration(self):
         for database in ({"existingSecret": {"name": "runtime-database"}},
                          {"migrationExistingSecret": {"name": "owner-database"}},

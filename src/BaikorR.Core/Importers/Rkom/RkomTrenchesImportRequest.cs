@@ -1,4 +1,6 @@
 using FluentValidation;
+using BaikorR.Core.Features.MailImports;
+using System.Text.Json.Serialization;
 
 namespace BaikorR.Core.Importers.Rkom;
 
@@ -7,6 +9,9 @@ public sealed record RkomTrenchesImportRequest(
     byte[] Content,
     double BufferMetres = 1)
 {
+    [JsonIgnore]
+    public MailImportLease? MailLease { get; init; }
+
     public sealed class Validator : AbstractValidator<RkomTrenchesImportRequest>
     {
         private const int MaximumFileSize = 25 * 1024 * 1024;

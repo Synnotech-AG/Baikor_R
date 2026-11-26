@@ -6,6 +6,7 @@ import { workspaceDe, workspaceEn } from './workspace-messages'
 import { recordDe, recordEn } from './record-messages'
 import { geometryDe, geometryEn } from './geometry-messages'
 import { importDe, importEn } from './import-messages'
+import { mailImportDe, mailImportEn } from '../features/import/mail-import-messages'
 import { paneDe, paneEn } from './pane-messages'
 import { dockingDe, dockingEn } from './docking-messages'
 import { routeDe, routeEn } from '../features/routes/route-messages'
@@ -501,6 +502,7 @@ void i18n.use(initReactI18next).init({
         ...recordDe,
         ...geometryDe,
         ...importDe,
+        ...mailImportDe,
         ...paneDe,
         ...dockingDe,
         ...routeDe,
@@ -517,6 +519,7 @@ void i18n.use(initReactI18next).init({
         ...recordEn,
         ...geometryEn,
         ...importEn,
+        ...mailImportEn,
         ...paneEn,
         ...dockingEn,
         ...routeEn,

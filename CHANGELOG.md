@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Show the signed-out page when an open browser session expires, including
+  after an idle tab resumes. “Erneut anmelden” opens the Keycloak login form.
+- Add administrator-configured native IMAP import on the Import page, with a
+  built-in background worker, connection testing, pause/resume, status, history
+  and retries. Initial activation starts with new mail and leaves messages and
+  flags unchanged.
+- Encrypt mailbox credentials with a dedicated shared deployment key and retain
+  durable import progress across restarts. Coordinate workers and archive
+  receipts to prevent duplicate imports across mail and manual uploads.
+- Add persistent mail-key provisioning and a documented cutover from the
+  dedicated Node-RED workflow, including legacy duplicate-receipt migration.
+
 ## 0.3.2 — 2026-11-26
 
 - Start a new Keycloak login from the signed-out page and prevent browser caching

@@ -1,5 +1,21 @@
 # Application OpenAPI contracts
 
+Baikor's web client sends `X-Baikor-Session: 1` on same-origin API calls. A
+missing or expired authentication cookie produces HTTP 401 on protected routes.
+Successful authenticated cookie responses report the remaining ticket lifetime in seconds
+in `X-Baikor-Session-Remaining`. For a passive GET such as the expiry check
+at `/api/me`, the browser also sends `X-Baikor-Session-Probe: 1` to preserve
+the current deadline. HTTP 403 indicates the authenticated user lacks permission.
+Ordinary browser navigation and unmarked clients use the existing OIDC challenge.
+
+[mail-import.openapi.json](mail-import.openapi.json) documents the private
+administrator settings, connection test, status, history and worker controls for
+native IMAP import. Passwords are write-only, connection tests do not save or
+consume messages, and the first successful enable starts with new mail. All mail
+endpoints require `baikor_admin`; unsafe requests retain CSRF protection. See
+[native mail operations](../MAIL_IMPORTS.md) for the dedicated encryption key,
+recovery and the migration from an existing mail workflow.
+
 [construction-site-archive.openapi.json](construction-site-archive.openapi.json)
 documents construction-site listing, UUID reads, archive and restore. Listing
 defaults to `GET /api/construction-sites?archive=active`; use `archive=archived`

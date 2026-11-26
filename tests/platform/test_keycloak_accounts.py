@@ -210,6 +210,13 @@ def main():
                 check("access-denied page offers logout", 'action="/auth/logout"' in page, True)
 
         editor, viewer, approver = sessions["editor"], sessions["viewer"], sessions["approver"]
+        anonymous = Session(context)
+        status, _, _ = anonymous.request(base + "/api/me", headers={"X-Baikor-Session": "1"})
+        check("browser API reports missing session directly", status, 401)
+        status, form, form_url = viewer.request(base + "/auth/login")
+        check("explicit sign-in with active SSO opens the Keycloak login form",
+              status == 200 and urllib.parse.urlsplit(form_url).netloc == urllib.parse.urlsplit(args.keycloak_url).netloc
+              and any("password" in item["fields"] for item in Forms(form).forms), True)
         status, record = editor.api(base, "/api/construction-sites", "POST", payload(marker))
         check("editor creates record", status, 201)
         if status != 201:
@@ -241,6 +248,8 @@ def main():
         if args.admin_source == "environment" and args.realm == "baikor-ci":
             from routes_alerts_checks import verify_routes_alerts
             verify_routes_alerts(base, sessions, marker, check)
+            from mail_import_checks import verify_mail_import
+            verify_mail_import(base, sessions, marker, check, context)
 
         boundary = "baikor-test-" + secrets.token_hex(8)
         attachment_data = (

@@ -11,6 +11,7 @@ builder
     .AddRouteFeatures()
     .AddAlertFeatures()
     .AddAlertDetection()
+    .AddMailImports()
     .AddApplicationSecurity(runMigrations)
     .AddApplicationWeb();
 

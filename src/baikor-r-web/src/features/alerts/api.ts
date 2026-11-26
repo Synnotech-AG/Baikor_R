@@ -1,4 +1,4 @@
-import { httpClient } from '../../api/http-client'
+import { httpClient, sessionProbeHeaders } from '../../api/http-client'
 import { useEndpoint } from '../../api/use-endpoint'
 import { buildAlertQuery } from './alert-model'
 import type {
@@ -21,6 +21,7 @@ export async function getAlerts(
   return (
     await httpClient.get<PagedAlerts>('/api/alerts', {
       params: buildAlertQuery(filters, page, pageSize),
+      headers: sessionProbeHeaders,
       signal,
     })
   ).data
@@ -38,7 +39,12 @@ export async function getAlertEvidence(id: string, revision: number, signal?: Ab
   ).data
 }
 export async function getDetectionStatus(signal?: AbortSignal) {
-  return (await httpClient.get<DetectionStatus>('/api/alerts/detection-status', { signal })).data
+  return (
+    await httpClient.get<DetectionStatus>('/api/alerts/detection-status', {
+      signal,
+      headers: sessionProbeHeaders,
+    })
+  ).data
 }
 export async function getRouteConflictRule(signal?: AbortSignal) {
   return (await httpClient.get<RouteConflictRule>('/api/alerts/rules/route-conflict', { signal }))

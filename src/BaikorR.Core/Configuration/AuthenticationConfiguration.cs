@@ -12,5 +12,7 @@ public sealed class AuthenticationConfiguration
 
     public string ClientSecret { get; set; } = string.Empty;
 
+    public TimeSpan BrowserSessionLifetime { get; set; } = TimeSpan.FromHours(8);
+
     public bool AllowInvalidServerCertificate { get; set; }
 }

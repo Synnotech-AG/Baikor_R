@@ -65,6 +65,8 @@ function App() {
       </div>
       {page === 'import' && (
         <ImportPage
+          canAdmin={session?.roles.includes('baikor_admin') ?? false}
+          antiforgeryReady={token !== null}
           onViewSites={() => requestPageChange('constructionSites')}
           enabled={
             token !== null && (session?.roles.some((role) => editorRoles.includes(role)) ?? false)

@@ -1,5 +1,4 @@
 using BaikorR.Core.Configuration;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -16,7 +15,7 @@ public sealed class LoginController(IOptions<AuthenticationConfiguration> authen
         var redirectUri = LocalReturnUrl(returnUrl);
         return authenticationConfiguration.Value.Enabled
             ? Challenge(
-                new AuthenticationProperties { RedirectUri = redirectUri },
+                new OpenIdConnectChallengeProperties { RedirectUri = redirectUri, Prompt = "login" },
                 OpenIdConnectDefaults.AuthenticationScheme)
             : Redirect(redirectUri);
     }

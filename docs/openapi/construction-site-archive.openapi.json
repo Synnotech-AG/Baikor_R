@@ -115,6 +115,7 @@
               }
             }
           },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
           "403": {
             "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
           }
@@ -190,6 +191,7 @@
               }
             }
           },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
           "403": {
             "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
           },
@@ -254,6 +256,7 @@
           "400": {
             "description": "Missing/invalid antiforgery token. Framework response shape is not guaranteed."
           },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
           "403": {
             "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
           },
@@ -387,6 +390,7 @@
           "400": {
             "description": "Empty/invalid selection uses api.validation.failed with field ids and constructionSites.bulkDelete.emptySelection or constructionSites.bulkDelete.invalidIdentifiers. Binding and antiforgery errors may use another shape."
           },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
           "403": {
             "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
           },
@@ -513,6 +517,7 @@
           "400": {
             "description": "Missing version, invalid JSON/uint version, or missing/invalid antiforgery token. Framework response shape is not guaranteed."
           },
+          "401": { "description": "The Baikor web client sent X-Baikor-Session: 1 without a valid browser session." },
           "403": {
             "description": "The authenticated principal lacks the required role. The import-only baikor_importer role cannot use these endpoints. No stable JSON error envelope is guaranteed."
           },

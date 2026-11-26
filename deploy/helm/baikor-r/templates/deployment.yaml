@@ -47,6 +47,16 @@ spec:
               value: {{ .Values.telemetry.metrics.port | quote }}
             - name: DataProtection__KeysPath
               value: {{ .Values.dataProtection.keysPath | quote }}
+            - name: MailImports__WorkerEnabled
+              value: {{ .Values.mailImports.workerEnabled | quote }}
+            {{- if .Values.mailImports.encryption.existingSecret.name }}
+            - name: MailImports__EncryptionKey
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mailImports.encryption.existingSecret.name | quote }}
+                  key: {{ .Values.mailImports.encryption.existingSecret.key | quote }}
+                  optional: true
+            {{- end }}
             - name: Authentication__Enabled
               value: {{ .Values.authentication.enabled | quote }}
             {{- if .Values.authentication.enabled }}
