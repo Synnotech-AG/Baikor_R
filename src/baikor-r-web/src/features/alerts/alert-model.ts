@@ -119,6 +119,20 @@ export function detectionHealth(status: DetectionStatus | null) {
   if (status?.pendingCount) {
     return 'pending'
   }
+  const scan = status?.latestScan
+  const lastEvaluatedAt = status?.lastEvaluatedAt
+  if (
+    scan?.state === 'completed' &&
+    scan.totalCount === 0 &&
+    scan.completedCount === 0 &&
+    scan.failedCount === 0 &&
+    (lastEvaluatedAt === null ||
+      (scan.completedAt &&
+        lastEvaluatedAt &&
+        Date.parse(scan.completedAt) > Date.parse(lastEvaluatedAt)))
+  ) {
+    return 'empty'
+  }
   return status?.lastEvaluatedAt ? 'current' : 'unknown'
 }
 

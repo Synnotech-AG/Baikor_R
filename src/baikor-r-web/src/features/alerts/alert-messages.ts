@@ -46,6 +46,7 @@ export const alertDe = {
   'alerts.failed': 'Hinweise konnten nicht geladen oder gespeichert werden.',
   'alerts.status.unknown':
     'Auswertung noch nicht bestätigt. Eine leere Liste bestätigt keine Konfliktfreiheit.',
+  'alerts.status.empty': 'Keine Routen zur Auswertung vorhanden.',
   'alerts.status.paused':
     'Erkennung pausiert: {{types}}. Bisherige Hinweise bleiben erhalten; neue oder geänderte Konflikte werden für diese Typen nicht geprüft.',
   'alerts.status.failed':
@@ -153,6 +154,7 @@ export const alertEn: Record<keyof typeof alertDe, string> = {
   'alerts.failed': 'Alerts could not be loaded or saved.',
   'alerts.status.unknown':
     'Evaluation has not been confirmed. An empty list does not confirm the absence of conflicts.',
+  'alerts.status.empty': 'No routes available for evaluation.',
   'alerts.status.paused':
     'Detection paused: {{types}}. Existing alerts are retained; new or changed conflicts are not evaluated for these types.',
   'alerts.status.failed': '{{count}} evaluation(s) failed. Previous results are retained.',

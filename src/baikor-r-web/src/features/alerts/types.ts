@@ -118,6 +118,7 @@ export interface RouteConflictRule {
 export interface AlertScan {
   id: string
   state: string
+  completedAt?: string | null
   totalCount: number
   completedCount: number
   failedCount: number

@@ -385,6 +385,99 @@ test('empty results cannot imply an all-clear while evaluation is unknown, pendi
   )
 })
 
+test('a completed scan with no route partitions is empty before any evaluation or after an older one', () => {
+  assert.deepEqual(
+    [null, '2026-10-28'].map((lastEvaluatedAt) =>
+      detectionHealth({
+        pendingCount: 0,
+        failedCount: 0,
+        lastEvaluatedAt,
+        latestScan: {
+          state: 'completed',
+          totalCount: 0,
+          completedCount: 0,
+          failedCount: 0,
+          completedAt: '2026-10-29T10:00:00Z',
+        },
+      }),
+    ),
+    ['empty', 'empty'],
+  )
+})
+
+test('stale or unconfirmed empty scans cannot override an actual evaluation', () => {
+  for (const completedAt of [undefined, null, 'invalid', '2026-10-27', '2026-10-28']) {
+    assert.equal(
+      detectionHealth({
+        pendingCount: 0,
+        failedCount: 0,
+        lastEvaluatedAt: '2026-10-28',
+        latestScan: {
+          state: 'completed',
+          totalCount: 0,
+          completedCount: 0,
+          failedCount: 0,
+          completedAt,
+        },
+      }),
+      'current',
+    )
+  }
+  assert.equal(
+    detectionHealth({
+      pendingCount: 0,
+      failedCount: 0,
+      lastEvaluatedAt: 'invalid',
+      latestScan: {
+        state: 'completed',
+        totalCount: 0,
+        completedCount: 0,
+        failedCount: 0,
+        completedAt: '2026-10-29T10:00:00Z',
+      },
+    }),
+    'current',
+  )
+})
+
+test('failed, paused and pending work take precedence over a completed empty scan', () => {
+  const empty = {
+    pendingCount: 0,
+    failedCount: 0,
+    lastEvaluatedAt: null,
+    latestScan: { state: 'completed', totalCount: 0, completedCount: 0, failedCount: 0 },
+  }
+  assert.equal(
+    detectionHealth({ ...empty, failedCount: 1, pausedTypes: ['routeConflict'], pendingCount: 2 }),
+    'failed',
+  )
+  assert.equal(
+    detectionHealth({ ...empty, pausedTypes: ['routeConflict'], pendingCount: 2 }),
+    'paused',
+  )
+  assert.equal(detectionHealth({ ...empty, pendingCount: 2 }), 'pending')
+})
+
+test('unfinished, failed, nonempty and malformed scans cannot establish an empty scope', () => {
+  const zero = { state: 'completed', totalCount: 0, completedCount: 0, failedCount: 0 }
+  for (const latestScan of [
+    null,
+    undefined,
+    {},
+    ...['pending', 'scanning', 'running', 'failed'].map((state) => ({ ...zero, state })),
+    ...['totalCount', 'completedCount', 'failedCount'].flatMap((field) =>
+      [undefined, null, '0', false, -1, 1].map((count) => ({ ...zero, [field]: count })),
+    ),
+  ]) {
+    for (const lastEvaluatedAt of [null, '2026-10-28']) {
+      assert.equal(
+        detectionHealth({ pendingCount: 0, failedCount: 0, lastEvaluatedAt, latestScan }),
+        lastEvaluatedAt ? 'current' : 'unknown',
+      )
+    }
+  }
+})
+
 test('failed work takes health priority while paused detectors never appear current or merely pending', () => {
   const paused = {
     pendingCount: 0,

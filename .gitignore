@@ -46,6 +46,7 @@ Desktop.ini
 *.log
 
 # Local configuration, credentials, and certificates
+/baikor-access/
 .env
 .env.*
 !.env.example

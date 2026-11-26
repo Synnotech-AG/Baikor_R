@@ -22,6 +22,72 @@ public sealed class AuthorizationHttpTests
 {
     [Theory]
     [InlineData("/")]
+    [InlineData("/construction-sites")]
+    [InlineData("/index.html")]
+    public async Task AppShellCannotBeStoredAcrossLoginAndLogout(string path)
+    {
+        var webRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../src/baikor-r-web"));
+        await using var factory = CreateFactory(webRoot: webRoot);
+        using var client = CreateAuthenticatedClient(factory, "baikor_viewer");
+
+        using var response = await client.GetAsync(path);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("<div id=\"root\"></div>", await response.Content.ReadAsStringAsync());
+        Assert.True(response.Headers.CacheControl?.NoStore);
+    }
+
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/construction-sites")]
+    public async Task RevalidatingAppShellAfterLogoutRequiresLogin(string path)
+    {
+        var webRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../src/baikor-r-web"));
+        await using var factory = CreateFactory(webRoot: webRoot);
+        using var client = CreateAuthenticatedClient(factory, "baikor_viewer");
+        using var authenticated = await client.GetAsync(path);
+        Assert.Equal(HttpStatusCode.OK, authenticated.StatusCode);
+        Assert.NotNull(authenticated.Headers.ETag);
+        Assert.NotNull(authenticated.Content.Headers.LastModified);
+        client.DefaultRequestHeaders.Remove("Cookie");
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.IfNoneMatch.Add(authenticated.Headers.ETag);
+        request.Headers.IfModifiedSince = authenticated.Content.Headers.LastModified;
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("https://identity.example.invalid/authorize", response.Headers.Location?.GetLeftPart(UriPartial.Path));
+    }
+
+    [Fact]
+    public async Task SignedOutPageOffersAnExplicitLoginChallenge()
+    {
+        var webRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../src/baikor-r-web/public"));
+        await using var factory = CreateFactory(webRoot: webRoot);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        using var signedOut = await client.GetAsync("/signed-out.html");
+        Assert.Equal(HttpStatusCode.OK, signedOut.StatusCode);
+        var html = await signedOut.Content.ReadAsStringAsync();
+        var link = Regex.Match(html, "<a href=\"([^\"]+)\"");
+        Assert.True(link.Success);
+        Assert.Equal("/auth/login", link.Groups[1].Value);
+
+        using var login = await client.GetAsync(link.Groups[1].Value);
+
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        Assert.Equal("https://identity.example.invalid/authorize", login.Headers.Location?.GetLeftPart(UriPartial.Path));
+    }
+
+    [Theory]
+    [InlineData("/")]
     [InlineData("/Account/AccessDenied")]
     [InlineData("/api/me")]
     [InlineData("/api/construction-sites")]
@@ -374,9 +440,14 @@ public sealed class AuthorizationHttpTests
         version = 0u
     });
 
-    private static WebApplicationFactory<Host.Program> CreateFactory(InMemoryConstructionSitesSession? database = null) =>
+    private static WebApplicationFactory<Host.Program> CreateFactory(
+        InMemoryConstructionSitesSession? database = null, string? webRoot = null) =>
         new WebApplicationFactory<Host.Program>().WithWebHostBuilder(builder =>
         {
+            if (webRoot is not null)
+            {
+                builder.UseWebRoot(webRoot);
+            }
             builder.UseSetting("Authentication:Enabled", "true");
             builder.UseSetting("Authentication:Authority", "https://identity.example.invalid/realms/test");
             builder.UseSetting("Authentication:ClientId", "baikor-r");

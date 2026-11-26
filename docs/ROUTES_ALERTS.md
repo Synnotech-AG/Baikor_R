@@ -353,10 +353,11 @@ upgrade establishes fresh evaluation through the normal worker.
 `POST /api/alerts/scans` requests a tracked full reconciliation. Duplicate active
 scan requests are coalesced. It uses dedicated spatial/availability queries and
 the same reconciliation engine, not the 2,000-row construction-site UI list.
-The normal UI relies on automatic change-triggered detection. Healthy evaluation
-timestamps and completed scan counts are hidden; pending, failed, paused, unknown
-and incomplete-coverage warnings remain visible. Administrators can request a
-manual recheck from conflict settings when needed.
+The normal UI relies on automatic change-triggered detection and omits evaluation
+status banners, including the initial unconfirmed state and empty scans. Loading
+and saving errors remain visible. Administrators can request a manual recheck
+from conflict settings when needed; operational evaluation status remains
+available through the detection-status API.
 Source changes during a scan queue their own incremental work. Monitor pending,
 failed and scan progress fields before relying on an evaluation result. Keep
 worker failure logs private; do not put credentials or source feed contents into

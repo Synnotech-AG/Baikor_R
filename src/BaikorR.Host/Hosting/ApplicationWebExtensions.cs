@@ -29,9 +29,21 @@ internal static class ApplicationWebExtensions
     public static WebApplication UseApplicationPipeline(this WebApplication app)
     {
         var telemetry = app.Services.GetRequiredService<IOptions<TelemetryConfiguration>>().Value;
+        var staticFileOptions = new StaticFileOptions
+        {
+            OnPrepareResponse = context =>
+            {
+                if (context.File.Name.Equals("index.html", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Always fetch the app shell again so login/logout changes
+                    // are checked by the server instead of reusing cached HTML.
+                    context.Context.Response.Headers.CacheControl = "no-store";
+                }
+            }
+        };
 
         app.UseForwardedHeaders();
-        app.UseStaticFiles();
+        app.UseStaticFiles(staticFileOptions);
         app.UseSerilogRequestLogging(ConfigureRequestLogging);
         app.UseInternalMetricsEndpoint(telemetry.MetricsPort);
         app.UseAuthentication();
@@ -46,7 +58,7 @@ internal static class ApplicationWebExtensions
         {
             Predicate = _ => true
         });
-        app.MapFallbackToFile("index.html")
+        app.MapFallbackToFile("index.html", staticFileOptions)
             .RequireAuthorization(BaikorPolicies.Viewer);
 
         return app;

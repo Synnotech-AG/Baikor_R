@@ -25,7 +25,7 @@ import {
   toHistoricalAlert,
 } from './alert-model'
 import { AlertRuleSettings } from './alert-rule-settings'
-import { AlertDetectionHealth, AlertRecheckAction } from './alert-detection-controls'
+import { AlertRecheckAction } from './alert-detection-controls'
 import { RelatedAlertModal } from './related-alert-modal'
 import type {
   AlertDetails,
@@ -54,7 +54,6 @@ export interface AlertsWidgetProps {
   filters?: AlertFilters
   onFiltersChange?: (filters: AlertFilters) => void
   detectionStatus?: DetectionStatus | null
-  detectionStatusUnavailable?: boolean
   onRefreshDetectionStatus?: () => void
   onScanStarted?: (scan: AlertScan) => void
 }
@@ -83,7 +82,6 @@ export function AlertsWidget({
   filters: controlledFilters,
   onFiltersChange,
   detectionStatus: status = null,
-  detectionStatusUnavailable: statusError = false,
   onRefreshDetectionStatus,
   onScanStarted,
 }: AlertsWidgetProps) {
@@ -401,7 +399,6 @@ export function AlertsWidget({
           />
         )}
       </div>
-      <AlertDetectionHealth status={status} unavailable={statusError} />
       {error && (
         <Alert
           className="alert-widget-error"

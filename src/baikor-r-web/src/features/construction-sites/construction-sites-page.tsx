@@ -968,7 +968,6 @@ export function ConstructionSitesPage({
                 antiforgeryReady={antiforgeryReady}
                 refreshToken={detectionRevision}
                 detectionStatus={detection.status}
-                detectionStatusUnavailable={detection.unavailable}
                 onRefreshDetectionStatus={detection.reload}
                 onScanStarted={detection.scanStarted}
                 selectedAlertId={selectedAlertId}

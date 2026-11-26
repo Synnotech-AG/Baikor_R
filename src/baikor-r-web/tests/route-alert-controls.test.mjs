@@ -16,7 +16,6 @@ let AlertsWidget
 let AlertDetailsPane
 let AlertRuleSettings
 let ConstructionSiteMap
-let AlertDetectionHealth
 let AlertRecheckAction
 const i18n = createInstance()
 const noop = () => {}
@@ -51,7 +50,7 @@ before(async () => {
   ;({ ConstructionSiteMap } = await server.ssrLoadModule(
     '/src/features/construction-sites/components/construction-site-map.tsx',
   ))
-  ;({ AlertDetectionHealth, AlertRecheckAction } = await server.ssrLoadModule(
+  ;({ AlertRecheckAction } = await server.ssrLoadModule(
     '/src/features/alerts/alert-detection-controls.tsx',
   ))
 })
@@ -101,45 +100,30 @@ const genericAlert = {
   events: [],
 }
 
-test('healthy automatic detection is quiet, including completed full scans', async () => {
-  await i18n.changeLanguage('en')
-  const status = {
-    pendingCount: 0,
-    failedCount: 0,
-    lastEvaluatedAt: '2026-10-29T10:00:00Z',
-    latestScan: { state: 'completed', totalCount: 41, completedCount: 41, failedCount: 0 },
-  }
-  assert.equal(render(AlertDetectionHealth, { status }), '')
-  const widget = render(AlertsWidget, { ...baseProps, canAdmin: true })
-  assert.equal(
-    buttons(widget).some((button) => button.name === i18n.t('alerts.recheck')),
-    false,
-  )
-})
-
-test('unknown, pending, failed, paused, unavailable and incomplete detection remain visible', async () => {
-  await i18n.changeLanguage('en')
+test('evaluation status does not add banners to the alerts widget', async () => {
   const current = { pendingCount: 0, failedCount: 0, lastEvaluatedAt: genericAlert.createdAt }
-  for (const [status, unavailable, key, values] of [
-    [null, false, 'alerts.status.unknown', {}],
-    [{ ...current, pendingCount: 3 }, false, 'alerts.status.pending', { count: 3 }],
-    [{ ...current, failedCount: 2 }, false, 'alerts.status.failed', { count: 2 }],
-    [
+  const emptyScan = {
+    ...current,
+    lastEvaluatedAt: null,
+    latestScan: { state: 'completed', totalCount: 0, completedCount: 0, failedCount: 0 },
+  }
+  for (const language of ['de', 'en']) {
+    await i18n.changeLanguage(language)
+    for (const status of [
+      null,
+      current,
+      emptyScan,
+      { ...current, pendingCount: 3 },
+      { ...current, failedCount: 2 },
       { ...current, pausedTypes: ['routeConflict'] },
-      false,
-      'alerts.status.paused',
-      { types: i18n.t('alerts.routeConflict') },
-    ],
-    [current, true, 'alerts.status.unavailable', {}],
-    [
       { ...current, unassessableSiteCount: 2 },
-      false,
-      'alerts.status.incompleteCoverage',
-      { count: 2 },
-    ],
-  ]) {
-    const html = render(AlertDetectionHealth, { status, unavailable })
-    assert.ok(html.includes(i18n.t(key, values)), key)
+    ]) {
+      const html = render(AlertsWidget, { ...baseProps, canAdmin: true, detectionStatus: status })
+      assert.ok(!html.includes('ant-alert'))
+      assert.ok(html.includes(i18n.t('alerts.empty')))
+      assert.ok(buttons(html).some((button) => button.name === i18n.t('alerts.settings')))
+      assert.ok(!buttons(html).some((button) => button.name === i18n.t('alerts.recheck')))
+    }
   }
 })
 
@@ -931,7 +915,7 @@ for (const language of ['de', 'en']) {
     assert.ok(html.includes('id="alert-rule-distance"'))
   })
 
-  test(`viewer widgets hide write and admin actions while showing evaluation uncertainty (${language})`, async () => {
+  test(`viewer widgets hide write and admin actions without evaluation banners (${language})`, async () => {
     await i18n.changeLanguage(language)
     const routeButtons = buttons(render(RoutesWidget, baseProps))
     assert.equal(
@@ -949,7 +933,7 @@ for (const language of ['de', 'en']) {
       ),
       false,
     )
-    assert.ok(alerts.includes(i18n.t('alerts.status.unknown')))
+    assert.ok(!alerts.includes('ant-alert'))
   })
 
   test(`route map authoring has line-specific finish/cancel controls and no polygon edit action (${language})`, async () => {

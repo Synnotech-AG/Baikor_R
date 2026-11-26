@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Start a new Keycloak login from the signed-out page and prevent browser caching
+  of the app HTML, avoiding a stale workspace and request errors after logout
+  and login.
+- Hide evaluation-status banners in the hints panel while retaining automatic
+  detection, administrator rechecks and loading/saving errors.
+
 ## 0.3.1 — 2026-11-12
 
 - Size ingress-nginx response buffers for OIDC authentication cookies, preventing

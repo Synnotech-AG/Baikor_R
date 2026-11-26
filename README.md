@@ -191,6 +191,20 @@ directly. The addon deliberately does not register a card in the shared CIVITAS
 service portal. The optional public layer is configured through the operator-owned
 Geoportal workflow at [https://geoportal.civitas.test/portal/](https://geoportal.civitas.test/portal/).
 
+## Login and logout
+
+The public `/signed-out.html` confirmation page links to `/auth/login`, which
+starts a new Keycloak authentication round trip. The app HTML is served with
+`Cache-Control: no-store` at `/`, SPA routes and `/index.html` so browsers fetch
+the current document after login/logout. Other static assets retain their
+normal caching behavior. Reverse proxies must preserve this header and must
+not cache the app HTML independently of the user's session.
+
+After updating an installation that previously cached the app HTML, a one-time
+hard refresh may be needed to discard an older browser-cached document. Verify
+that subsequent logout, "Erneut anmelden" and login work with normal navigation
+and that the app HTML response includes `Cache-Control: no-store`.
+
 ## CIVITAS monitoring
 
 The application exposes Prometheus-formatted OpenTelemetry metrics only on the internal service port `9464`; `/metrics` on the public application port returns `404`. To connect it to the optional CIVITAS operations stack, enable `inv_op_stack.monitoring` in the core inventory and enable the chart's `telemetry.metrics.serviceMonitor.enabled` value through `inv_addons.baikor_r.helm_values`. Prometheus then discovers the add-on through the `ServiceMonitor`, Grafana can visualize its metrics, and CIVITAS Alloy/Loki can collect the structured Serilog stdout stream.
