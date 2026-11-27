@@ -57,16 +57,12 @@ export function ImportPage({
 
   return (
     <main className="import-page">
-      <Card className="import-card" bordered>
+      <Card className="import-card">
         <div className="import-card-icon" aria-hidden>
           <InboxOutlined />
         </div>
         <div className="import-content">
           <Typography.Title level={2}>{t('import.title')}</Typography.Title>
-          <Typography.Paragraph>{t('import.message')}</Typography.Paragraph>
-          <Typography.Paragraph type="secondary">
-            {t('import.trenches.explanation')}
-          </Typography.Paragraph>
           <Upload.Dragger
             className="trench-import-dropzone"
             accept=".zip,application/zip"
@@ -127,7 +123,6 @@ export function ImportPage({
                   <Button type="primary" onClick={onViewSites}>
                     {t('importUx.viewSites')}
                   </Button>
-                  <Typography.Text type="secondary">{t('importUx.viewSitesHint')}</Typography.Text>
                 </div>
               )}
               <Collapse

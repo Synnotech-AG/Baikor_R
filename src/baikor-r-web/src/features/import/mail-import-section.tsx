@@ -1,5 +1,5 @@
-import { Alert, Button, Card, Modal, Spin, Typography } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
+import { Alert, App as AntApp, Button, Card, Modal, Popconfirm, Spin } from 'antd'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { parseApiError } from '../../api/errors'
 import {
@@ -7,11 +7,10 @@ import {
   getMailImportHistory,
   getMailImportSettings,
   getMailImportStatus,
-  retryMailImport,
   saveMailImportSettings,
   testMailImportConnection,
 } from './mail-import-api'
-import { MailImportControls, MailImportHistory } from './mail-import-controls'
+import { MailImportHistory } from './mail-import-history'
 import {
   toMailImportDraft,
   toMailImportRequest,
@@ -23,7 +22,6 @@ import type {
   MailImportDraft,
   MailImportHistoryPage,
   MailImportSettings,
-  MailImportStatus,
 } from './mail-import-types'
 
 interface MailImportSectionProps {
@@ -31,28 +29,23 @@ interface MailImportSectionProps {
   antiforgeryReady: boolean
 }
 
+function mailErrorKey(caught: unknown) {
+  return parseApiError(caught, '').errorKey ?? 'mailImport.failed'
+}
+
 export function MailImportSection({ canAdmin, antiforgeryReady }: MailImportSectionProps) {
   const { t, i18n } = useTranslation()
+  const { message } = AntApp.useApp()
+  const [open, setOpen] = useState(false)
   const [settings, setSettings] = useState<MailImportSettings | null>(null)
-  const [status, setStatus] = useState<MailImportStatus | null>(null)
-  const [history, setHistory] = useState<MailImportHistoryPage | null>(null)
   const [draft, setDraft] = useState<MailImportDraft | null>(null)
-  const [page, setPage] = useState(1)
-  const [refresh, setRefresh] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [statusErrorKey, setStatusErrorKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-  const describeError = useCallback(
-    (caught: unknown) => {
-      const parsed = parseApiError(caught, '')
-      return parsed.errorKey && i18n.exists(parsed.errorKey)
-        ? t(parsed.errorKey)
-        : t('mailImport.failed')
-    },
-    [i18n, t],
-  )
+  const [busy, setBusy] = useState(false)
+  const [history, setHistory] = useState<MailImportHistoryPage | null>(null)
+  const [historyError, setHistoryError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const describeError = (key: string) => (i18n.exists(key) ? t(key) : t('mailImport.failed'))
 
   useEffect(() => {
     if (!canAdmin) {
@@ -60,187 +53,170 @@ export function MailImportSection({ canAdmin, antiforgeryReady }: MailImportSect
     }
     const controller = new AbortController()
     let running = false
-    const load = async () => {
+    async function loadHistory() {
       if (running) {
         return
       }
       running = true
       try {
-        const [nextSettings, nextStatus, nextHistory] = await Promise.all([
-          getMailImportSettings(controller.signal),
-          getMailImportStatus(controller.signal),
-          getMailImportHistory(page, controller.signal),
-        ])
+        const result = await getMailImportHistory(page, controller.signal)
         if (!controller.signal.aborted) {
-          setSettings(nextSettings)
-          setStatus(nextStatus)
-          setHistory(nextHistory)
-          setLoadError(null)
+          setHistory(result)
+          setHistoryError(null)
         }
       } catch (caught) {
         if (!controller.signal.aborted) {
-          setLoadError(describeError(caught))
+          setHistoryError(mailErrorKey(caught))
         }
       } finally {
         running = false
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
       }
     }
-    void load()
-    const timer = window.setInterval(() => {
-      void load()
-    }, 10000)
+    void loadHistory()
+    const timer = window.setInterval(loadHistory, 10000)
     return () => {
       controller.abort()
       window.clearInterval(timer)
     }
-  }, [canAdmin, page, refresh, describeError])
+  }, [canAdmin, page])
+
+  useEffect(() => {
+    if (!canAdmin || !open) {
+      return
+    }
+    const controller = new AbortController()
+    getMailImportSettings(controller.signal)
+      .then((saved) => {
+        if (!controller.signal.aborted) {
+          setSettings(saved)
+          setDraft(toMailImportDraft(saved))
+        }
+      })
+      .catch((caught) => {
+        if (!controller.signal.aborted) {
+          setError(mailErrorKey(caught))
+        }
+      })
+    getMailImportStatus(controller.signal)
+      .then((status) => {
+        if (!controller.signal.aborted) {
+          setStatusErrorKey(status.errorKey)
+        }
+      })
+      .catch(() => {
+        // The form remains usable when worker diagnostics are unavailable.
+      })
+    return () => controller.abort()
+  }, [canAdmin, open])
 
   if (!canAdmin) {
     return null
   }
-  const writable = antiforgeryReady && !busy && settings !== null
+  const close = () => {
+    setOpen(false)
+    setDraft(null)
+    setSettings(null)
+    setError(null)
+    setStatusErrorKey(null)
+  }
   const run = async (action: () => Promise<void>, successKey: string) => {
-    if (!writable) {
+    if (!antiforgeryReady || busy) {
       return
     }
-    setBusy(true)
     setError(null)
-    setNotice(null)
+    setBusy(true)
     try {
       await action()
-      setNotice(t(successKey))
-      setRefresh((value) => value + 1)
+      void message.success(t(successKey))
     } catch (caught) {
-      setError(describeError(caught))
+      setError(mailErrorKey(caught))
     } finally {
       setBusy(false)
     }
   }
-  const save = async () => {
-    if (!draft || !settings || !writable) {
+  const save = (resetCursor = false) => {
+    if (!draft || !settings) {
       return
     }
     const validation = validateMailImportDraft(draft, settings.hasPassword)
     if (validation) {
-      setError(t(validation))
+      setError(validation)
       return
     }
-    await run(async () => {
-      setSettings(await saveMailImportSettings(toMailImportRequest(draft)))
-      setDraft(null)
+    void run(async () => {
+      await saveMailImportSettings({ ...toMailImportRequest(draft), resetCursor })
+      close()
     }, 'mailImport.saved')
   }
-  const testConnection = async () => {
-    if (!draft || !settings || !writable) {
+  const testConnection = () => {
+    if (!draft || !settings) {
       return
     }
     const validation = validateMailImportDraft(draft, settings.hasPassword)
     if (validation) {
-      setError(t(validation))
+      setError(validation)
       return
     }
-    await run(async () => {
+    void run(async () => {
       const tested = await testMailImportConnection(
         toMailImportTestRequest(draft, settings.hasPassword),
       )
       if (!tested.connected) {
-        throw new Error('Connection test failed')
+        throw new Error('Mailbox connection failed')
       }
     }, 'mailImport.testSucceeded')
   }
-  const changeEnabled = (resetCursor = false) => {
-    if (!settings) {
-      return
-    }
-    const next = {
-      ...toMailImportDraft(settings),
-      enabled: resetCursor || !settings.enabled,
-      resetCursor,
-    }
-    const validation = validateMailImportDraft(next, settings.hasPassword)
-    if (validation) {
-      setError(t(validation))
-      setDraft(next)
-      return
-    }
-    void run(async () => {
-      setSettings(await saveMailImportSettings(toMailImportRequest(next)))
-    }, 'mailImport.saved')
-  }
-  const statusError = status?.errorKey
-    ? i18n.exists(status.errorKey)
-      ? t(status.errorKey)
-      : t('mailImport.failed')
-    : null
+  const issueKey =
+    settings && !settings.encryptionConfigured ? 'mailImport.keyMissing' : statusErrorKey
   return (
     <Card
       className="mail-import-card"
       title={t('mailImport.title')}
-      extra={
-        <Button onClick={() => setRefresh((value) => value + 1)} disabled={busy}>
-          {t('mailImport.refresh')}
-        </Button>
-      }
+      extra={<Button onClick={() => setOpen(true)}>{t('mailImport.settings')}</Button>}
     >
-      <Typography.Paragraph>{t('mailImport.description')}</Typography.Paragraph>
-      {loading && <Spin tip={t('mailImport.loading')} />}
-      {loadError && <Alert type="error" showIcon title={loadError} />}
-      {!draft && error && <Alert type="error" showIcon title={error} />}
-      {!draft && notice && <Alert type="success" showIcon title={notice} />}
-      {settings && !settings.encryptionConfigured && (
-        <Alert type="warning" showIcon title={t('mailImport.keyMissing')} />
-      )}
-      {statusError && <Alert type="error" showIcon title={statusError} />}
-      <MailImportControls
-        canAdmin={canAdmin}
-        ready={antiforgeryReady}
-        busy={busy}
-        settings={settings}
-        status={status}
-        onSettings={() => {
-          if (settings) {
-            setError(null)
-            setNotice(null)
-            setDraft(toMailImportDraft(settings))
-          }
-        }}
-        onCheck={() => {
-          void run(checkMailImportNow, 'mailImport.checkScheduled')
-        }}
-        onToggle={() => changeEnabled()}
-        onReset={() => changeEnabled(true)}
-      />
-      <Typography.Title level={4}>{t('mailImport.history')}</Typography.Title>
+      {historyError && <Alert type="error" showIcon title={describeError(historyError)} />}
       <MailImportHistory
         history={history}
-        ready={antiforgeryReady && settings?.encryptionConfigured === true}
-        busy={busy}
+        page={page}
+        loading={!historyError && history?.page !== page}
         onPage={setPage}
-        onRetry={(id) => {
-          void run(() => retryMailImport(id), 'mailImport.retryScheduled')
-        }}
       />
       <Modal
-        title={t('mailImport.settings')}
-        open={draft !== null}
-        onCancel={() => {
-          if (!busy) {
-            setDraft(null)
-            setError(null)
-            setNotice(null)
-          }
-        }}
+        title={t('mailImport.dialogTitle')}
+        open={open}
+        onCancel={close}
         closable={!busy}
-        maskClosable={!busy}
+        mask={{ closable: !busy }}
+        keyboard={!busy}
         footer={null}
         destroyOnHidden
-        width={640}
+        width={520}
       >
-        {error && <Alert type="error" showIcon title={error} />}
-        {notice && <Alert type="success" showIcon title={notice} />}
+        {error && <Alert type="error" showIcon title={describeError(error)} />}
+        {issueKey && !error && (
+          <Alert
+            type="warning"
+            showIcon
+            title={describeError(issueKey)}
+            action={
+              issueKey === 'mailImport.uidValidityChanged' &&
+              draft?.enabled && (
+                <Popconfirm
+                  title={t('mailImport.resetTitle')}
+                  description={t('mailImport.resetDescription')}
+                  okText={t('mailImport.startFromNow')}
+                  cancelText={t('mailImport.cancel')}
+                  onConfirm={() => save(true)}
+                >
+                  <Button disabled={!antiforgeryReady || busy}>
+                    {t('mailImport.startFromNow')}
+                  </Button>
+                </Popconfirm>
+              )
+            }
+          />
+        )}
+        {!draft && !error && <Spin />}
         {draft && settings && (
           <MailImportSettingsForm
             draft={draft}
@@ -249,13 +225,12 @@ export function MailImportSection({ canAdmin, antiforgeryReady }: MailImportSect
             busy={busy}
             onChange={(next) => {
               setDraft(next)
-              setNotice(null)
+              setError(null)
             }}
-            onSave={() => {
-              void save()
-            }}
-            onTest={() => {
-              void testConnection()
+            onSave={() => save()}
+            onTest={testConnection}
+            onCheck={() => {
+              void run(checkMailImportNow, 'mailImport.checkScheduled')
             }}
           />
         )}

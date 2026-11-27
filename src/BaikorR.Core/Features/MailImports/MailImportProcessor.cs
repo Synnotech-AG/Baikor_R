@@ -57,12 +57,12 @@ public sealed class MailImportProcessor(IMailImportStore store, IMailboxClientFa
                     // A previous process can have committed the archive before losing its history update.
                     if (work.Sha256 is not null && await store.HasMailReceiptAsync(work.Sha256, token))
                     {
-                        await store.CompleteWorkAsync(lease, work.Id, "duplicate", null, [], null, false, token);
+                        await store.CompleteWorkAsync(lease, work.Id, "duplicate", null, null, false, token);
                         continue;
                     }
                     if (work.Attempts - work.RetryCycleStartAttempt > 5)
                     {
-                        await store.CompleteWorkAsync(lease, work.Id, "failed", null, [], "mailImport.retryExhausted", false, token);
+                        await store.CompleteWorkAsync(lease, work.Id, "failed", null, "mailImport.retryExhausted", false, token);
                         continue;
                     }
                     var content = await mailbox.ReadAttachmentAsync(checked((uint)work.Uid), work.PartId, token);
@@ -77,25 +77,25 @@ public sealed class MailImportProcessor(IMailImportStore store, IMailboxClientFa
                     }
                     if (await store.HasMailReceiptAsync(hash, token))
                     {
-                        await store.CompleteWorkAsync(lease, work.Id, "duplicate", null, [], null, false, token);
+                        await store.CompleteWorkAsync(lease, work.Id, "duplicate", null, null, false, token);
                         continue;
                     }
                     var result = await importer.ExecuteAsync(new(work.FileName, content, configuration.BufferMetres) { MailLease = lease }, token);
                     if (result.IsSuccess)
                     {
-                        await store.CompleteWorkAsync(lease, work.Id, "imported", result.Value.CreatedCount, result.Value.Warnings.ToArray(), null, false, token);
+                        await store.CompleteWorkAsync(lease, work.Id, "imported", result.Value.CreatedCount, null, false, token);
                     }
                     else
                     {
                         var duplicate = result.Errors.Any(x => x.Metadata.TryGetValue("Key", out var key) && Equals(key, RkomTrenchesImportResults.DuplicateErrorKey));
                         var conflict = result.Errors.Any(x => x.Metadata.TryGetValue("Key", out var key) && Equals(key, RkomTrenchesImportResults.ConflictErrorKey));
-                        await store.CompleteWorkAsync(lease, work.Id, duplicate ? "duplicate" : "failed", null, [],
+                        await store.CompleteWorkAsync(lease, work.Id, duplicate ? "duplicate" : "failed", null,
                             duplicate ? null : conflict ? "mailImport.importConflict" : "mailImport.archiveInvalid", conflict, token);
                     }
                 }
                 catch (MailImportTransportException exception)
                 {
-                    await store.CompleteWorkAsync(lease, work.Id, "failed", null, [], exception.ErrorKey, exception.IsTransient, token);
+                    await store.CompleteWorkAsync(lease, work.Id, "failed", null, exception.ErrorKey, exception.IsTransient, token);
                     if (exception.ErrorKey == "mailImport.authenticationFailed")
                     {
                         await store.RecordErrorAsync(lease, exception.ErrorKey, true, token);
@@ -110,7 +110,7 @@ public sealed class MailImportProcessor(IMailImportStore store, IMailboxClientFa
                 {
                     // No exception text is persisted. Database outages may prevent this write;
                     // the persisted processing deadline then supplies recovery backoff and a bound.
-                    await store.CompleteWorkAsync(lease, work.Id, "failed", null, [], "mailImport.processingFailed", true, token);
+                    await store.CompleteWorkAsync(lease, work.Id, "failed", null, "mailImport.processingFailed", true, token);
                 }
             }
         }

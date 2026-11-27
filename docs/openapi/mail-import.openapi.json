@@ -63,7 +63,8 @@
       },
       "put": {
         "operationId": "saveMailImportSettings",
-        "summary": "Save settings; first enable captures the current UID baseline",
+        "summary": "Save mailbox settings",
+        "description": "First activation and switching an active mailbox capture the new source's current UID boundary. A failed switch preserves the active configuration. Turning import off and back on for the same mailbox retains its cursor.",
         "tags": [
           "Native mail import"
         ],
@@ -258,6 +259,7 @@
       "get": {
         "operationId": "getMailImportHistory",
         "summary": "Read paginated ZIP import history",
+        "description": "The Import page requests completed import outcomes. The default administrative view also includes worker states and earlier history.",
         "tags": [
           "Native mail import"
         ],
@@ -290,6 +292,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "processedOnly",
+            "in": "query",
+            "description": "Return only completed successful or failed ZIP imports, newest completion first. The total count and pagination use the same filter.",
+            "schema": { "type": "boolean", "default": false }
+          },
           {
             "name": "page",
             "in": "query",
@@ -661,6 +669,7 @@
           },
           "warnings": {
             "type": "array",
+            "description": "Older records may include importer warnings. Newly completed email imports return an empty list.",
             "items": {
               "type": "string"
             }

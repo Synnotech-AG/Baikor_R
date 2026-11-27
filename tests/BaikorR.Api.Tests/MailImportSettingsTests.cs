@@ -49,14 +49,56 @@ public sealed class MailImportSettingsTests
     }
 
     [Fact]
-    public async Task SourceCannotChangeWhileEnabled()
+    public async Task AdminCanSwitchAnActiveMailboxAndStartAtItsCurrentBoundary()
     {
         var store = new SettingsStore();
-        var service = new MailImportService(store, new MailboxFactory(), new Protector(), TimeProvider.System);
+        var factory = new MailboxFactory();
+        var service = new MailImportService(store, factory, new Protector(), TimeProvider.System);
         await service.SaveAsync(Request(), CancellationToken.None);
-        var result = await service.SaveAsync(Request() with { Host = "other.example", Version = 1 }, CancellationToken.None);
+        var previousGeneration = store.Configuration.Generation;
+        factory.NextUid = 81;
+        Assert.True((await service.SaveAsync(Request() with { Host = "other.example", Version = 1, Password = "new-password" }, default)).IsSuccess);
+        Assert.True(store.Configuration.Enabled);
+        Assert.NotEqual(previousGeneration, store.Configuration.Generation);
+        Assert.Equal("other.example", store.Configuration.Host);
+        Assert.Equal(81, store.Configuration.NextUid);
+        Assert.Equal(0, factory.ReadCount);
+    }
+
+    [Fact]
+    public async Task UnreachableReplacementFolderLeavesTheActiveConnectionIntact()
+    {
+        var store = new SettingsStore();
+        var factory = new MailboxFactory();
+        var service = new MailImportService(store, factory, new Protector(), TimeProvider.System);
+        await service.SaveAsync(Request(), default);
+        var previous = store.Configuration;
+        factory.Fails = true;
+        var result = await service.SaveAsync(Request() with { Folder = "Other", Version = 1, Password = null }, default);
         Assert.True(result.IsFailed);
-        Assert.Equal("imap.example", store.Configuration.Host);
+        Assert.Equal(2, factory.ConnectCount);
+        Assert.Same(previous, store.Configuration);
+        Assert.True(store.Configuration.Enabled);
+    }
+
+    [Fact]
+    public async Task ActivePasswordReplacementIsCheckedAndKeepsTheCursorOnSuccess()
+    {
+        var store = new SettingsStore();
+        var factory = new MailboxFactory();
+        var service = new MailImportService(store, factory, new Protector(), TimeProvider.System);
+        await service.SaveAsync(Request(), default);
+        var previous = store.Configuration;
+        var replacement = Request() with { Version = 1, Password = "replacement" };
+        factory.Fails = true;
+        Assert.True((await service.SaveAsync(replacement, default)).IsFailed);
+        Assert.Same(previous, store.Configuration);
+        factory.Fails = false;
+        factory.NextUid = 100;
+        Assert.True((await service.SaveAsync(replacement, default)).IsSuccess);
+        Assert.Equal(previous.Generation, store.Configuration.Generation);
+        Assert.Equal(previous.NextUid, store.Configuration.NextUid);
+        Assert.Equal("replacement", new Protector().Unprotect(store.Configuration.EncryptedPassword!));
     }
 
     [Fact]
@@ -148,11 +190,11 @@ public sealed class MailImportSettingsTests
 
     private sealed class MailboxFactory : IMailboxClientFactory, IMailboxClient
     {
-        public bool Fails { get; init; }
+        public bool Fails { get; set; }
         public int ConnectCount { get; private set; }
         public int ReadCount { get; private set; }
         public uint UidValidity => 7;
-        public uint NextUid => 42;
+        public uint NextUid { get; set; } = 42;
         public Task<IMailboxClient> ConnectAsync(MailboxConnection connection, CancellationToken cancellationToken)
         {
             ConnectCount++;
@@ -181,7 +223,7 @@ public sealed class MailImportSettingsTests
             return Task.FromResult(true);
         }
         public Task<MailImportStatusResponse> StatusAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken, bool processedOnly = false) => throw new NotImplementedException();
         public Task<bool> ScheduleCheckAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> RetryAsync(Guid id, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<MailImportLease?> AcquireLeaseAsync(Guid owner, CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -191,7 +233,7 @@ public sealed class MailImportSettingsTests
         public Task<MailImportWorkItem?> TakeWorkAsync(MailImportLease lease, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> HasMailReceiptAsync(string sha256, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> SetWorkHashAsync(MailImportLease lease, Guid id, string sha256, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task CompleteWorkAsync(MailImportLease lease, Guid id, string state, int? createdCount, string[] warnings, string? errorKey, bool transient, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task CompleteWorkAsync(MailImportLease lease, Guid id, string state, int? createdCount, string? errorKey, bool transient, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task RecordErrorAsync(MailImportLease lease, string errorKey, bool halt, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

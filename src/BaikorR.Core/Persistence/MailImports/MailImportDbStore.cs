@@ -73,12 +73,18 @@ public sealed class MailImportDbStore(BaikorRDbContext dbContext) : IMailImportS
             counts.GetValueOrDefault("failed"), counts.GetValueOrDefault("imported"));
     }
 
-    public async Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken, bool processedOnly = false)
     {
         var config = await GetAsync(cancellationToken);
         var query = dbContext.MailImportWorkItems.AsNoTracking();
+        if (processedOnly)
+        {
+            query = query.Where(x => x.CompletedAt != null && EF.Functions.ILike(x.FileName, "%.zip")
+                && (x.State == "imported" || x.State == "failed" || x.State == "sourceMissing"));
+        }
         var count = await query.CountAsync(cancellationToken);
-        var items = await query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+        var ordered = processedOnly ? query.OrderByDescending(x => x.CompletedAt) : query.OrderByDescending(x => x.CreatedAt);
+        var items = await ordered.ThenByDescending(x => x.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(cancellationToken);
         return new(items.Select(x => new MailImportHistoryItem(x.Id, x.FileName, x.State, x.CreatedAt,
             x.CompletedAt, x.CreatedCount, x.Warnings, x.ErrorKey, x.Attempts,
@@ -159,19 +165,6 @@ public sealed class MailImportDbStore(BaikorRDbContext dbContext) : IMailImportS
         var now = await MailImportDbClock.UtcNowAsync(dbContext, cancellationToken);
         foreach (var message in batch.Messages.Where(x => x.Uid >= current.NextUid).OrderBy(x => x.Uid))
         {
-            if (message.Attachments.Count == 0)
-            {
-                var recorded = await dbContext.MailImportWorkItems.AnyAsync(x => x.Generation == lease.Generation
-                    && x.UidValidity == batch.UidValidity && x.Uid == message.Uid && x.PartId == "__ignored", cancellationToken);
-                if (!recorded)
-                {
-                    dbContext.MailImportWorkItems.Add(new()
-                    {
-                        Generation = lease.Generation, UidValidity = batch.UidValidity, Uid = message.Uid,
-                        PartId = "__ignored", FileName = "", State = "ignored", CreatedAt = now, AvailableAt = now, CompletedAt = now
-                    });
-                }
-            }
             foreach (var attachment in message.Attachments.Where(x => x.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)))
             {
                 if (attachment.PartId.Length is 0 or > 128) { continue; }
@@ -234,7 +227,7 @@ public sealed class MailImportDbStore(BaikorRDbContext dbContext) : IMailImportS
         return count != 0;
     }
 
-    public async Task CompleteWorkAsync(MailImportLease lease, Guid id, string state, int? createdCount, string[] warnings, string? errorKey, bool transient, CancellationToken cancellationToken)
+    public async Task CompleteWorkAsync(MailImportLease lease, Guid id, string state, int? createdCount, string? errorKey, bool transient, CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var current = await LockAsync(cancellationToken);
@@ -246,7 +239,6 @@ public sealed class MailImportDbStore(BaikorRDbContext dbContext) : IMailImportS
         work.AvailableAt = now.AddSeconds(Math.Min(300, 15 * Math.Pow(2, Math.Min(5, work.Attempts - work.RetryCycleStartAttempt - 1))));
         work.CompletedAt = work.State == "retry" ? null : now;
         work.CreatedCount = createdCount;
-        work.Warnings = warnings;
         work.ErrorKey = errorKey;
         if (state is "imported" or "duplicate") { current.LastSuccessAt = now; }
         await dbContext.SaveChangesAsync(cancellationToken);

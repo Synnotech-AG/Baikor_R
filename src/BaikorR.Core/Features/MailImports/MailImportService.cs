@@ -27,10 +27,6 @@ public sealed class MailImportService(IMailImportStore store, IMailboxClientFact
         }
         var destinationChanged = !SameCredentialDestination(current, request.Host, request.Port, request.Security, request.Username);
         var sourceChanged = destinationChanged || current.Folder != request.Folder;
-        if (sourceChanged && current.Enabled)
-        {
-            return Invalid<MailImportSettingsResponse>("mailImport.pauseBeforeSourceChange");
-        }
         if (request.ClearPassword && request.Enabled)
         {
             return Invalid<MailImportSettingsResponse>("mailImport.pauseBeforeClearingPassword");
@@ -67,20 +63,23 @@ public sealed class MailImportService(IMailImportStore store, IMailboxClientFact
             ErrorKey = sourceChanged ? null : current.ErrorKey
         };
         var rebaseline = request.Enabled && (next.NextUid is null || request.ResetCursor);
-        if (rebaseline)
+        if (rebaseline || (request.Enabled && !string.IsNullOrEmpty(request.Password)))
         {
             try
             {
                 await using var mailbox = await factory.ConnectAsync(Connection(next, protector.Unprotect(password!)), cancellationToken);
-                if (mailbox.UidValidity == 0 || mailbox.NextUid == 0)
+                if (rebaseline)
                 {
-                    return Unavailable<MailImportSettingsResponse>("mailImport.baselineUnavailable");
+                    if (mailbox.UidValidity == 0 || mailbox.NextUid == 0)
+                    {
+                        return Unavailable<MailImportSettingsResponse>("mailImport.baselineUnavailable");
+                    }
+                    next.Generation = Guid.NewGuid();
+                    next.UidValidity = mailbox.UidValidity;
+                    next.NextUid = mailbox.NextUid;
+                    next.ActivatedAt = timeProvider.GetUtcNow();
+                    next.ErrorKey = null;
                 }
-                next.Generation = Guid.NewGuid();
-                next.UidValidity = mailbox.UidValidity;
-                next.NextUid = mailbox.NextUid;
-                next.ActivatedAt = timeProvider.GetUtcNow();
-                next.ErrorKey = null;
             }
             catch (MailImportTransportException exception)
             {
@@ -166,8 +165,8 @@ public sealed class MailImportService(IMailImportStore store, IMailboxClientFact
         }
         return status;
     }
-    public Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken) =>
-        store.HistoryAsync(Math.Clamp(page, 1, 100000), Math.Clamp(pageSize, 1, 100), cancellationToken);
+    public Task<MailImportHistoryResponse> HistoryAsync(int page, int pageSize, CancellationToken cancellationToken, bool processedOnly = false) =>
+        store.HistoryAsync(Math.Clamp(page, 1, 100000), Math.Clamp(pageSize, 1, 100), cancellationToken, processedOnly);
     public async Task<Result<bool>> CheckAsync(CancellationToken cancellationToken) =>
         await store.ScheduleCheckAsync(cancellationToken) ? Result.Ok(true) : Invalid<bool>("mailImport.notEnabled");
     public async Task<Result<bool>> RetryAsync(Guid id, CancellationToken cancellationToken) =>

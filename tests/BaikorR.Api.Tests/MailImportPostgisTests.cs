@@ -33,19 +33,72 @@ public sealed class MailImportPostgisTests
         await Processor(context, store, mailbox, protector).ProcessAsync(Guid.NewGuid(), default);
         Assert.Equal(new uint[] { 42, 42, 43 }, mailbox.Downloaded.Select(x => x.Uid).Order());
         var history = await store.HistoryAsync(1, 20, default);
-        Assert.Equal(4, history.TotalCount);
+        Assert.Empty(Assert.Single(history.Items, x => x.State == "imported").Warnings);
+        Assert.Equal(3, history.TotalCount);
         Assert.Single(history.Items, x => x.State == "failed");
-        Assert.Single(history.Items, x => x.State == "imported");
         var longName = Assert.Single(history.Items, x => x.FileName.StartsWith("aaa", StringComparison.Ordinal));
         Assert.Equal(255, longName.FileName.Length);
         Assert.EndsWith(".ZIP", longName.FileName);
         Assert.Single(history.Items, x => x.State == "duplicate");
-        var ignored = Assert.Single(history.Items, x => x.State == "ignored");
-        Assert.Equal("", ignored.FileName);
-        Assert.Equal(0, ignored.Attempts);
+        Assert.DoesNotContain(history.Items, x => x.State == "ignored");
         Assert.Single(await context.ConstructionSites.ToArrayAsync());
         Assert.Single(await context.ArchiveImportReceipts.ToArrayAsync());
         Assert.Equal(45, (await store.GetAsync(default)).NextUid);
+    }
+
+    [PostgisFact]
+    public async Task ProcessedHistoryFiltersBeforePagingAndUsesCompletionTime()
+    {
+        await using var database = await PostgisTestDatabase.CreateAsync();
+        await using var context = database.CreateContext();
+        var store = new MailImportDbStore(context);
+        var now = DateTimeOffset.UtcNow;
+        string[] states = ["imported", "failed", "duplicate", "ignored", "pending", "retry", "processing", "configurationChanged", "sourceMissing"];
+        for (var i = 0; i < states.Length; i++)
+        {
+            context.MailImportWorkItems.Add(new()
+            {
+                Uid = i + 1, PartId = "1", State = states[i], FileName = states[i] == "ignored" ? "" : $"{i}.zip",
+                CreatedAt = now.AddMinutes(-20 + i), AvailableAt = now, Warnings = i == 0 ? ["previous warning"] : [],
+                CompletedAt = states[i] is "pending" or "retry" or "processing" ? null : now.AddMinutes(-i)
+            });
+        }
+        await context.SaveChangesAsync();
+
+        var first = await store.HistoryAsync(1, 2, default, processedOnly: true);
+        Assert.Equal(3, first.TotalCount);
+        Assert.Equal(new[] { "imported", "failed" }, first.Items.Select(x => x.State));
+        Assert.Equal("previous warning", Assert.Single(first.Items[0].Warnings));
+        Assert.Equal("sourceMissing", Assert.Single((await store.HistoryAsync(2, 2, default, processedOnly: true)).Items).State);
+        var full = await store.HistoryAsync(1, 20, default);
+        Assert.Equal(states.Length, full.TotalCount);
+        Assert.Equal("sourceMissing", full.Items[0].State);
+    }
+
+    [PostgisFact]
+    public async Task SwitchingAnActiveFolderFencesOldWorkAndRejectsAStaleSettingsSave()
+    {
+        await using var database = await PostgisTestDatabase.CreateAsync();
+        await using var context = database.CreateContext();
+        await EnableAsync(context);
+        var store = new MailImportDbStore(context);
+        var oldLease = Assert.IsType<MailImportLease>(await store.AcquireLeaseAsync(Guid.NewGuid(), default));
+        Assert.True(await store.DiscoverAsync(oldLease, new(7, 43, [new(42, [new("1", "previous.zip", 10)])]), default));
+        var item = Assert.IsType<MailImportWorkItem>(await store.TakeWorkAsync(oldLease, default));
+        var service = new MailImportService(store, new Mailbox { NextUid = 92 }, new Protector(), TimeProvider.System);
+        var change = Request() with { Folder = "Projects", Version = 1, Password = null };
+
+        Assert.True((await service.SaveAsync(change, default)).IsSuccess);
+        Assert.True((await service.SaveAsync(change with { Folder = "Stale" }, default)).IsFailed);
+        Assert.False(await store.DiscoverAsync(oldLease, new(7, 300, []), default));
+        await store.CompleteWorkAsync(oldLease, item.Id, "imported", 1, null, false, default);
+        Assert.Equal("configurationChanged", Assert.Single((await store.HistoryAsync(1, 20, default)).Items).State);
+        Assert.Empty((await store.HistoryAsync(1, 20, default, processedOnly: true)).Items);
+        var config = await store.GetAsync(default);
+        Assert.Equal("Projects", config.Folder);
+        Assert.Equal(92, config.NextUid);
+        Assert.NotEqual(oldLease.Generation, config.Generation);
+        Assert.True(config.Enabled);
     }
 
     [PostgisFact]

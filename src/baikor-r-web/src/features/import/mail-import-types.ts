@@ -42,28 +42,14 @@ export interface MailImportTestRequest {
 }
 
 export interface MailImportStatus {
-  enabled: boolean
-  state: string
-  lastCheckedAt: string | null
-  lastSuccessAt: string | null
-  activatedAt: string | null
   errorKey: string | null
-  pendingCount: number
-  failedCount: number
-  importedCount: number
 }
 
 export interface MailImportHistoryItem {
   id: string
   fileName: string
-  state: string
-  createdAt: string
-  completedAt: string | null
-  createdCount: number | null
-  warnings: string[]
-  errorKey: string | null
-  attempts: number
-  canRetry: boolean
+  state: 'imported' | 'failed' | 'sourceMissing'
+  completedAt: string
 }
 
 export interface MailImportHistoryPage {

@@ -27,7 +27,7 @@ export async function getMailImportStatus(signal?: AbortSignal) {
 export async function getMailImportHistory(page: number, signal?: AbortSignal) {
   return (
     await httpClient.get<MailImportHistoryPage>(`${baseUrl}/history`, {
-      params: { page, pageSize: 20 },
+      params: { page, pageSize: 20, processedOnly: true },
       headers: sessionProbeHeaders,
       signal,
     })
@@ -44,8 +44,4 @@ export async function testMailImportConnection(request: MailImportTestRequest) {
 
 export async function checkMailImportNow() {
   await httpClient.post(`${baseUrl}/check`)
-}
-
-export async function retryMailImport(id: string) {
-  await httpClient.post(`${baseUrl}/history/${encodeURIComponent(id)}/retry`)
 }

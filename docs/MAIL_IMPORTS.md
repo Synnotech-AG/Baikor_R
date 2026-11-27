@@ -1,6 +1,9 @@
 # Automatic email imports
 
-An administrator configures one IMAP account and folder on the Import page.
+Anyone with the `baikor_admin` role can open **Import → Settings** to configure
+one IMAP account and folder, including while automatic import is running.
+On CIVITAS the addon provisions the encryption key during deployment. The
+administrator can enter or change the mailbox later without restarting Baikor.
 Baikor checks that folder in its built-in background worker and sends matching
 ZIP attachments directly to the R-KOM importer. No Node-RED deployment, workflow,
 Keycloak machine client or special import user is required. The optional external
@@ -12,29 +15,37 @@ app password. Certificate checks cannot be disabled. The folder opens read-only;
 Baikor does not change read flags, move or delete messages. A new message remains
 eligible even if another mail client has already read it.
 
-Test connection checks the edited settings without enabling imports or advancing
-the cursor. A blank password field preserves the saved credential for the same
+**Test connection** checks the edited settings without enabling imports or advancing
+the cursor. **Check now** in the settings dialog schedules the next check of the
+saved mailbox. A blank password field preserves the saved credential for the same
 host, port, TLS mode and username, including a change of folder. Enter a password
-to test or save a different connection, or explicitly clear the credential
-while disabled to save that connection without a password. Reads expose a saved-password indicator,
-never the password or encrypted value. All mail settings, controls and history are
-restricted to administrators.
+to test or save a different connection. To save that connection without a
+password, turn import off and select **Clear the saved password**. The API
+reports whether a password is saved. Only administrators can access mail
+settings, controls and history.
 
 On the first successful activation, Baikor records the current mailbox UID
 boundary and skips messages already there. Only messages arriving afterwards are
-eligible. The activation timestamp is the operational cutover boundary. Pause and
-resume on the same source retain the cursor and process mail arriving during the
-pause. Changing the host, port, TLS mode, username or folder requires pausing and
-starts a new source generation. An unexpected UIDVALIDITY change stops processing;
-review the server change before explicitly choosing to start from now.
+eligible. Turning import off and back on for the same source retains its position.
+When an administrator changes the host, port, TLS mode, username or folder of an
+active source, Baikor verifies the new connection and saves its current mailbox
+position. A failed switch leaves the saved mailbox in place. An unexpected
+change to the folder's IMAP identity (UIDVALIDITY) stops processing. Review
+the server change before choosing **Start from now**.
 
 ZIP filenames are matched case-insensitively. Each attachment is processed
 independently, with a decoded size of at most 25 MiB and the existing archive and
-buffer validation. Message bodies and non-ZIP attachments are not downloaded for
-import. History contains filenames, timestamps, outcomes, counts and safe errors;
-it does not retain subjects, senders, recipients or message bodies. Check now
-schedules a check. Eligible failures can be retried; completed or duplicate work
-cannot be made runnable again.
+buffer validation. New configurations use a 60-second check interval and the
+same one-metre buffer as a manual import. Editing the mailbox preserves existing
+values for both.
+
+The Import page lists the filename, completion time and result for each ZIP that
+succeeded or failed. Baikor skips messages that have no ZIP attachment and
+stores no history row for them. It retains the worker position, duplicate
+receipts and retry data.
+New email imports do not store importer warning text. Earlier records stay
+available through the administrative history API. Subjects, senders, recipients
+and message bodies are not stored in import history.
 
 ## Deployment key and network
 

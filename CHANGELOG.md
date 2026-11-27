@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Let Baikor administrators edit an active IMAP mailbox in one save. Simplify
+  the settings dialog and show each processed ZIP with its completion time and
+  success or failure. Skip new history rows for mail without ZIP attachments
+  and omit warning text from newly completed email imports.
+
 ## 0.4.0 — 2026-11-26
 
 - Show the signed-out page when an open browser session expires, including

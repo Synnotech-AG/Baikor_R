@@ -35,8 +35,9 @@ public sealed class MailImportController(MailImportService service) : Controller
         Ok(await service.StatusAsync(cancellationToken));
 
     [HttpGet("history")]
-    public async Task<ActionResult<MailImportHistoryResponse>> History([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default) =>
-        Ok(await service.HistoryAsync(page, pageSize, cancellationToken));
+    public async Task<ActionResult<MailImportHistoryResponse>> History([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+        [FromQuery] bool processedOnly = false, CancellationToken cancellationToken = default) =>
+        Ok(await service.HistoryAsync(page, pageSize, cancellationToken, processedOnly));
 
     [HttpPost("history/{id:guid}/retry")]
     public async Task<ActionResult<bool>> Retry(Guid id, CancellationToken cancellationToken)

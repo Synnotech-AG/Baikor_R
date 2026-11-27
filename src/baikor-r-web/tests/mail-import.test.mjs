@@ -10,7 +10,7 @@ import { createServer } from 'vite'
 
 let server
 let model
-let MailImportControls
+let MailImportSection
 let MailImportHistory
 let MailImportSettingsForm
 let api
@@ -42,8 +42,11 @@ before(async () => {
     appType: 'custom',
   })
   model = await server.ssrLoadModule('/src/features/import/mail-import-model.ts')
-  ;({ MailImportControls, MailImportHistory } = await server.ssrLoadModule(
-    '/src/features/import/mail-import-controls.tsx',
+  ;({ MailImportHistory } = await server.ssrLoadModule(
+    '/src/features/import/mail-import-history.tsx',
+  ))
+  ;({ MailImportSection } = await server.ssrLoadModule(
+    '/src/features/import/mail-import-section.tsx',
   ))
   api = await server.ssrLoadModule('/src/features/import/mail-import-api.ts')
   ;({ MailImportSettingsForm } = await server.ssrLoadModule(
@@ -123,121 +126,89 @@ test('client validation rejects invalid TLS/port/poll/buffer and credential clea
   assert.ok(model.validateMailImportDraft({ ...draft, enabled: true }, false))
 })
 
-test('admin controls are hidden from other roles and all mutations wait for CSRF readiness', () => {
-  const props = {
-    canAdmin: true,
-    ready: true,
-    busy: false,
-    settings: saved,
-    status: { enabled: false, state: 'paused', pendingCount: 0 },
-    onSettings: noop,
-    onCheck: noop,
-    onToggle: noop,
-    onReset: noop,
-  }
-  assert.equal(render(MailImportControls, { ...props, canAdmin: false }), '')
-  assert.equal(
-    buttons(render(MailImportControls, props)).find(
-      (button) => button.name === i18n.t('mailImport.resume'),
-    )?.disabled,
-    false,
+test('the import overview has one settings action for admins and is hidden from other roles', () => {
+  assert.equal(render(MailImportSection, { canAdmin: false, antiforgeryReady: true }), '')
+  const html = render(MailImportSection, { canAdmin: true, antiforgeryReady: true })
+  assert.deepEqual(
+    buttons(html).map((button) => button.name),
+    [i18n.t('mailImport.settings')],
   )
-  const waiting = buttons(render(MailImportControls, { ...props, ready: false }))
-  assert.ok(waiting.length > 0)
-  assert.ok(waiting.every((button) => button.disabled))
-  assert.equal(
-    buttons(
-      render(MailImportControls, { ...props, settings: { ...saved, encryptionConfigured: false } }),
-    ).find((button) => button.name === i18n.t('mailImport.resume'))?.disabled,
-    true,
-  )
-  const active = buttons(
-    render(MailImportControls, {
-      ...props,
-      settings: { ...saved, enabled: true },
-      status: { enabled: true, state: 'idle', pendingCount: 0 },
-    }),
-  )
-  assert.equal(
-    active.find((button) => button.name === i18n.t('mailImport.checkNow'))?.disabled,
-    false,
-  )
-  assert.equal(active.find((button) => button.name === i18n.t('mailImport.pause'))?.disabled, false)
+  assert.equal(buttons(html)[0].disabled, false)
 })
 
-test('history escapes filenames and only eligible failures offer retry', () => {
+test('the table shows only the attachment, completion time and plain outcome', () => {
   const row = {
     id: '1',
     fileName: '<img src=x onerror=alert(1)>.zip',
     state: 'failed',
-    createdAt: '2026-11-26T10:00:00Z',
-    completedAt: null,
-    createdCount: 0,
-    warnings: [],
-    errorKey: 'mailImports.sourceMissing',
-    attempts: 1,
+    createdAt: '2024-02-06T10:00:00Z',
+    completedAt: '2026-11-27T10:00:00Z',
+    attempts: 4,
+    warnings: ['technical warning'],
     canRetry: true,
   }
-  const props = {
-    history: { items: [row], page: 1, pageSize: 20, totalCount: 1 },
-    ready: true,
-    busy: false,
+  const html = render(MailImportHistory, {
+    history: {
+      items: [row, { ...row, id: '2', state: 'imported' }],
+      page: 1,
+      pageSize: 20,
+      totalCount: 2,
+    },
     onPage: noop,
-    onRetry: noop,
-  }
-  const html = render(MailImportHistory, props)
+  })
   assert.ok(html.includes('&lt;img'))
   assert.equal(html.includes('<img src=x'), false)
-  assert.equal(
-    buttons(html).filter((button) => button.name === i18n.t('mailImport.retry')).length,
-    1,
-  )
-  const done = render(MailImportHistory, {
-    ...props,
-    history: { ...props.history, items: [{ ...row, state: 'imported', canRetry: false }] },
-  })
-  assert.equal(
-    buttons(done).filter((button) => button.name === i18n.t('mailImport.retry')).length,
-    0,
-  )
-  const ignored = render(MailImportHistory, {
-    ...props,
-    history: {
-      ...props.history,
-      items: [{ ...row, state: 'ignored', fileName: '', canRetry: false }],
-    },
-  })
-  assert.ok(ignored.includes(i18n.t('mailImport.noZipAttachment')))
+  assert.ok(html.includes('2026'))
+  assert.equal(html.includes('2024'), false)
+  assert.match(html, />Failure</)
+  assert.match(html, />Success</)
+  assert.equal(html.includes('technical warning'), false)
+  assert.equal(buttons(html).length, 0)
 })
 
-test('saved passwords never populate the settings field and active mailbox identity fields stay locked', () => {
+test('admin can edit an active mailbox without a saved password appearing in the form', () => {
+  const active = { ...saved, enabled: true }
   const props = {
-    draft: model.toMailImportDraft({ ...saved, enabled: true }),
-    saved: { ...saved, enabled: true },
+    draft: model.toMailImportDraft(active),
+    saved: active,
     ready: true,
     busy: false,
     onChange: noop,
     onSave: noop,
     onTest: noop,
+    onCheck: noop,
   }
   const html = render(MailImportSettingsForm, props)
-  assert.ok(html.includes(i18n.t('mailImport.passwordSaved')))
   assert.match(html, /<input[^>]*id="mail-import-password"[^>]*value=""/)
-  for (const id of ['host', 'port', 'username', 'folder']) {
+  for (const id of ['host', 'port', 'security', 'username', 'folder']) {
     const input = [...html.matchAll(/<input\b[^>]*>/g)]
       .map(([tag]) => tag)
       .find((tag) => tag.includes(`id="mail-import-${id}"`))
-    assert.match(input, /disabled/)
+    assert.ok(input, id)
+    assert.doesNotMatch(input, /disabled/)
   }
+  assert.doesNotMatch(html, /mail-import-(?:interval|buffer)/)
+  assert.equal(
+    buttons(html).find((button) => button.name === i18n.t('mailImport.checkNow'))?.disabled,
+    false,
+  )
+  const dirty = render(MailImportSettingsForm, {
+    ...props,
+    draft: { ...props.draft, folder: 'Other' },
+  })
+  assert.equal(
+    buttons(dirty).find((button) => button.name === i18n.t('mailImport.checkNow'))?.disabled,
+    true,
+  )
   const locked = buttons(render(MailImportSettingsForm, { ...props, ready: false }))
-  assert.ok(locked.every((button) => button.disabled))
+  assert.equal(locked.find((button) => button.name === i18n.t('mailImport.save'))?.disabled, true)
 })
 
 test('retrying work and actionable backend errors resolve in both languages', async () => {
   for (const language of ['de', 'en']) {
     await i18n.changeLanguage(language)
     for (const key of [
-      'mailImport.state.retry',
+      'mailImport.failure',
       'mailImport.uidValidityChanged',
       'mailImport.authenticationFailed',
       'mailImport.encryptionUnavailable',
@@ -251,7 +222,7 @@ test('retrying work and actionable backend errors resolve in both languages', as
   await i18n.changeLanguage('en')
 })
 
-test('mail history translates existing importer warnings and preserves unknown warning text safely', async () => {
+test('manual import translates existing importer warnings and preserves unknown warning text safely', async () => {
   const { describeImportWarning } = await server.ssrLoadModule(
     '/src/features/import/import-warning.ts',
   )
@@ -279,7 +250,7 @@ test('mail history translates existing importer warnings and preserves unknown w
   await i18n.changeLanguage('en')
 })
 
-test('API controls use shared CSRF client and encode retry identities without leaking read-only settings', async () => {
+test('the history query requests processed imports and mutations use CSRF', async () => {
   const requests = []
   httpClient.defaults.adapter = async (config) => {
     requests.push(config)
@@ -291,18 +262,23 @@ test('API controls use shared CSRF client and encode retry identities without le
     model.toMailImportTestRequest(model.toMailImportDraft(saved), true),
   )
   await api.checkMailImportNow()
-  await api.retryMailImport('attachment/one ?')
+  await api.getMailImportHistory(2)
   assert.deepEqual(
     requests.map(({ method, url }) => [method, url]),
     [
       ['put', '/api/settings/mail-import'],
       ['post', '/api/settings/mail-import/test'],
       ['post', '/api/settings/mail-import/check'],
-      ['post', '/api/settings/mail-import/history/attachment%2Fone%20%3F/retry'],
+      ['get', '/api/settings/mail-import/history'],
     ],
   )
   assert.equal(JSON.parse(requests[0].data).version, 7)
   assert.equal(JSON.parse(requests[1].data).useSavedPassword, true)
-  assert.ok(requests.every((request) => request.headers.get('X-CSRF-TOKEN') === 'csrf-test-token'))
+  assert.deepEqual(requests[3].params, { page: 2, pageSize: 20, processedOnly: true })
+  assert.ok(
+    requests
+      .slice(0, 3)
+      .every((request) => request.headers.get('X-CSRF-TOKEN') === 'csrf-test-token'),
+  )
   setAntiforgeryToken(null)
 })

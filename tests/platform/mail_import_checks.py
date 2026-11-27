@@ -102,6 +102,7 @@ def verify_mail_import(base, sessions, marker, check, context):
                       sessions[role].api(base, BASE_PATH + suffix, method, {} if method == "PUT" else None)[0], 403)
 
         settings = read_settings()
+        check("admin starts with an unconfigured mailbox", (settings["host"], settings["hasPassword"]), ("", False))
         configured = settings_request(settings, enabled=False, host="imap", port=31993,
                                       security="sslOnConnect", username="baikor-mail-fixture",
                                       folder="INBOX", pollIntervalSeconds=30, bufferMetres=1,
@@ -139,7 +140,6 @@ def verify_mail_import(base, sessions, marker, check, context):
         seen = wait_history("new-seen.ZIP", "imported")
         unseen = wait_history("new-unseen.zip", "imported")
         invalid = wait_history("bad.zip", "failed")
-        wait_history("", "ignored", attempts=0)
         check("seen new mail imports a construction site", seen["createdCount"], 1)
         check("unseen new mail imports a construction site", unseen["createdCount"], 1)
         check("invalid sibling ZIP does not prevent valid attachment", invalid["errorKey"], "mailImport.archiveInvalid")
@@ -161,6 +161,13 @@ def verify_mail_import(base, sessions, marker, check, context):
         append([("duplicate.zip", first)])
         administrator.api(base, BASE_PATH + "/check", "POST")
         duplicate = wait_history("duplicate.zip", "duplicate")
+        check("mail without a ZIP leaves no history entry", any(item["state"] == "ignored" for item in history()), False)
+        status, processed = administrator.api(base, BASE_PATH + "/history?processedOnly=true&pageSize=2")
+        check("processed history can be read", status, 200)
+        check("processed history counts only completed import attempts", processed["totalCount"], 3)
+        check("processed history applies pagination after filtering", len(processed["items"]), 2)
+        check("processed history includes a completion time and import outcome",
+              all(item["completedAt"] and item["state"] in ("failed", "imported") for item in processed["items"]), True)
         check("duplicate mail cannot be retried", duplicate["canRetry"], False)
         check("duplicate mail creates no second site", hash_count(first), 1)
         check("successful mail cannot be retried", administrator.api(base, BASE_PATH + f"/history/{seen['id']}/retry", "POST")[0], 400)
@@ -176,6 +183,16 @@ def verify_mail_import(base, sessions, marker, check, context):
         administrator.api(base, BASE_PATH + "/check", "POST")
         wait_history("during-pause.zip", "imported")
         check("resume retains cursor and includes mail received while paused", hash_count(paused), 1)
+
+        new_folder = "updated-" + marker
+        check("disposable test folder can be created", mailbox.create(new_folder)[0], "OK")
+        status, _ = administrator.api(base, BASE_PATH, "PUT", settings_request(settings, folder=new_folder + "-missing"))
+        check("invalid folder is rejected while mail import is active", status, 503)
+        after_failure = read_settings()
+        check("failed active edit preserves mailbox and version", (after_failure["folder"], after_failure["version"]),
+              (settings["folder"], settings["version"]))
+        settings = save(settings, folder=new_folder)
+        check("admin changes the active folder in one save", (settings["enabled"], settings["folder"]), (True, new_folder))
 
         for uid, (seen_flag, content_hash) in messages.items():
             status, parts = mailbox.uid("FETCH", str(uid), "(FLAGS BODY.PEEK[])")

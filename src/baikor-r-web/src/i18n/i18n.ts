@@ -156,9 +156,6 @@ const de = {
   'date.rangeStart': 'Zeitraum von',
   'date.rangeEnd': 'Zeitraum bis',
   'import.title': 'Import',
-  'import.message': 'Baustellendaten können direkt aus einem Trench-Shapefile importiert werden.',
-  'import.trenches.explanation':
-    'Jeder Abschnitt im öffentlichen Raum wird als eigene Baustelle importiert. Hausanschlüsse werden übersprungen. Import und Herkunft bleiben als durchsuchbare Metadaten erhalten.',
   'import.trenches.drop': 'ZIP-Datei hier ablegen oder auswählen',
   'import.trenches.formats': 'ZIP mit SHP, DBF und PRJ (WGS 84), maximal 25 MB',
   'import.trenches.noFile': 'Keine Datei ausgewählt',
@@ -398,9 +395,6 @@ const en: Record<keyof typeof de, string> = {
   'date.rangeStart': 'Period from',
   'date.rangeEnd': 'Period to',
   'import.title': 'Import',
-  'import.message': 'Construction-site data can be imported directly from a trench shapefile.',
-  'import.trenches.explanation':
-    'Every public-space segment is imported as its own construction site. House connections are skipped. Import and source information remain available as searchable metadata.',
   'import.trenches.drop': 'Drop or select a ZIP file here',
   'import.trenches.formats': 'ZIP containing SHP, DBF and PRJ (WGS 84), maximum 25 MB',
   'import.trenches.noFile': 'No file selected',
