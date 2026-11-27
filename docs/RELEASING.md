@@ -128,8 +128,8 @@ after that release succeeds.
 Verify the published artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:0.4.0
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.4.0
+docker pull ghcr.io/synnotech-ag/baikor-r:0.4.1
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.4.1
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -143,11 +143,23 @@ addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
 The published release pairing is application/chart
-[**0.4.0**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.0) with addon
-[**0.4.0**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.0).
+[**0.4.1**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.1) with addon
+[**0.4.1**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.1).
 Addon and application release numbers remain independent.
 
-The [application release run](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45849839155)
+The [0.4.1 application release](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45983402135)
+passed all seven jobs, and the [addon validation](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45983952865)
+passed all four jobs on **2026-11-27**. Anonymous downloads verified both OCI
+digests and release-asset checksums. The published image passed 273 platform and
+permission checks and nine browser checks, including editing an active mailbox
+as an administrator and checking that a viewer cannot access its settings.
+On Core 1.6.0 the tagged addon upgraded an existing installation using the
+published chart and image. The saved mailbox and existing draft survived.
+The worker imported a new trench ZIP as one draft, and a browser sign-out
+and fresh Keycloak sign-in both succeeded.
+For existing Core installations, follow the [addon upgrade instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/0.4.1/README.md#update).
+
+The [0.4.0 application release run](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45849839155)
 passed all seven jobs, and the [addon validation run](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45850851198)
 passed all four jobs on **2026-11-26**. Anonymous release-asset downloads and
 checksums, OCI chart downloads, source metadata and artifact digests were verified

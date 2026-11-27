@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.1 — 2026-11-27
+
 - Let Baikor administrators edit an active IMAP mailbox in one save. Simplify
   the settings dialog and show each processed ZIP with its completion time and
   success or failure. Skip new history rows for mail without ZIP attachments
