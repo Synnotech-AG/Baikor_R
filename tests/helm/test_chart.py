@@ -52,19 +52,38 @@ class HelmChartTests(unittest.TestCase):
         self.assertEqual(env.get("MailImports__WorkerEnabled"), {
             "name": "MailImports__WorkerEnabled", "value": "true"})
         self.assertNotIn("MailImports__EncryptionKey", env)
+        self.assertNotIn("Encryption__Key", env)
+        self.assertNotIn("Encryption__Required", env)
+        self.assertEqual(deployment["spec"]["template"]["spec"]["containers"][0]["readinessProbe"]["httpGet"]["path"],
+                         "/health/ready")
 
-    def test_mail_key_is_only_referenced_by_application_not_migration(self):
-        manifests = self.render({"database": {"existingSecret": {"name": "database"}},
-                                 "mailImports": {"encryption": {"existingSecret": {
-                                     "name": "shared-mail-key", "key": "encryption-key"}}}})
-        app = self.resource(manifests, "Deployment")["spec"]["template"]["spec"]["containers"][0]
-        env = {entry["name"]: entry for entry in app["env"]}
-        self.assertEqual(env.get("MailImports__EncryptionKey"), {
-            "name": "MailImports__EncryptionKey", "valueFrom": {"secretKeyRef": {
-                "name": "shared-mail-key", "key": "encryption-key", "optional": True}}})
-        migration = self.resource(manifests, "Job")["spec"]["template"]["spec"]["containers"][0]
-        self.assertNotIn("MailImports__EncryptionKey", [entry["name"] for entry in migration.get("env", [])])
-        self.assertNotIn("Secret", [item["kind"] for item in manifests])
+    def test_application_key_reference_supports_existing_values_and_is_required_only_on_application(self):
+        secret_ref = {"name": "shared-key", "key": "encryption-key"}
+        canonical = {"encryption": {"existingSecret": secret_ref, "required": True, "expectedKeySha256": "a" * 64}}
+        legacy = {"mailImports": {"encryption": {"existingSecret": secret_ref}}}
+        for values in (canonical, legacy, {**canonical, **legacy}):
+            with self.subTest(values=values):
+                manifests = self.render({**values, "database": {"existingSecret": {"name": "database"}}})
+                app = self.resource(manifests, "Deployment")["spec"]["template"]["spec"]["containers"][0]
+                env = {entry["name"]: entry for entry in app["env"]}
+                self.assertEqual(env["Encryption__Key"]["valueFrom"]["secretKeyRef"], {**secret_ref, "optional": False})
+                self.assertEqual(env["Encryption__Required"]["value"], "true")
+                self.assertEqual(app["readinessProbe"]["httpGet"]["path"], "/health/ready/encryption.v1")
+                self.assertNotIn("MailImports__EncryptionKey", env)
+                if "encryption" in values:
+                    self.assertEqual(env["Encryption__ExpectedKeySha256"]["value"], "a" * 64)
+                migration = self.resource(manifests, "Job")["spec"]["template"]["spec"]["containers"][0]
+                self.assertNotIn("Encryption__Key", [entry["name"] for entry in migration.get("env", [])])
+                self.assertNotIn("Secret", [item["kind"] for item in manifests])
+
+    def test_rejects_conflicting_or_missing_application_key_references_and_malformed_fingerprint(self):
+        with self.assertRaisesRegex(AssertionError, "must reference the same Secret"):
+            self.render({"encryption": {"existingSecret": {"name": "current"}},
+                         "mailImports": {"encryption": {"existingSecret": {"name": "old"}}}})
+        with self.assertRaisesRegex(AssertionError, "encryption.existingSecret.name is required"):
+            self.render({"encryption": {"required": True}})
+        with self.assertRaisesRegex(AssertionError, "64 hexadecimal digits"):
+            self.render({"encryption": {"existingSecret": {"name": "current"}, "expectedKeySha256": "x"}})
 
     def test_mail_worker_can_be_disabled_without_disabling_the_application(self):
         deployment = self.resource(self.render({"mailImports": {"workerEnabled": False}}), "Deployment")

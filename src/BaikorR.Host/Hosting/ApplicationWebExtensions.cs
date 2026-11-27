@@ -58,6 +58,11 @@ internal static class ApplicationWebExtensions
         {
             Predicate = _ => true
         });
+        if (app.Services.GetService<ApplicationEncryptionHealthCheck>() is not null)
+        {
+            // The file suffix also gives older images a 404 instead of serving their SPA fallback.
+            app.MapHealthChecks("/health/ready/encryption.v1");
+        }
         app.MapFallbackToFile("index.html", staticFileOptions)
             .RequireAuthorization(BaikorPolicies.Viewer);
 

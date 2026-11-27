@@ -7,6 +7,7 @@ builder
     .AddApplicationConfiguration()
     .AddApplicationObservability()
     .AddApplicationPersistence()
+    .AddApplicationEncryption()
     .AddConstructionSiteFeatures()
     .AddRouteFeatures()
     .AddAlertFeatures()

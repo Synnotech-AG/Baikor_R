@@ -448,7 +448,8 @@
             "type": "boolean"
           },
           "encryptionConfigured": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this Baikor instance has a usable application key for protecting stored credentials."
           }
         }
       },

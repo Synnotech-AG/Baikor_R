@@ -1,3 +1,19 @@
+{{- $encryption := .Values.encryption | default dict -}}
+{{- $key := $encryption.existingSecret | default dict -}}
+{{- $mail := .Values.mailImports | default dict -}}
+{{- $legacyKey := dig "encryption" "existingSecret" dict $mail -}}
+{{- if and $legacyKey.name $key.name (or (ne $legacyKey.name $key.name) (ne ($legacyKey.key | default "key") ($key.key | default "key"))) -}}
+{{- fail "encryption.existingSecret and mailImports.encryption.existingSecret must reference the same Secret and key when both are set" -}}
+{{- end -}}
+{{- if not $key.name -}}
+{{- $key = $legacyKey -}}
+{{- end -}}
+{{- if and (or $encryption.required $encryption.expectedKeySha256) (not $key.name) -}}
+{{- fail "encryption.existingSecret.name is required when application encryption is required or a fingerprint is specified" -}}
+{{- end -}}
+{{- if and $encryption.expectedKeySha256 (not (regexMatch "^[[:xdigit:]]{64}$" $encryption.expectedKeySha256)) -}}
+{{- fail "encryption.expectedKeySha256 must contain 64 hexadecimal digits" -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,14 +64,20 @@ spec:
             - name: DataProtection__KeysPath
               value: {{ .Values.dataProtection.keysPath | quote }}
             - name: MailImports__WorkerEnabled
-              value: {{ .Values.mailImports.workerEnabled | quote }}
-            {{- if .Values.mailImports.encryption.existingSecret.name }}
-            - name: MailImports__EncryptionKey
+              value: {{ dig "workerEnabled" true $mail | quote }}
+            {{- if $key.name }}
+            - name: Encryption__Required
+              value: "true"
+            - name: Encryption__Key
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.mailImports.encryption.existingSecret.name | quote }}
-                  key: {{ .Values.mailImports.encryption.existingSecret.key | quote }}
-                  optional: true
+                  name: {{ $key.name | quote }}
+                  key: {{ $key.key | default "key" | quote }}
+                  optional: false
+            {{- end }}
+            {{- with $encryption.expectedKeySha256 }}
+            - name: Encryption__ExpectedKeySha256
+              value: {{ . | quote }}
             {{- end }}
             - name: Authentication__Enabled
               value: {{ .Values.authentication.enabled | quote }}
@@ -104,7 +126,7 @@ spec:
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: {{ ternary "/health/ready/encryption.v1" "/health/ready" (not (empty $key.name)) }}
               port: http
             initialDelaySeconds: 2
             periodSeconds: 5

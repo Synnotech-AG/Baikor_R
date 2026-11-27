@@ -34,13 +34,21 @@ dataProtection:
     size: 1Gi
     storageClassName: ""
 
+encryption:
+  # Root key for recoverable application credentials. The Secret contains the
+  # base64 encoding of 32 random bytes and is shared by instances using the same database.
+  existingSecret:
+    name: ""
+    key: key
+  required: false
+  # Optional SHA-256 of the decoded key, supplied by the CIVITAS addon.
+  expectedKeySha256: ""
+
 mailImports:
   # The worker remains idle until an administrator enables a mailbox in Baikor.
   workerEnabled: true
   encryption:
-    # Operator-provided Secret containing a base64-encoded random 32-byte key as
-    # its value. All application instances sharing the database need this key.
-    # No key is generated or stored in Helm values/release state.
+    # Backward compatibility for existing installations. Use encryption.existingSecret above.
     existingSecret:
       name: ""
       key: key

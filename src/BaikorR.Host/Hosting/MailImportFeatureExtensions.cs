@@ -9,8 +9,7 @@ internal static class MailImportFeatureExtensions
 {
     public static WebApplicationBuilder AddMailImports(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton<IMailImportSecretProtector>(_ =>
-            new AesMailImportSecretProtector(builder.Configuration["MailImports:EncryptionKey"]));
+        builder.Services.AddSingleton<IMailImportSecretProtector, MailImportSecretProtector>();
         builder.Services.AddSingleton<IMailboxClientFactory, MailKitMailboxClientFactory>();
         builder.Services.AddScoped<IMailImportStore, MailImportDbStore>();
         builder.Services.AddScoped<MailImportService>();

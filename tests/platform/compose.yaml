@@ -62,7 +62,8 @@ services:
       Authentication__Authority: https://keycloak:8443/realms/baikor-ci
       Authentication__ClientId: baikor-r
       Authentication__ClientSecret: ${BAIKOR_TEST_CLIENT_SECRET:?Use run_ci.py}
-      MailImports__EncryptionKey: ${BAIKOR_TEST_MAIL_ENCRYPTION_KEY:?Use run_ci.py}
+      Encryption__Key: ${BAIKOR_TEST_MAIL_ENCRYPTION_KEY:?Use run_ci.py}
+      Encryption__Required: "true"
     volumes:
       - ${BAIKOR_TEST_CERTIFICATES:?Use run_ci.py}:/certificates:ro
     depends_on:

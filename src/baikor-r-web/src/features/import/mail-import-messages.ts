@@ -31,7 +31,7 @@ export const mailImportEn = {
   'mailImport.passwordRequired': 'Enter a password before enabling email import.',
   'mailImport.passwordDestinationChanged': 'Enter a password for the changed connection.',
   'mailImport.keyMissing':
-    'Email import is unavailable because its encryption key is missing. Ask your platform operator to configure it.',
+    'Baikor cannot access its application encryption key. Contact your platform administrator.',
   'mailImport.historyEmpty': 'No processed imports yet.',
   'mailImport.filename': 'File',
   'mailImport.time': 'Processed at',
@@ -106,7 +106,7 @@ export const mailImportDe: Record<keyof typeof mailImportEn, string> = {
   'mailImport.passwordRequired': 'Vor dem Aktivieren ein Passwort eingeben.',
   'mailImport.passwordDestinationChanged': 'Für die geänderte Verbindung ein Passwort eingeben.',
   'mailImport.keyMissing':
-    'Der E-Mail-Import ist nicht verfügbar, da sein Verschlüsselungsschlüssel fehlt. Bitte die Plattformadministration kontaktieren.',
+    'Baikor kann seinen Anwendungsschlüssel nicht verwenden. Bitte die Plattformadministration kontaktieren.',
   'mailImport.historyEmpty': 'Noch keine verarbeiteten Importe.',
   'mailImport.filename': 'Datei',
   'mailImport.time': 'Zeitpunkt',

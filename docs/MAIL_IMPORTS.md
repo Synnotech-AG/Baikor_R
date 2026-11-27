@@ -2,7 +2,7 @@
 
 Anyone with the `baikor_admin` role can open **Import → Settings** to configure
 one IMAP account and folder, including while automatic import is running.
-On CIVITAS the addon provisions the encryption key during deployment. The
+On CIVITAS the addon provisions Baikor's application encryption key during deployment. The
 administrator can enter or change the mailbox later without restarting Baikor.
 Baikor checks that folder in its built-in background worker and sends matching
 ZIP attachments directly to the R-KOM importer. No Node-RED deployment, workflow,
@@ -49,33 +49,51 @@ and message bodies are not stored in import history.
 
 ## Deployment key and network
 
-The CIVITAS addon creates `baikor-r-mail-encryption` once in the application
-namespace. Its `key` value is a base64-encoded cryptographically random 32-byte
-encryption key. The addon preserves it on upgrades and refuses to replace a
-malformed existing key. Database backups and this Secret must be backed up
-together. Every app deployment sharing the database must reference the same key,
-even if browser-session Data Protection key volumes differ.
+Baikor uses one application encryption key for stored credentials. Each
+credential type has its own encryption purpose. The first use is the IMAP
+password. Browser sessions keep their existing ASP.NET Core Data Protection
+keys.
+
+On a fresh CIVITAS installation the addon creates the Kubernetes Secret
+`baikor-r-encryption` in the application namespace. Its `key` field contains
+a base64-encoded random 32-byte key. On an upgrade from 0.4.0 or 0.4.1 the
+addon preserves the original key bytes, including a custom Secret reference,
+so saved passwords remain readable without re-entry. An installation with no
+previous key or saved password gets a key during the normal addon deployment.
+If automatic creation fails, a platform administrator can provision the same
+Kubernetes Secret and rerun Ansible. The [addon key recovery instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/0.4.2/README.md#application-encryption)
+give the command and explain when the original key must be restored.
+Keep the Secret with your database backups and configure every Baikor
+deployment sharing those credentials to use the same key.
 
 For standalone Helm deployments, create the Secret through the operator's normal
 secret manager and reference it:
 
 ```yaml
-mailImports:
-  workerEnabled: true
-  encryption:
-    existingSecret:
-      name: baikor-r-mail-encryption
-      key: key
+encryption:
+  required: true
+  existingSecret:
+    name: baikor-r-encryption
+    key: key
 ```
 
-The chart does not accept or generate the key in values. The environment variable
-`MailImports__EncryptionKey` is populated from the Secret. A missing key or a key
-that cannot decrypt the saved password makes mail processing unavailable while
-the rest of Baikor remains usable. Restore the original Secret rather than
-generating a replacement. For deliberate rotation, pause mail processing, retain
-the original key and database backup, install the new key on every app instance,
-restart them, and re-enter the mailbox password before resuming. Merely replacing
-the key does not re-encrypt the saved password.
+The chart passes the Secret to the app as `Encryption__Key`. Standalone
+installations upgrading with the old `mailImports.encryption.existingSecret`
+values can continue using that reference. The addon waits for the new pods to
+pass `/health/ready/encryption.v1`, which checks the active key against its
+expected fingerprint and decrypts any saved IMAP password.
+If a deployment reports a key mismatch or decryption failure, recover the
+original key bytes from backup. If a failed upgrade already recorded a newly
+generated key, roll back to the previous Helm revision first, restore the
+original bytes to the Secret references used by both revisions, then rerun
+the addon. A newly generated key cannot decrypt an existing password.
+
+If mail settings still report an unavailable key after a successful deployment,
+check which Service and pods the Baikor hostname routes to. Compare their
+image, namespace and `Encryption__Key` Secret reference with the deployment
+the addon verified. The mail settings response exposes the
+`encryptionConfigured` flag to administrators. The Secret value and IMAP
+password are unnecessary for this diagnosis.
 
 The worker can be switched off per deployment with `mailImports.workerEnabled`.
 Mailbox settings are disabled on a fresh installation regardless of that switch.
@@ -91,7 +109,7 @@ Keep the existing workflow running while building and testing the native feature
 Perform cutover during a controlled window after isolated native-mail acceptance:
 
 1. Deploy the native-capable application with mail settings disabled. Back up the
-   application database and the dedicated mail encryption Secret.
+   application database and Baikor's application encryption Secret.
 2. Quiesce the dedicated old mail workflow and wait for all in-flight requests.
    Snapshot its durable `/data/context/baikor_mail_import/flow.json` ledger and
    connection settings through a protected operator channel. Retain the original

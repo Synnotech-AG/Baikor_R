@@ -1,10 +1,12 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
 using BaikorR.Core.Features.MailImports;
+using BaikorR.Core.Features.MailImports.Security;
 using BaikorR.Core.Importers.Rkom;
 using BaikorR.Core.Persistence.Entities;
 using BaikorR.Core.Persistence.MailImports;
 using BaikorR.Core.Persistence.Sessions;
+using BaikorR.Core.Shared.Security;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -164,7 +166,8 @@ public sealed class MailImportPostgisTests
         await using var context = database.CreateContext();
         await EnableAsync(context);
         var store = new MailImportDbStore(context);
-        var service = new MailImportService(store, new Mailbox(), new BaikorR.Core.Features.MailImports.Security.AesMailImportSecretProtector(null), TimeProvider.System);
+        var service = new MailImportService(store, new Mailbox(),
+            new MailImportSecretProtector(new ApplicationSecretEncryption(null)), TimeProvider.System);
         var status = await service.StatusAsync(default);
         Assert.Equal("unavailable", status.State);
         Assert.Equal("mailImport.encryptionUnavailable", status.ErrorKey);

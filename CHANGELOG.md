@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.4.2 — 2026-11-27
+
+- Use one persistent application key for stored credentials. The CIVITAS addon
+  provisions it automatically, preserves existing IMAP passwords, and checks
+  that the running deployment can use the key before reporting success.
 
 ## 0.4.1 — 2026-11-27
 
