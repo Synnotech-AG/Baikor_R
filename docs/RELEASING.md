@@ -128,8 +128,8 @@ after that release succeeds.
 Verify the published artifacts from a client without stored GHCR credentials:
 
 ```shell
-docker pull ghcr.io/synnotech-ag/baikor-r:0.4.1
-helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.4.1
+docker pull ghcr.io/synnotech-ag/baikor-r:0.4.2
+helm show chart oci://ghcr.io/synnotech-ag/baikor-r-chart --version 0.4.2
 ```
 
 The release workflow performs its own checks using an empty credential store.
@@ -143,9 +143,21 @@ addon's version pin, run its CI, and publish the compatible addon revision.
 Operators then update their addon revision and run the normal Core playbook.
 
 The published release pairing is application/chart
-[**0.4.1**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.1) with addon
-[**0.4.1**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.1).
+[**0.4.2**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.2) with addon
+[**0.4.2**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.2).
 Addon and application release numbers remain independent.
+
+On **2026-11-27**, the [0.4.2 release workflow](https://github.com/Synnotech-AG/Baikor_R/actions/runs/46019747470)
+and all four [addon validation jobs](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/46020467923) passed.
+Anonymous downloads verified the published image, chart, checksums and addon pins.
+The published image passed 273 platform and permission checks.
+Stock CIVITAS Core 1.6.0 upgraded 0.3.2 and 0.4.1 by changing only the addon
+checkout. Both upgrades used the original inventory without a key setting. The
+0.4.1 mailbox connected with its saved password and imported a new trench ZIP.
+An unconfigured 0.4.1 installation that showed the missing-key warning recovered
+on the same upgrade. A fresh installation also adopted the Secret created with
+the documented platform administrator command.
+For existing Core installations, follow the [addon upgrade instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/0.4.2/README.md#update).
 
 The [0.4.1 application release](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45983402135)
 passed all seven jobs, and the [addon validation](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45983952865)
@@ -157,7 +169,6 @@ On Core 1.6.0 the tagged addon upgraded an existing installation using the
 published chart and image. The saved mailbox and existing draft survived.
 The worker imported a new trench ZIP as one draft, and a browser sign-out
 and fresh Keycloak sign-in both succeeded.
-For existing Core installations, follow the [addon upgrade instructions](https://github.com/Synnotech-AG/Baikor_R.Addon/blob/0.4.1/README.md#update).
 
 The [0.4.0 application release run](https://github.com/Synnotech-AG/Baikor_R/actions/runs/45849839155)
 passed all seven jobs, and the [addon validation run](https://github.com/Synnotech-AG/Baikor_R.Addon/actions/runs/45850851198)

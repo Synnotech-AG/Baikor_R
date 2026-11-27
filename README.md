@@ -138,8 +138,8 @@ See [docs/RELEASING.md](docs/RELEASING.md) for initial package visibility setup,
 safe retries and the operator deployment process.
 
 Changes are recorded in [CHANGELOG.md](CHANGELOG.md). Application/chart release
-[**0.4.1**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.1) pairs with
-addon [**0.4.1**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.1).
+[**0.4.2**](https://github.com/Synnotech-AG/Baikor_R/releases/tag/0.4.2) pairs with
+addon [**0.4.2**](https://github.com/Synnotech-AG/Baikor_R.Addon/releases/tag/0.4.2).
 The addon pins both published artifacts. Sites with a dedicated Node-RED mail
 importer should follow the [mail cutover guide](docs/MAIL_IMPORTS.md#cut-over-an-existing-node-red-mail-importer)
 before enabling the native worker.
